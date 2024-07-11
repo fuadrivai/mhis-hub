@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "570915657063",
+    "project_id": "mhportalemployee",
+    "storage_bucket": "mhportalemployee.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570915657063:android:b86d1ac7a5d8f33d304bc2",
+        "android_client_info": {
+          "package_name": "com.example.fl_mhis_hr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "570915657063-6pn6l8fi3s476un1lbap1mktsj06b8of.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fl_mhis_hr",
+            "certificate_hash": "73b99580980e2f91dfd684e7fd33bf0a36f10e89"
+          }
+        },
+        {
+          "client_id": "570915657063-d309fgugjupm8b40e5d4082fdd081vb3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhiCUp8K_37LOVSKwAwfWH7m5px0npTj4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "570915657063-d309fgugjupm8b40e5d4082fdd081vb3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "570915657063-26l6l7sfkfdu4bssqgm67j0qatr35ica.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flMhisHr"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
