@@ -12,8 +12,18 @@ abstract class RestClient {
   @GET("")
   Future<List<Schedule>> getSchoolCalendar();
 
+  @GET("")
+  Future<List<Newsletter>> getNewsletter();
+
   @GET("user/check/{email}")
   Future<bool> checkUser(@Path() String email);
+
   @GET("user/email/{email}")
   Future<AcademyUser> getUserByEmail(@Path() String email);
+
+  @POST("login")
+  Future<LoginResponse> onLogin(@Body() data);
+
+  @DELETE("logout")
+  Future<dynamic> onLogout();
 }

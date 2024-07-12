@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    double topBarOpacity = 0.0;
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: CustomAppbar(
@@ -51,6 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                   height: 370,
                   child: SfCalendar(
+                    headerHeight: 30,
+                    cellEndPadding: -1,
+                    headerDateFormat: "MMMM y",
                     timeZone: 'SE Asia Standard Time',
                     view: CalendarView.month,
                     controller: _calendarController,
@@ -62,51 +66,72 @@ class _HomeScreenState extends State<HomeScreen> {
                     dataSource: ScheduleDataSource(state.schedules ?? []),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0, vertical: 10),
-                  child: GridView(
-                    shrinkWrap: true,
-                    gridDelegate:
-                        const SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 100,
-                      childAspectRatio: 1,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
-                    children: const [
-                      WidgetBox(
-                        label: "Payment Slip",
-                        icon: Icon(
-                          FontAwesomeIcons.dollarSign,
-                          size: 35,
-                          color: AppColors.primary2,
+                const SizedBox(height: 10),
+                Container(
+                  color: AppColors.white,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 5,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Widget",
+                            style: TextStyle(
+                              color: AppColors.dismissibleBackground,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15 + 6 - 6 * topBarOpacity,
+                            ),
+                          ),
                         ),
                       ),
-                      WidgetBox(
-                        label: "Attendande",
-                        icon: Icon(
-                          FontAwesomeIcons.signHanging,
-                          size: 35,
-                          color: AppColors.primary2,
-                        ),
+                      const Divider(),
+                      listTile(
+                        title: "Payment Slip",
+                        iconData: FontAwesomeIcons.dollarSign,
                       ),
-                      WidgetBox(
-                        label: "Payment Slip",
-                        icon: Icon(
-                          FontAwesomeIcons.dollarSign,
-                          size: 35,
-                          color: AppColors.primary2,
-                        ),
+                      listTile(
+                        title: "Attendance",
+                        iconData: FontAwesomeIcons.rightToBracket,
+                      ),
+                      listTile(
+                        title: "Newsletter",
+                        iconData: FontAwesomeIcons.newspaper,
+                        onTap: () {},
                       ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
           );
         },
       ),
+    );
+  }
+
+  Widget listTile({
+    required String title,
+    required IconData iconData,
+    GestureTapCallback? onTap,
+  }) {
+    return ListTile(
+      dense: true,
+      title: Text(title),
+      leading: FaIcon(
+        iconData,
+        size: 35,
+        color: AppColors.primary2,
+      ),
+      trailing: const Icon(
+        Icons.arrow_forward_ios_rounded,
+        color: Color.fromARGB(255, 101, 101, 101),
+        size: 15,
+      ),
+      onTap: onTap,
     );
   }
 }

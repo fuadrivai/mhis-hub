@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 class AppColors {
   static const lightsky = Color(0xFFA6C0FF);
   static const whiteshade = Color(0xFFF8F9FA);
+  static const white = Color.fromARGB(255, 255, 255, 255);
   static const blue = Color(0xFF497fff);
   static const lightblueshade = Color(0xFF758CC8);
   static const grayshade = Color(0xFFEBEBEB);

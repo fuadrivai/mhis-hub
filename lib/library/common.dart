@@ -1,3 +1,4 @@
+import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -5,6 +6,13 @@ class Common {
   Common._();
   static String imageLogo = 'assets/images/logo.png';
   static String talentaLogo = 'assets/images/talenta.png';
+
+  static Gradient gradient = const LinearGradient(
+    colors: [AppColors.primary, AppColors.primary2],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    stops: [0.3, 0.9],
+  );
 
   static modalInfo(BuildContext context,
       {String? message, required String title, Icon? icon, MODE? mode}) {

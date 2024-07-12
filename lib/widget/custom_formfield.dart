@@ -11,16 +11,17 @@ class CustomFormField extends StatelessWidget {
   final TextEditingController controller;
   final int maxLines;
 
-  const CustomFormField(
-      {super.key,
-      required this.headingText,
-      required this.hintText,
-      required this.obsecureText,
-      required this.suffixIcon,
-      required this.textInputType,
-      required this.textInputAction,
-      required this.controller,
-      required this.maxLines});
+  const CustomFormField({
+    super.key,
+    required this.headingText,
+    required this.hintText,
+    required this.obsecureText,
+    required this.suffixIcon,
+    required this.textInputType,
+    required this.textInputAction,
+    required this.controller,
+    required this.maxLines,
+  });
 
   @override
   Widget build(BuildContext context) {

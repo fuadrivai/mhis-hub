@@ -27,20 +27,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
   }
 
-  final Gradient _gradient = const LinearGradient(
-    colors: [AppColors.primary, AppColors.primary2],
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    stops: [0.3, 0.9],
-  );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(0),
         child: Container(
-          decoration: BoxDecoration(gradient: _gradient),
+          decoration: BoxDecoration(gradient: Common.gradient),
         ),
       ),
       body: RefreshIndicator(
@@ -55,7 +48,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: <Widget>[
                 Container(
                   height: 200,
-                  decoration: BoxDecoration(gradient: _gradient),
+                  decoration: BoxDecoration(gradient: Common.gradient),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,

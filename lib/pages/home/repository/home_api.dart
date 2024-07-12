@@ -7,4 +7,10 @@ class HomeApi {
     var data = client.getSchoolCalendar();
     return data;
   }
+
+  static Future<List<Newsletter>> getNewsletter(String url) async {
+    final client = await Api.restClient(baseurl: url);
+    var data = client.getNewsletter();
+    return data;
+  }
 }

@@ -27,7 +27,7 @@ class RouteNavigation {
         path: '/auth',
         pageBuilder: (context, state) {
           return const NoTransitionPage(
-            child: SignInDemo(),
+            child: LoginScreen(),
           );
         },
       ),

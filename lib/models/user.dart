@@ -47,7 +47,7 @@ class AcademyUser {
   int? offline;
   String? offlineMessage;
   int? createdAt;
-  String? updatedAt;
+  int? updatedAt;
   String? deletedAt;
   int? categoryId;
   int? locationId;

@@ -9,3 +9,9 @@ class OnGetSchoolCalendar extends HomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class OnGetNewsletter extends HomeEvent {
+  const OnGetNewsletter();
+  @override
+  List<Object?> get props => [];
+}

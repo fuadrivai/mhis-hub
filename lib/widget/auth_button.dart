@@ -6,8 +6,12 @@ class AuthButton extends StatelessWidget {
   final double? height;
   final Function() onTap;
 
-  const AuthButton(
-      {super.key, required this.onTap, required this.text, this.height});
+  const AuthButton({
+    super.key,
+    required this.onTap,
+    required this.text,
+    this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +23,7 @@ class AuthButton extends StatelessWidget {
         margin: const EdgeInsets.only(left: 20, right: 20),
         decoration: const BoxDecoration(
           color: AppColors.primary,
-          borderRadius: BorderRadius.all(
-            Radius.circular(10),
-          ),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
         child: Center(
           child: Text(

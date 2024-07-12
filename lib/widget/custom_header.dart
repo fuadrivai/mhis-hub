@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 
 class CustomHeader extends StatelessWidget {
   final String text;
-  final Function()? onTap;
-  const CustomHeader({super.key, required this.text, required this.onTap});
+  const CustomHeader({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
