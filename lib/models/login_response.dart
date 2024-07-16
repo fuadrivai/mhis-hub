@@ -1,15 +1,15 @@
 class LoginResponse {
   String? status;
   User? user;
-  Authorisation? authorisation;
+  Authorization? authorization;
 
-  LoginResponse({this.status, this.user, this.authorisation});
+  LoginResponse({this.status, this.user, this.authorization});
 
   LoginResponse.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     user = json['user'] != null ? User.fromJson(json['user']) : null;
-    authorisation = json['authorisation'] != null
-        ? Authorisation.fromJson(json['authorisation'])
+    authorization = json['authorization'] != null
+        ? Authorization.fromJson(json['authorization'])
         : null;
   }
 
@@ -19,8 +19,8 @@ class LoginResponse {
     if (user != null) {
       data['user'] = user!.toJson();
     }
-    if (authorisation != null) {
-      data['authorisation'] = authorisation!.toJson();
+    if (authorization != null) {
+      data['authorization'] = authorization!.toJson();
     }
     return data;
   }
@@ -63,13 +63,13 @@ class User {
   }
 }
 
-class Authorisation {
+class Authorization {
   String? token;
   String? type;
 
-  Authorisation({this.token, this.type});
+  Authorization({this.token, this.type});
 
-  Authorisation.fromJson(Map<String, dynamic> json) {
+  Authorization.fromJson(Map<String, dynamic> json) {
     token = json['token'];
     type = json['type'];
   }

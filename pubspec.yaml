@@ -50,10 +50,13 @@ dependencies:
   intl: ^0.19.0
   dio: ^5.5.0+1
   shared_preferences: ^2.2.3
-  webview_flutter: ^4.8.0
   syncfusion_flutter_calendar: ^26.1.41
   color_parser: ^0.0.3
-  animate_do: ^3.3.4
+  url_launcher: ^6.3.0
+  loading_animation_widget: ^1.2.1
+  webview_flutter: ^4.8.0
+  webview_flutter_android: ^3.16.0
+  webview_flutter_wkwebview: ^3.13.0
 
 dev_dependencies:
   flutter_test:

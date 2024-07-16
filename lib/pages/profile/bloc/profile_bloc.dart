@@ -38,7 +38,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         isError: false,
       ));
     } catch (e) {
-      print(e);
+      emit(state.copyWith(
+        user: state.user,
+        isLoading: false,
+        isError: false,
+      ));
     }
   }
 }

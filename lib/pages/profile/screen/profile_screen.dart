@@ -42,7 +42,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingWidget();
             }
             return ListView(
               children: <Widget>[

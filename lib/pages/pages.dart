@@ -1,4 +1,6 @@
 export 'package:fl_mhis_hr/pages/home/screen/home_screen.dart';
+export 'package:fl_mhis_hr/pages/home/screen/newsletter_screen.dart';
+export 'package:fl_mhis_hr/pages/home/screen/paymentslip_screen.dart';
 export 'package:fl_mhis_hr/pages/login/screen/login_screen.dart';
 export 'package:fl_mhis_hr/pages/login/screen/login_google.dart';
 export 'package:fl_mhis_hr/pages/profile/screen/profile_screen.dart';

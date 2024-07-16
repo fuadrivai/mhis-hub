@@ -5,6 +5,7 @@ import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,87 +29,97 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     double topBarOpacity = 0.0;
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.whiteshade,
-        leading: Container(
-          padding: const EdgeInsets.only(left: 10),
-          height: 40,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<HomeBloc>().add(const OnGetSchoolCalendar());
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: CustomAppbar(
+          backgroundColor: AppColors.whiteshade,
+          leading: Container(
+            padding: const EdgeInsets.only(left: 10),
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Image.asset(Common.imageLogo),
           ),
-          child: Image.asset(Common.imageLogo),
+          title: "Dashboard",
         ),
-        title: "Dashboard",
-      ),
-      body: BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, state) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.white,
-                  height: 370,
-                  child: SfCalendar(
-                    headerHeight: 30,
-                    cellEndPadding: -1,
-                    headerDateFormat: "MMMM y",
-                    timeZone: 'SE Asia Standard Time',
-                    view: CalendarView.month,
-                    controller: _calendarController,
-                    initialDisplayDate: DateTime.now(),
-                    monthViewSettings: const MonthViewSettings(
-                      showAgenda: true,
-                      agendaItemHeight: 60,
+        body: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.scheduleLoading) {
+              return const LoadingWidget();
+            }
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.white,
+                    height: 370,
+                    child: SfCalendar(
+                      headerHeight: 30,
+                      cellEndPadding: -1,
+                      headerDateFormat: "MMMM y",
+                      timeZone: 'SE Asia Standard Time',
+                      view: CalendarView.month,
+                      controller: _calendarController,
+                      initialDisplayDate: DateTime.now(),
+                      monthViewSettings: const MonthViewSettings(
+                        showAgenda: true,
+                        agendaItemHeight: 60,
+                      ),
+                      dataSource: ScheduleDataSource(state.schedules ?? []),
                     ),
-                    dataSource: ScheduleDataSource(state.schedules ?? []),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  color: AppColors.white,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0,
-                          vertical: 5,
-                        ),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Widget",
-                            style: TextStyle(
-                              color: AppColors.dismissibleBackground,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15 + 6 - 6 * topBarOpacity,
+                  const SizedBox(height: 10),
+                  Container(
+                    color: AppColors.white,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0,
+                            vertical: 5,
+                          ),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Information",
+                              style: TextStyle(
+                                color: AppColors.dismissibleBackground,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15 + 6 - 6 * topBarOpacity,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const Divider(),
-                      listTile(
-                        title: "Payment Slip",
-                        iconData: FontAwesomeIcons.dollarSign,
-                      ),
-                      listTile(
-                        title: "Attendance",
-                        iconData: FontAwesomeIcons.rightToBracket,
-                      ),
-                      listTile(
-                        title: "Newsletter",
-                        iconData: FontAwesomeIcons.newspaper,
-                        onTap: () {},
-                      ),
-                    ],
+                        const Divider(),
+                        listTile(
+                          title: "Payment Slip",
+                          iconData: FontAwesomeIcons.dollarSign,
+                          onTap: () => context.goNamed("paymentsllip"),
+                        ),
+                        listTile(
+                          title: "Attendance",
+                          iconData: FontAwesomeIcons.rightToBracket,
+                        ),
+                        listTile(
+                          title: "Newsletter",
+                          iconData: FontAwesomeIcons.newspaper,
+                          onTap: () => context.goNamed('announcement'),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

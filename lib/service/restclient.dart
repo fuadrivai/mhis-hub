@@ -15,6 +15,9 @@ abstract class RestClient {
   @GET("")
   Future<List<Newsletter>> getNewsletter();
 
+  @GET("")
+  Future<dynamic> academyLogin();
+
   @GET("user/check/{email}")
   Future<bool> checkUser(@Path() String email);
 

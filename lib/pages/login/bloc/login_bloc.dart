@@ -17,18 +17,27 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   void _onLoginGoogle(OnLoginGoole event, Emitter<LoginState> emit) async {}
 
   void _onLogin(OnLogin event, Emitter<LoginState> emit) async {
-    emit(state.copyWith(isLoading: true));
-    bool isExist = await LoginApi.checkUser(event.data['email']);
-    if (isExist) {
-      LoginResponse resp = await LoginApi.onLogin(event.data);
-      await Future.wait([
-        Session.set("email", resp.user?.email ?? ""),
-        Session.set("name", resp.user?.name ?? ""),
-        Session.set("token",
-            "${resp.authorisation?.type} ${resp.authorisation?.token ?? ""}"),
-      ]);
-      emit(state.copyWith(isLoading: false, isSuccess: true, isError: false));
-    } else {
+    try {
+      emit(state.copyWith(isLoading: true));
+      bool isExist = await LoginApi.checkUser(event.data['email']);
+      if (isExist) {
+        LoginResponse resp = await LoginApi.onLogin(event.data);
+        await Future.wait([
+          Session.set("email", resp.user?.email ?? ""),
+          Session.set("name", resp.user?.name ?? ""),
+          Session.set("token",
+              "${resp.authorization?.type} ${resp.authorization?.token ?? ""}"),
+        ]);
+        emit(state.copyWith(isLoading: false, isSuccess: true, isError: false));
+      } else {
+        emit(state.copyWith(
+          isLoading: false,
+          isSuccess: false,
+          isError: true,
+          errorMessage: "Cannot find email in Academy system",
+        ));
+      }
+    } catch (e) {
       emit(state.copyWith(
         isLoading: false,
         isSuccess: false,

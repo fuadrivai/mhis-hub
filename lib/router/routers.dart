@@ -46,6 +46,28 @@ class RouteNavigation {
                 child: HomeScreen(),
               );
             },
+            routes: [
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
+                path: 'announcement',
+                name: "announcement",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: NewsletterScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
+                path: 'payment-slip',
+                name: "paymentsllip",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: PaymentslipScreen(),
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             parentNavigatorKey: _dashboardNavigatorKey,
