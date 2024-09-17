@@ -1,12 +1,12 @@
-class Schedule {
+class SchoolCalendar {
   String? subject;
   String? starttime;
   String? endtime;
   String? color;
 
-  Schedule({this.subject, this.starttime, this.endtime, this.color});
+  SchoolCalendar({this.subject, this.starttime, this.endtime, this.color});
 
-  Schedule.fromJson(Map<String, dynamic> json) {
+  SchoolCalendar.fromJson(Map<String, dynamic> json) {
     subject = json['subject'];
     starttime = json['starttime'];
     endtime = json['endtime'];

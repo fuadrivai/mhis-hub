@@ -1,6 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
-import 'package:fl_mhis_hr/pages/home/repository/schedule_data_source.dart';
+import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,16 +23,46 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     DateTime now = DateTime.now();
     _calendarController.selectedDate = DateTime(now.year, now.month, now.day);
-    context.read<HomeBloc>().add(const OnGetSchoolCalendar());
+    context.read<HomeBloc>().add(const OnInitAttendance());
+    context.read<HomeBloc>().add(const OnInitCalendar());
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      if (!mounted) return;
+      Common.flushBar(
+        context,
+        title: message.notification?.title ?? "",
+        message: message.notification?.body ?? "",
+      );
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      // ignore: avoid_print
+      print('App opened by notification: ${message.notification?.title}');
+    });
+
+    handleTerminatedState();
     super.initState();
+  }
+
+  Future<void> handleTerminatedState() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    RemoteMessage? initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      if (!mounted) return;
+      Common.flushBar(
+        context,
+        title: initialMessage.notification?.title ?? "",
+        message: initialMessage.notification?.body ?? "",
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    double topBarOpacity = 0.0;
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<HomeBloc>().add(const OnGetSchoolCalendar());
+        context.read<HomeBloc>().add(const OnInitAttendance());
+        context.read<HomeBloc>().add(const OnInitCalendar());
       },
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -45,80 +76,52 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Image.asset(Common.imageLogo),
           ),
-          title: "Dashboard",
+          title: "Home",
         ),
-        body: BlocBuilder<HomeBloc, HomeState>(
-          builder: (context, state) {
-            if (state.scheduleLoading) {
-              return const LoadingWidget();
-            }
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.white,
-                    height: 370,
-                    child: SfCalendar(
-                      headerHeight: 30,
-                      cellEndPadding: -1,
-                      headerDateFormat: "MMMM y",
-                      timeZone: 'SE Asia Standard Time',
-                      view: CalendarView.month,
-                      controller: _calendarController,
-                      initialDisplayDate: DateTime.now(),
-                      monthViewSettings: const MonthViewSettings(
-                        showAgenda: true,
-                        agendaItemHeight: 60,
+        body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              const ClockInOutHome(),
+              const CalendarCard(),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 25),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  color: AppColors.white,
+                  child: Column(
+                    children: [
+                      const TextTitle(title: "Information"),
+                      const Divider(),
+                      listTile(
+                        title: "General Announcement",
+                        iconData: FontAwesomeIcons.paperPlane,
                       ),
-                      dataSource: ScheduleDataSource(state.schedules ?? []),
-                    ),
+                      const Divider(),
+                      listTile(
+                        title: "Newsletter",
+                        iconData: FontAwesomeIcons.newspaper,
+                        onTap: () => context.goNamed('announcement'),
+                      ),
+                      const Divider(),
+                      listTile(
+                        title: "Attendance Log",
+                        iconData: FontAwesomeIcons.rightToBracket,
+                        onTap: () => context.goNamed('attendance-history'),
+                      ),
+                      const Divider(),
+                      listTile(
+                        title: "Payment Slip",
+                        iconData: FontAwesomeIcons.sackDollar,
+                        onTap: () => context.goNamed("paymentsllip"),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  Container(
-                    color: AppColors.white,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20.0,
-                            vertical: 5,
-                          ),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Information",
-                              style: TextStyle(
-                                color: AppColors.dismissibleBackground,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15 + 6 - 6 * topBarOpacity,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Divider(),
-                        listTile(
-                          title: "Payment Slip",
-                          iconData: FontAwesomeIcons.dollarSign,
-                          onTap: () => context.goNamed("paymentsllip"),
-                        ),
-                        listTile(
-                          title: "Attendance",
-                          iconData: FontAwesomeIcons.rightToBracket,
-                        ),
-                        listTile(
-                          title: "Newsletter",
-                          iconData: FontAwesomeIcons.newspaper,
-                          onTap: () => context.goNamed('announcement'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            );
-          },
+            ],
+          ),
         ),
       ),
     );
@@ -130,8 +133,9 @@ class _HomeScreenState extends State<HomeScreen> {
     GestureTapCallback? onTap,
   }) {
     return ListTile(
-      dense: true,
-      title: Text(title),
+      title: Text(
+        title,
+      ),
       leading: FaIcon(
         iconData,
         size: 35,

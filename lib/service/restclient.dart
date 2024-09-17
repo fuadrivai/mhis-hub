@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/models/model.dart';
-import 'package:retrofit/http.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'restclient.g.dart';
@@ -9,10 +8,10 @@ part 'restclient.g.dart';
 abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
 
-  @GET("")
-  Future<List<Schedule>> getSchoolCalendar();
+  @GET("school/calendar")
+  Future<List<SchoolCalendar>> getSchoolCalendar();
 
-  @GET("")
+  @GET("newsletter")
   Future<List<Newsletter>> getNewsletter();
 
   @GET("")
@@ -21,12 +20,28 @@ abstract class RestClient {
   @GET("user/check/{email}")
   Future<bool> checkUser(@Path() String email);
 
-  @GET("user/email/{email}")
-  Future<AcademyUser> getUserByEmail(@Path() String email);
-
   @POST("login")
   Future<LoginResponse> onLogin(@Body() data);
 
+  @POST("password/change")
+  Future<dynamic> changePassword(@Body() Map<String, dynamic> map);
+
   @DELETE("logout")
   Future<dynamic> onLogout();
+
+  @GET("person")
+  Future<ServerSideEmployee> getEmployee();
+
+  @GET("person/{id}")
+  Future<Employee> getEmployeeById(@Path() int id);
+
+  @GET("attendance/schedule/{userId}")
+  Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(@Path() int userId);
+
+  @GET("attendance/history")
+  Future<List<AttendanceHistory>> getAttendanceHistory(
+      @Body() Map<String, dynamic> map);
+
+  @GET("payslip")
+  Future<Pagination> getPaySlipData();
 }

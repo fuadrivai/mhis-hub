@@ -32,7 +32,7 @@ class CustomFormField extends StatelessWidget {
           margin: const EdgeInsets.only(
             left: 20,
             right: 20,
-            bottom: 10,
+            bottom: 5,
           ),
           child: Text(
             headingText,

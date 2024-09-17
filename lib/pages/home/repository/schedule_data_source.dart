@@ -5,7 +5,7 @@ import 'package:jiffy/jiffy.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 class ScheduleDataSource extends CalendarDataSource {
-  ScheduleDataSource(List<Schedule> source) {
+  ScheduleDataSource(List<SchoolCalendar> source) {
     appointments = source;
   }
 

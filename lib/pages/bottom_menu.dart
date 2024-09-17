@@ -14,7 +14,7 @@ class BottomMenu extends StatefulWidget {
 }
 
 class _BottomMenuState extends State<BottomMenu> {
-  int _currentIndex = 0;
+  int _currentIndex = 2;
   Color bgColor = AppColors.primary;
 
   @override
@@ -24,6 +24,8 @@ class _BottomMenuState extends State<BottomMenu> {
       bottomNavigationBar: CurvedNavigationBar(
         index: _currentIndex,
         backgroundColor: bgColor,
+        iconPadding: 10,
+        buttonBackgroundColor: const Color.fromARGB(255, 235, 235, 235),
         onTap: (i) {
           _currentIndex = i;
           callPage(_currentIndex);
@@ -32,10 +34,10 @@ class _BottomMenuState extends State<BottomMenu> {
         items: [
           CurvedNavigationBarItem(
             child: Icon(
-              FontAwesomeIcons.house,
+              FontAwesomeIcons.peopleGroup,
               color: bgColor,
             ),
-            label: 'Home',
+            label: 'Employee',
           ),
           CurvedNavigationBarItem(
             child: Container(
@@ -51,10 +53,18 @@ class _BottomMenuState extends State<BottomMenu> {
             label: 'Academy',
           ),
           CurvedNavigationBarItem(
+            child: Icon(
+              FontAwesomeIcons.house,
+              color: bgColor,
+            ),
+            label: 'Home',
+          ),
+          CurvedNavigationBarItem(
             child: Container(
               height: 35,
               width: 35,
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
                 image: DecorationImage(
                   image: AssetImage(Common.talentaLogo),
                   scale: 2,
@@ -78,12 +88,14 @@ class _BottomMenuState extends State<BottomMenu> {
   callPage(int index) {
     switch (index) {
       case 0:
-        context.go("/");
+        context.go("/employee");
       case 1:
         context.go("/academy");
       case 2:
-        context.go("/talenta");
+        context.go("/");
       case 3:
+        context.go("/talenta");
+      case 4:
         context.go("/profile");
       default:
         context.go("/");

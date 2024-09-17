@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 class AuthButton extends StatelessWidget {
   final String text;
   final double? height;
-  final Function() onTap;
+  final Color? color;
+  final GestureTapCallback? onTap;
 
   const AuthButton({
     super.key,
     required this.onTap,
     required this.text,
     this.height,
+    this.color,
   });
 
   @override
@@ -20,14 +22,16 @@ class AuthButton extends StatelessWidget {
       child: Container(
         width: MediaQuery.of(context).size.width,
         height: height ?? MediaQuery.of(context).size.height * 0.08,
-        margin: const EdgeInsets.only(left: 20, right: 20),
-        decoration: const BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.all(Radius.circular(10)),
+        margin: const EdgeInsets.only(left: 10, right: 10),
+        decoration: BoxDecoration(
+          color: color ?? AppColors.primary,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
         ),
-        child: Center(
+        child: Align(
+          alignment: Alignment.center,
           child: Text(
             text,
+            textAlign: TextAlign.center,
             style: KTextStyle.authButtonTextStyle,
           ),
         ),

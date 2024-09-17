@@ -15,10 +15,11 @@ class AcademyBloc extends Bloc<AcademyEvent, AcademyState> {
       emit(state.copyWith(isLoading: true));
       String email = event.email;
       var res = await AcademyApi.academyLogin(email);
+      // ignore: avoid_print
       print(res);
-
       emit(state.copyWith(isLoading: false));
     } catch (e) {
+      // ignore: avoid_print
       print(e);
     }
   }

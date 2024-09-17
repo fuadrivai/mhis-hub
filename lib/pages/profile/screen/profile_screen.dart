@@ -1,9 +1,12 @@
 import 'package:fl_mhis_hr/library/constant.dart';
+import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/profile_menu.dart';
 import 'package:fl_mhis_hr/pages/profile/bloc/profile_bloc.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,14 +16,14 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late String userEmail;
+  late int userIdTalenta;
   @override
   void initState() {
-    Session.get("email").then((email) {
-      if (email != null || email != "") {
+    Session.get("userIdTalenta").then((id) {
+      if (id != null || id != "") {
         setState(() {
-          userEmail = email!;
-          context.read<ProfileBloc>().add(OnGetUserEmail(userEmail));
+          userIdTalenta = int.parse(id!);
+          context.read<ProfileBloc>().add(OnGetUserById(userIdTalenta));
         });
       }
     });
@@ -31,123 +34,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(0),
+        preferredSize: const Size.fromHeight(35),
         child: Container(
+          padding: const EdgeInsets.only(top: 30, right: 10),
           decoration: BoxDecoration(gradient: Common.gradient),
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: PopupMenuButton(
+              icon: const FaIcon(
+                FontAwesomeIcons.gear,
+                color: Colors.white,
+              ),
+              itemBuilder: (BuildContext context) {
+                return [
+                  PopupMenuItem(
+                    child: const Text("Change Password"),
+                    onTap: () => context.goNamed("change-password"),
+                  ),
+                  PopupMenuItem(
+                    child: const Text("Logout"),
+                    onTap: () {
+                      context.read<ProfileBloc>().add(const OnLogout());
+                    },
+                  )
+                ];
+              },
+            ),
+          ),
         ),
       ),
       body: RefreshIndicator(
         onRefresh: () async =>
-            context.read<ProfileBloc>().add(OnGetUserEmail(userEmail)),
+            context.read<ProfileBloc>().add(OnGetUserById(userIdTalenta)),
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             if (state.isLoading) {
               return const LoadingWidget();
             }
-            return ListView(
-              children: <Widget>[
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(gradient: Common.gradient),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      const CircleAvatar(
-                        backgroundColor: AppColors.success,
-                        minRadius: 60.0,
-                        child: CircleAvatar(
-                          radius: 50.0,
-                          backgroundImage: NetworkImage(
-                              'https://avatars0.githubusercontent.com/u/28812093?s=460&u=06471c90e03cfd8ce2855d217d157c93060da490&v=4'),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        state.user?.fullName ?? "-",
-                        style: const TextStyle(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        state.user?.email ?? "-",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: <Widget>[
-                    title(
-                      color: AppColors.primary2,
-                      position: "Operational",
-                      title: "Division",
-                    ),
-                    title(
-                      color: AppColors.primary,
-                      position: "Staff",
-                      title: "Position",
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Container(
-                    color: AppColors.whiteshade,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: <Widget>[
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              "Employee Information",
-                              style: TextStyle(
-                                fontSize: 17,
-                                color: Color.fromARGB(255, 98, 95, 95),
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(gradient: Common.gradient),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        InkWell(
+                          onTap: () async {
+                            await showDialog(
+                              context: context,
+                              builder: (_) => ImageDialog(
+                                imageUrl: state.employee?.person?.avatar ?? "",
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.danger,
+                            minRadius: 60.0,
+                            child: CircleAvatar(
+                              radius: 59.5,
+                              backgroundImage: NetworkImage(
+                                state.employee?.person?.avatar ?? "",
                               ),
                             ),
                           ),
-                          const Divider(thickness: 0.5),
-                          customeListTile(
-                            title: "Employee ID - 12345",
-                            iconData: FontAwesomeIcons.idCard,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          state.employee?.person?.fullName ?? "-",
+                          style: const TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                          customeListTile(
-                            title: "Jakarta - March 7, 1989",
-                            iconData: FontAwesomeIcons.calendarDays,
+                        ),
+                        Text(
+                          state.employee?.person?.email ?? "-",
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.white,
                           ),
-                          customeListTile(
-                            title: "081316007277",
-                            iconData: FontAwesomeIcons.mobileScreenButton,
-                          ),
-                          customeListTile(
-                            title: "Male",
-                            iconData: FontAwesomeIcons.person,
-                          ),
-                          customeListTile(
-                            title: "Address",
-                            iconData: FontAwesomeIcons.locationDot,
-                          ),
-                          const Divider(thickness: 0.5),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                AuthButton(
-                  text: "Logout",
-                  height: 50,
-                  onTap: () {
-                    context.read<ProfileBloc>().add(const OnLogout());
-                  },
-                )
-              ],
+                  Row(
+                    children: <Widget>[
+                      title(
+                        color: AppColors.primary2,
+                        position:
+                            state.employee?.employment?.organizationName ?? "-",
+                        title: "Division",
+                      ),
+                      title(
+                        color: AppColors.primary,
+                        position:
+                            state.employee?.employment?.jobPosition ?? "-",
+                        title: "Position",
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: ParentMenu()
+                        .menu(context, state.employee ?? Employee())
+                        .map((menu) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Container(
+                          color: AppColors.whiteshade,
+                          child: Column(
+                            children: [
+                              TextTitle(title: menu.parent ?? ""),
+                              Column(
+                                children: (menu.child ?? []).map((child) {
+                                  return TileList(
+                                    title: child.name ?? "",
+                                    iconData: child.iconData,
+                                    onTap: child.onTap,
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  AuthButton(
+                    text: "Logout",
+                    height: 50,
+                    onTap: () {
+                      context.read<ProfileBloc>().add(const OnLogout());
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: Text("Version : 1.1.1 (12345)"),
+                  ),
+                  const SizedBox(height: 25)
+                ],
+              ),
             );
           },
         ),
@@ -169,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 20,
+              fontSize: 15,
               color: Colors.white,
             ),
           ),
@@ -177,35 +206,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title ?? "",
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 15,
               color: Colors.white70,
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget customeListTile({
-    required IconData? iconData,
-    required String title,
-    Widget? trailing,
-    GestureTapCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-        child: Row(
-          children: [
-            Icon(
-              iconData,
-              color: const Color.fromARGB(255, 221, 82, 110),
-            ),
-            const SizedBox(width: 20),
-            Text(title, style: AppColors.profileTextTheme),
-            trailing ?? const SizedBox.shrink()
-          ],
         ),
       ),
     );

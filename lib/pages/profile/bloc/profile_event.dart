@@ -10,9 +10,16 @@ class OnLogout extends ProfileEvent {
   List<Object> get props => [];
 }
 
-class OnGetUserEmail extends ProfileEvent {
-  final String email;
-  const OnGetUserEmail(this.email);
+class OnGetUserById extends ProfileEvent {
+  final int id;
+  const OnGetUserById(this.id);
+  @override
+  List<Object> get props => [];
+}
+
+class OnChangePassword extends ProfileEvent {
+  final Map<String, dynamic> data;
+  const OnChangePassword(this.data);
   @override
   List<Object> get props => [];
 }

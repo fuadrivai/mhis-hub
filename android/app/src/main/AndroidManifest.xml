@@ -1,9 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+<queries>
+   <package android:name="co.talenta" /> // your android package name
+ </queries>
     <application
-        android:label="MH Hub"
+        android:label="MHIS Hub"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+          android:name="firebase_messaging_auto_init_enabled"
+          android:value="false" />
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data android:name="com.google.android.geo.API_KEY"
+               android:value="AIzaSyDGhvE62dFCEGgtwvWhOsuJEPzR27oURZA"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,6 +37,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.HOME"/> 
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

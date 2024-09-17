@@ -33,14 +33,17 @@ class User {
   String? emailVerifiedAt;
   String? createdAt;
   String? updatedAt;
+  int? userIdTalenta;
 
-  User(
-      {this.id,
-      this.name,
-      this.email,
-      this.emailVerifiedAt,
-      this.createdAt,
-      this.updatedAt});
+  User({
+    this.id,
+    this.name,
+    this.email,
+    this.emailVerifiedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.userIdTalenta,
+  });
 
   User.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -48,6 +51,7 @@ class User {
     email = json['email'];
     emailVerifiedAt = json['email_verified_at'];
     createdAt = json['created_at'];
+    userIdTalenta = json['user_id_talenta'];
     updatedAt = json['updated_at'];
   }
 

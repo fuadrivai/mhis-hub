@@ -17,10 +17,12 @@ class _AcademyScreenState extends State<AcademyScreen> {
   late String accountEmail;
   bool isLoading = true;
   late final WebViewController _controller;
+  late final WebViewCookieManager cookieManager = WebViewCookieManager();
   PlatformWebViewControllerCreationParams params =
       const PlatformWebViewControllerCreationParams();
   @override
   void initState() {
+    clearCookies();
     Session.get("email").then((email) {
       if (email != null || email != "") {
         setState(() {
@@ -36,7 +38,6 @@ class _AcademyScreenState extends State<AcademyScreen> {
               params,
             );
           }
-
           final WebViewController webViewController =
               WebViewController.fromPlatformCreationParams(params)
                 ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -66,6 +67,10 @@ class _AcademyScreenState extends State<AcademyScreen> {
       });
     });
     super.initState();
+  }
+
+  void clearCookies() async {
+    await cookieManager.clearCookies();
   }
 
   @override

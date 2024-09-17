@@ -13,7 +13,7 @@ class LoadingWidget extends StatelessWidget {
         Center(
           child: LoadingAnimationWidget.flickr(
             leftDotColor: AppColors.primary,
-            rightDotColor: AppColors.secondary,
+            rightDotColor: AppColors.danger,
             size: 40,
           ),
         ),
