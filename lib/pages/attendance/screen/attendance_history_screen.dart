@@ -80,32 +80,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     showMonthPicker(
                       context: context,
                       initialDate: selectedDate,
-                      monthPickerDialogSettings: MonthPickerDialogSettings(
-                        headerSettings: const PickerHeaderSettings(
-                          headerCurrentPageTextStyle: TextStyle(fontSize: 14),
-                          headerSelectedIntervalTextStyle:
-                              TextStyle(fontSize: 16),
-                        ),
-                        dialogSettings: PickerDialogSettings(
-                          locale: const Locale('en'),
-                          dialogRoundedCornersRadius: 20,
-                          dialogBackgroundColor: Colors.blueGrey[50],
-                        ),
-                        buttonsSettings: const PickerButtonsSettings(
-                          buttonBorder: RoundedRectangleBorder(),
-                          selectedMonthBackgroundColor: AppColors.primary,
-                          selectedMonthTextColor: Colors.white,
-                          unselectedMonthsTextColor: AppColors.blackshade,
-                          currentMonthTextColor: Colors.green,
-                          yearTextStyle: TextStyle(
-                            fontSize: 10,
-                          ),
-                          monthTextStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
+                      monthPickerDialogSettings: Common.monthPickerDialog(),
                     ).then((date) {
                       if (date != null) {
                         setState(() {

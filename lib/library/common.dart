@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:crypto/crypto.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:another_flushbar/flushbar.dart';
 
@@ -102,6 +104,36 @@ class Common {
     );
   }
 
+  static MonthPickerDialogSettings monthPickerDialog() {
+    return MonthPickerDialogSettings(
+      headerSettings: const PickerHeaderSettings(
+        headerBackgroundColor: AppColors.primary,
+        headerCurrentPageTextStyle: TextStyle(
+          fontSize: 25,
+          color: AppColors.white,
+          fontWeight: FontWeight.w700,
+        ),
+        headerSelectedIntervalTextStyle: TextStyle(
+          fontSize: 16,
+          color: AppColors.white,
+        ),
+      ),
+      dateButtonsSettings: PickerDateButtonsSettings(
+        selectedMonthBackgroundColor: AppColors.danger.withValues(
+          red: 0.3,
+          blue: 0.3,
+          green: 0.3,
+          colorSpace: ColorSpace.displayP3,
+        ),
+      ),
+      dialogSettings: PickerDialogSettings(
+        locale: const Locale('en'),
+        dialogRoundedCornersRadius: 20,
+        dialogBackgroundColor: AppColors.whiteshade,
+      ),
+    );
+  }
+
   static Future flushBar(BuildContext context,
       {required String title, required String message}) async {
     await Flushbar(
@@ -180,6 +212,8 @@ class Common {
       Geolocator.openLocationSettings();
     }
     return await Geolocator.getCurrentPosition(
+      locationSettings: LocationSettings(),
+      // ignore: deprecated_member_use
       forceAndroidLocationManager: true,
     );
   }

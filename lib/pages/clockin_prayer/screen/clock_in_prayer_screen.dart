@@ -48,7 +48,7 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back),
         ),
-        title: "Clock In Solat",
+        title: "Clock In Ashar",
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -225,32 +225,7 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
                     showMonthPicker(
                       context: context,
                       initialDate: selectedDate,
-                      monthPickerDialogSettings: MonthPickerDialogSettings(
-                        headerSettings: const PickerHeaderSettings(
-                          headerCurrentPageTextStyle: TextStyle(fontSize: 14),
-                          headerSelectedIntervalTextStyle:
-                              TextStyle(fontSize: 16),
-                        ),
-                        dialogSettings: PickerDialogSettings(
-                          locale: const Locale('en'),
-                          dialogRoundedCornersRadius: 20,
-                          dialogBackgroundColor: Colors.blueGrey[50],
-                        ),
-                        buttonsSettings: const PickerButtonsSettings(
-                          buttonBorder: RoundedRectangleBorder(),
-                          selectedMonthBackgroundColor: AppColors.primary,
-                          selectedMonthTextColor: Colors.white,
-                          unselectedMonthsTextColor: AppColors.blackshade,
-                          currentMonthTextColor: Colors.green,
-                          yearTextStyle: TextStyle(
-                            fontSize: 10,
-                          ),
-                          monthTextStyle: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
+                      monthPickerDialogSettings: Common.monthPickerDialog(),
                     ).then((date) {
                       if (date != null) {
                         setState(() {
@@ -262,12 +237,8 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
                     });
                   },
                   decoration: TextFormDecoration.box(
-                    prefixIcon: const Icon(
-                      FontAwesomeIcons.calendar,
-                    ),
-                    suffixIcon: const Icon(
-                      Icons.arrow_drop_down,
-                    ),
+                    prefixIcon: const Icon(FontAwesomeIcons.calendar),
+                    suffixIcon: const Icon(Icons.arrow_drop_down),
                   ),
                 ),
               ),

@@ -94,7 +94,7 @@ class _MapWidgetState extends State<MapWidget> {
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: AppColors.dark.withOpacity(0.3),
+                        color: AppColors.dark.withValues(alpha: 0.3),
                       ),
                     ),
                     child: const Center(
