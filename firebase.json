@@ -1,0 +1,25 @@
+{
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "mhis-hub",
+                    "appId": "1:592617177680:android:7531ee003c0181c0c74755",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "mhis-hub",
+                    "configurations": {
+                        "android": "1:592617177680:android:7531ee003c0181c0c74755",
+                        "ios": "1:592617177680:ios:8bf1acab94d8c239c74755",
+                        "macos": "1:592617177680:ios:8bf1acab94d8c239c74755",
+                        "web": "1:592617177680:web:97aa15a67c3a18bbc74755",
+                        "windows": "1:592617177680:web:56e85b3184cc4f19c74755"
+                    }
+                }
+            }
+        }
+    }
+}

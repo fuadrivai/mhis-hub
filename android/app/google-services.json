@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "592617177680",
+    "project_id": "mhis-hub",
+    "storage_bucket": "mhis-hub.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592617177680:android:eb4a3cdc54934a58c74755",
+        "android_client_info": {
+          "package_name": "com.mhis.fl_mhis_hr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCp8sQ47a2rM0IsWkjxSscDfHOiZ9Qs6io"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:592617177680:android:7531ee003c0181c0c74755",
+        "android_client_info": {
+          "package_name": "com.mhis.hris"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCp8sQ47a2rM0IsWkjxSscDfHOiZ9Qs6io"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
