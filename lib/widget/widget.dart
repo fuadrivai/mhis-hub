@@ -10,3 +10,4 @@ export 'package:fl_mhis_hr/widget/image_dialog.dart';
 export 'package:fl_mhis_hr/widget/loading_shimmer.dart';
 export 'package:fl_mhis_hr/widget/map_widget.dart';
 export 'package:fl_mhis_hr/widget/empty_widget.dart';
+export 'package:fl_mhis_hr/widget/information_home_widget.dart';

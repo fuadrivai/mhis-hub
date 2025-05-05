@@ -13,6 +13,7 @@ import 'package:another_flushbar/flushbar.dart';
 class Common {
   Common._();
   static String imageLogo = 'assets/images/logo.png';
+  static String imageProfile = 'assets/images/profile.png';
   static String talentaLogo = 'assets/images/talenta.png';
   static String hmacUsername = 'VSkLSBDZBI7LnyPX';
   static String hmacSecret = '9hntyY9mqhQLHG9G5KZVkPPk9DKqagqU';

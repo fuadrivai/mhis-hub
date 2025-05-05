@@ -105,6 +105,16 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'kpi',
+                name: "kpi",
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: KpiScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'live-ashar',
                 name: "live-ashar",
                 pageBuilder: (context, state) {

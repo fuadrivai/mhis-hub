@@ -72,4 +72,7 @@ abstract class RestClient {
 
   @GET("absent/filter")
   Future<List<PostPrayer>> getPrayerHistory(@Body() Map<String, dynamic> post);
+
+  @GET("kpi")
+  Future<Kpi> getKpi();
 }

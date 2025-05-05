@@ -25,5 +25,6 @@ export 'package:fl_mhis_hr/models/announcement.dart';
 export 'package:fl_mhis_hr/models/post_prayer.dart';
 export 'package:fl_mhis_hr/models/job_level.dart';
 export 'package:fl_mhis_hr/models/schedule_solat.dart';
+export 'package:fl_mhis_hr/models/kpi.dart';
 export 'package:fl_mhis_hr/models/serverside/pagination.dart';
 export 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';

@@ -6,8 +6,15 @@ class TileList extends StatelessWidget {
   final GestureTapCallback? onTap;
   final IconData? iconData;
   final String title;
+  final Widget? trailling;
 
-  const TileList({super.key, this.onTap, this.iconData, required this.title});
+  const TileList({
+    super.key,
+    this.onTap,
+    this.iconData,
+    required this.title,
+    this.trailling,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +39,17 @@ class TileList extends StatelessWidget {
               title,
               style: const TextStyle(fontSize: 15),
             )),
-            const SizedBox(
-              width: 40,
-              child: Icon(
-                Icons.arrow_forward_ios_rounded,
-                color: Color.fromARGB(255, 101, 101, 101),
-                size: 15,
-              ),
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: trailling ??
+                  const SizedBox(
+                    width: 40,
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Color.fromARGB(255, 101, 101, 101),
+                      size: 15,
+                    ),
+                  ),
             ),
           ],
         ),

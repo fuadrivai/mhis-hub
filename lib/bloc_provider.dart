@@ -4,6 +4,7 @@ import 'package:fl_mhis_hr/pages/clockin_prayer/bloc/clockin_prayer_bloc.dart';
 import 'package:fl_mhis_hr/pages/employee/bloc/employee_bloc.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/bloc/general_announcement_bloc.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
+import 'package:fl_mhis_hr/pages/kpi/bloc/kpi_bloc.dart';
 import 'package:fl_mhis_hr/pages/login/bloc/login_bloc.dart';
 import 'package:fl_mhis_hr/pages/payslip/bloc/payslip_bloc.dart';
 import 'package:fl_mhis_hr/pages/profile/bloc/profile_bloc.dart';
@@ -23,6 +24,7 @@ class ProviderBloc {
       BlocProvider<EmployeeBloc>(create: (__) => EmployeeBloc()),
       BlocProvider<PayslipBloc>(create: (__) => PayslipBloc()),
       BlocProvider<ClockinPrayerBloc>(create: (__) => ClockinPrayerBloc()),
+      BlocProvider<KpiBloc>(create: (__) => KpiBloc()),
       BlocProvider<GeneralAnnouncementBloc>(
           create: (__) => GeneralAnnouncementBloc()),
     ];
