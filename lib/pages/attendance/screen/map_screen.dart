@@ -12,6 +12,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  String base64 = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +25,7 @@ class _MapScreenState extends State<MapScreen> {
         title: widget.type.toUpperCase(),
       ),
       body: MapWidget(
-        onTap: () {
+        onTap: () async {
           if (widget.type == "checkin") {
             context.goNamed('clockin');
           } else {

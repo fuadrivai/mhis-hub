@@ -147,56 +147,80 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'location/clockin',
-                name: "location-clockin",
+                path: 'attendance',
+                name: "clockin",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: MapScreen(
+                    child: ClockinClockoutScreen(
                       type: "checkin",
                     ),
                   );
                 },
-                routes: [
-                  GoRoute(
-                    parentNavigatorKey: _nav.navKey,
-                    path: 'attendance',
-                    name: "clockin",
-                    pageBuilder: (context, state) {
-                      return const NoTransitionPage(
-                        child: ClockinClockoutScreen(
-                          type: "checkin",
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'location/clockout',
-                name: "location-clockout",
+                path: 'attendance',
+                name: "clockout",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: MapScreen(
+                    child: ClockinClockoutScreen(
                       type: "checkout",
                     ),
                   );
                 },
-                routes: [
-                  GoRoute(
-                    parentNavigatorKey: _nav.navKey,
-                    path: 'attendance',
-                    name: "clockout",
-                    pageBuilder: (context, state) {
-                      return const NoTransitionPage(
-                        child: ClockinClockoutScreen(
-                          type: "checkout",
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ),
+              // GoRoute(
+              //   parentNavigatorKey: _nav.navKey,
+              //   path: 'location/clockin',
+              //   name: "location-clockin",
+              //   pageBuilder: (context, state) {
+              //     return const NoTransitionPage(
+              //       child: MapScreen(
+              //         type: "checkin",
+              //       ),
+              //     );
+              //   },
+              //   routes: [
+              //     GoRoute(
+              //       parentNavigatorKey: _nav.navKey,
+              //       path: 'attendance',
+              //       name: "clockin",
+              //       pageBuilder: (context, state) {
+              //         return const NoTransitionPage(
+              //           child: ClockinClockoutScreen(
+              //             type: "checkin",
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   ],
+              // ),
+              // GoRoute(
+              //   parentNavigatorKey: _nav.navKey,
+              //   path: 'location/clockout',
+              //   name: "location-clockout",
+              //   pageBuilder: (context, state) {
+              //     return const NoTransitionPage(
+              //       child: MapScreen(
+              //         type: "checkout",
+              //       ),
+              //     );
+              //   },
+              //   routes: [
+              //     GoRoute(
+              //       parentNavigatorKey: _nav.navKey,
+              //       path: 'attendance',
+              //       name: "clockout",
+              //       pageBuilder: (context, state) {
+              //         return const NoTransitionPage(
+              //           child: ClockinClockoutScreen(
+              //             type: "checkout",
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   ],
+              // ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
                 path: 'attendance-response',

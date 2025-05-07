@@ -28,9 +28,7 @@ class _MyKpiWidgetState extends State<MyKpiWidget> {
         }
         if (state.kpiError) {
           return EmptyWidget(
-            onTap: () {
-              context.read<KpiBloc>().add(const OnGetKpi());
-            },
+            onTap: () => context.read<KpiBloc>().add(const OnGetKpi()),
           );
         }
         return Padding(
