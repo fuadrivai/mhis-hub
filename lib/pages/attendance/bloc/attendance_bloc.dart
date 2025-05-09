@@ -20,6 +20,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     try {
       Position? position = await Common.determinePosition();
       String? userId = await Session.get("userIdTalenta");
+
       LiveAttendanceSchedule? schedule =
           await AttendanceApi.getLiveAttendanceSchedule(int.parse(userId!));
       emit(state.copyWith(

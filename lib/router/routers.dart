@@ -147,7 +147,7 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'attendance',
+                path: 'attendance/clockin',
                 name: "clockin",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
@@ -159,7 +159,7 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'attendance',
+                path: 'attendance/checkout',
                 name: "clockout",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
