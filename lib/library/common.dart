@@ -12,7 +12,8 @@ import 'package:another_flushbar/flushbar.dart';
 
 class Common {
   Common._();
-  static String logohub = 'assets/images/logo-hub.png';
+  static String logoHub = 'assets/images/logo-hub.png';
+  static String logoSplash = 'assets/images/splash.png';
   static String imageLogo = 'assets/images/logo.png';
   static String imageProfile = 'assets/images/profile.png';
   static String talentaLogo = 'assets/images/talenta.png';

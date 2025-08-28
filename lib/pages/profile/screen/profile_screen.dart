@@ -264,9 +264,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               String? password = await Session.get("password");
                               if (formKey.currentState!.validate()) {
                                 if (password == _passwordController.text) {
-                                  Navigator.pop(context);
                                   await _authenticateWithBiometrics();
+                                  if (!mounted) return;
+                                  // ignore: use_build_context_synchronously
+                                  Navigator.pop(context);
                                 } else {
+                                  if (!mounted) return;
+                                  // ignore: use_build_context_synchronously
                                   Common.flushBar(context,
                                       title: "error",
                                       message: "Wrong Password");

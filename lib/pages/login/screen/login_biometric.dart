@@ -1,3 +1,4 @@
+import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -47,6 +48,12 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
   }
 
   @override
+  void initState() {
+    _authenticate();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -54,8 +61,8 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
       ),
       body: Center(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(Common.logoSplash, width: 300, height: 300),
             const Icon(Icons.fingerprint, size: 80, color: Colors.blue),
             const SizedBox(height: 20),
             Text(_message, textAlign: TextAlign.center),

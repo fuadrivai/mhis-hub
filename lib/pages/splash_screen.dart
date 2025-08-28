@@ -17,6 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkLogin() async {
+    await Future.delayed(const Duration(seconds: 1));
     String? token = await Session.get("token");
     String? isBiometric = await Session.get("isBiometric");
 
@@ -39,7 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: Colors.white, // warna background splash
       body: Center(
         child: Image.asset(
-          Common.logohub, // ganti dengan logo/gambar kamu
+          Common.logoHub, // ganti dengan logo/gambar kamu
           width: 150,
           height: 150,
         ),
