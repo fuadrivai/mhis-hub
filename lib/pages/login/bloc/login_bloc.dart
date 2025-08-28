@@ -42,11 +42,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       map['device_id'] = token;
       map['device'] = device;
 
+      String password = map["password"];
+
       LoginResponse resp = await LoginApi.onLogin(map);
 
       await Future.wait([
         Session.set("email", resp.user?.email ?? ""),
         Session.set("name", resp.user?.name ?? ""),
+        Session.set("password", password),
         Session.set("userIdTalenta", resp.user?.userIdTalenta.toString() ?? ""),
         Session.set("token", resp.authorization?.token ?? ""),
       ]);

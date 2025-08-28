@@ -10,6 +10,13 @@ class OnLogout extends ProfileEvent {
   List<Object> get props => [];
 }
 
+class OnResetAuthenticationBiometrics extends ProfileEvent {
+  final bool isBiometric;
+  const OnResetAuthenticationBiometrics(this.isBiometric);
+  @override
+  List<Object> get props => [];
+}
+
 class OnGetUserById extends ProfileEvent {
   final int id;
   const OnGetUserById(this.id);

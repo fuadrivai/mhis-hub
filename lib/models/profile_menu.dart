@@ -72,6 +72,12 @@ class ParentMenu {
               iconData: FontAwesomeIcons.lock,
               onTap: () => context.goNamed("change-password"),
             ),
+            ChildMenu(
+              name: "Login With Biometric",
+              defaultTrailing: false,
+              iconData: FontAwesomeIcons.fingerprint,
+              onTap: () {},
+            ),
             // ChildMenu(
             //   name: "PIN",
             //   iconData: FontAwesomeIcons.key,
@@ -101,10 +107,8 @@ class ChildMenu {
   String? name;
   GestureTapCallback? onTap;
   IconData? iconData;
+  bool? defaultTrailing;
 
-  ChildMenu({
-    this.iconData,
-    this.name,
-    this.onTap,
-  });
+  ChildMenu(
+      {this.iconData, this.name, this.onTap, this.defaultTrailing = true});
 }

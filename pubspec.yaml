@@ -70,6 +70,9 @@ dependencies:
   modal_bottom_sheet: ^3.0.0
   adhan: ^2.0.0+1
   timer_count_down: ^2.2.2
+  local_auth: ^2.3.0
+  fingerprint_auth: ^0.0.2
+  package_info_plus: ^8.3.1
 
 flutter_native_splash:
   android: true

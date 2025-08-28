@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:local_auth/local_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -17,6 +18,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late int userIdTalenta;
+  bool isBiometric = false;
+  bool obscureText = false;
+  final TextEditingController _passwordController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  final LocalAuthentication auth = LocalAuthentication();
+
   @override
   void initState() {
     Session.get("userIdTalenta").then((id) {
@@ -68,6 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context.read<ProfileBloc>().add(OnGetUserById(userIdTalenta)),
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
+            isBiometric = state.isBiometric ?? false;
             if (state.isLoading) {
               return const LoadingWidget();
             }
@@ -151,10 +159,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Column(
                                 children: (menu.child ?? []).map((child) {
                                   return TileList(
-                                    title: child.name ?? "",
-                                    iconData: child.iconData,
-                                    onTap: child.onTap,
-                                  );
+                                      title: child.name ?? "",
+                                      iconData: child.iconData,
+                                      onTap: child.onTap,
+                                      trailling: child.defaultTrailing == true
+                                          ? null
+                                          : (state.canAuthenticateWithBiometrics ??
+                                                  false)
+                                              ? Switch(
+                                                  value: isBiometric,
+                                                  activeTrackColor:
+                                                      const Color.fromARGB(
+                                                          255, 209, 237, 149),
+                                                  activeThumbColor:
+                                                      AppColors.primary,
+                                                  inactiveThumbColor:
+                                                      AppColors.primary,
+                                                  onChanged: (value) async {
+                                                    if (value) {
+                                                      await _showPasswordDialog();
+                                                    } else {
+                                                      context
+                                                          .read<ProfileBloc>()
+                                                          .add(
+                                                              OnResetAuthenticationBiometrics(
+                                                                  value));
+                                                    }
+                                                  },
+                                                )
+                                              : null);
                                 }).toList(),
                               ),
                             ],
@@ -171,8 +204,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     },
                   ),
                   const SizedBox(height: 10),
-                  const Center(
-                    child: Text("Version : 1.1.1 (12345)"),
+                  Center(
+                    child:
+                        Text("Version : ${state.packageInfo?.version ?? ""}"),
                   ),
                   const SizedBox(height: 25)
                 ],
@@ -182,6 +216,108 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showPasswordDialog() async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false, // supaya ga bisa dismiss tanpa input
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Dialog(
+            backgroundColor: AppColors.white,
+            child: SingleChildScrollView(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                color: AppColors.white,
+                child: Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 15.0),
+                          child: DefaultFormField(
+                            title: "Enter Your Password",
+                            textForm: TextFormField(
+                              obscureText: !obscureText,
+                              controller: _passwordController,
+                              validator: ValidForm.emptyValue,
+                              decoration: TextFormDecoration.box(),
+                            ),
+                          ),
+                        ),
+                        CheckboxListTile(
+                          controlAffinity: ListTileControlAffinity.leading,
+                          title: const Text("Show Password"),
+                          value: obscureText,
+                          onChanged: (val) {
+                            setState(() {
+                              obscureText = val!;
+                            });
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 15.0),
+                          child: AuthButton(
+                            onTap: () async {
+                              String? password = await Session.get("password");
+                              if (formKey.currentState!.validate()) {
+                                if (password == _passwordController.text) {
+                                  Navigator.pop(context);
+                                  await _authenticateWithBiometrics();
+                                } else {
+                                  Common.flushBar(context,
+                                      title: "error",
+                                      message: "Wrong Password");
+                                }
+                              }
+                            },
+                            text: "Save",
+                            color: AppColors.primary,
+                            height: 40,
+                          ),
+                        )
+                      ],
+                    )),
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      final bool didAuthenticate = await auth.authenticate(
+        localizedReason: 'Please authenticate to enable biometric login',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: true,
+        ),
+      );
+
+      if (didAuthenticate) {
+        setState(() => isBiometric = true);
+        if (!mounted) return;
+        context
+            .read<ProfileBloc>()
+            .add(OnResetAuthenticationBiometrics(isBiometric));
+        Common.flushBar(context,
+            title: "Success", message: "Biometric enabled successfully ✅");
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Biometric authentication failed ❌"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Biometric error: $e");
+    }
   }
 
   Widget title({

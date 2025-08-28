@@ -14,12 +14,15 @@
 		<key>io.flutter.embedded_views_preview</key>
     	<true/>
 
+		<key>NSFaceIDUsageDescription</key>
+    	<string>This app uses Face ID or Fingerprint to quickly and securely log you in.</string>
+
 		<key>NSCameraUsageDescription</key>
-		<string>This Application neet to take picture for attendance</string>
+		<string>This Application need to take picture for attendance</string>
 		<key>NSMicrophoneUsageDescription</key>
-		<string>This Application neet to take picture for attendance</string>
+		<string>This Application need to record audio for attendance</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-    	<string>This Application neet to take picture for attendance</string>
+    	<string>This Application need to access photo library for attendance</string>
 
 		<key>NSAppTransportSecurity</key>
 		<dict>

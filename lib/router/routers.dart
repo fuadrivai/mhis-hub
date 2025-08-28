@@ -1,5 +1,4 @@
 import 'package:fl_mhis_hr/injector/injector.dart';
-import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
@@ -13,22 +12,36 @@ final GlobalKey<NavigatorState> _dashboardNavigatorKey =
 class RouteNavigation {
   static final GoRouter router = GoRouter(
     navigatorKey: _nav.navKey,
-    redirect: (context, state) async {
-      String? token = await Session.get("token");
-      if (token == null || token == "") {
-        return '/auth';
-      } else {
-        return null;
-      }
-    },
-    initialLocation: '/',
+    // redirect: (context, state) async {
+    //   String? token = await Session.get("token");
+    //   if (token == null || token == "" || token.isEmpty) {
+    //     return '/auth';
+    //   } else {
+    //     return null;
+    //   }
+    // },
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: SplashScreen()),
+      ),
       GoRoute(
         parentNavigatorKey: _nav.navKey,
         path: '/auth',
         pageBuilder: (context, state) {
           return const NoTransitionPage(
             child: LoginScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _nav.navKey,
+        path: '/finggerprint',
+        pageBuilder: (context, state) {
+          return const NoTransitionPage(
+            child: FingerprintLoginScreen(),
           );
         },
       ),
