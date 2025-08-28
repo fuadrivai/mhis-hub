@@ -67,7 +67,7 @@ class _GeneralAnnouncementFormState extends State<GeneralAnnouncementForm> {
                     return DefaultFormField(
                       title: "Category",
                       textForm: DropdownButtonFormField<AnnouncementCategory>(
-                        value: state.announcement?.category,
+                        initialValue: state.announcement?.category,
                         items: (state.categories ?? []).map((val) {
                           return DropdownMenuItem<AnnouncementCategory>(
                             value: val,

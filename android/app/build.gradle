@@ -34,7 +34,8 @@ android {
     namespace = "com.mhis.hris"
     // compileSdk = flutter.compileSdkVersion
     compileSdk = 35
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "26.3.11579264"
+    // ndkVersion = flutter.ndkVersion
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -46,10 +47,11 @@ android {
         applicationId = "com.mhis.hris"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = 23
-        targetSdk = flutter.targetSdkVersion
+        minSdkVersion = flutter.minSdkVersion
+        targetSdk = 35
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName
+        multiDexEnabled = true
     }
 
     signingConfigs {
@@ -68,6 +70,16 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = false // ✅ wajib untuk 16KB page
         }
     }
 }
