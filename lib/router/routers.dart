@@ -23,9 +23,11 @@ class RouteNavigation {
     initialLocation: '/splash',
     routes: [
       GoRoute(
+        parentNavigatorKey: _nav.navKey,
         path: '/splash',
-        pageBuilder: (context, state) =>
-            const NoTransitionPage(child: SplashScreen()),
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: SplashScreen(),
+        ),
       ),
       GoRoute(
         parentNavigatorKey: _nav.navKey,

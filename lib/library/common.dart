@@ -138,16 +138,18 @@ class Common {
   }
 
   static Future flushBar(BuildContext context,
-      {required String title, required String message}) async {
+      {required String title,
+      required String message,
+      FlushbarPosition? position}) async {
     await Flushbar(
-      flushbarPosition: FlushbarPosition.TOP,
+      flushbarPosition: position ?? FlushbarPosition.TOP,
       flushbarStyle: FlushbarStyle.FLOATING,
       title: title,
       message: message,
       reverseAnimationCurve: Curves.decelerate,
       forwardAnimationCurve: Curves.elasticOut,
       backgroundColor: AppColors.primary,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 7),
       icon: const Icon(Icons.notification_add, color: AppColors.white),
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Text(

@@ -1,3 +1,4 @@
+import 'package:another_flushbar/flushbar.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/profile_menu.dart';
@@ -290,6 +291,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       },
     );
+    _passwordController.clear();
+    obscureText = false;
   }
 
   Future<void> _authenticateWithBiometrics() async {
@@ -308,8 +311,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         context
             .read<ProfileBloc>()
             .add(OnResetAuthenticationBiometrics(isBiometric));
-        Common.flushBar(context,
-            title: "Success", message: "Biometric enabled successfully ✅");
+        Common.flushBar(
+          context,
+          title: "Success",
+          message: "Biometric enabled successfully ✅",
+          position: FlushbarPosition.BOTTOM,
+        );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
