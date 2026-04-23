@@ -195,7 +195,7 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
                             icon: const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
+                                FaIcon(
                                   FontAwesomeIcons.arrowRightToBracket,
                                   color: AppColors.blue,
                                 ),
@@ -237,7 +237,7 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
                     });
                   },
                   decoration: TextFormDecoration.box(
-                    prefixIcon: const Icon(FontAwesomeIcons.calendar),
+                    prefixIcon: const FaIcon(FontAwesomeIcons.calendar),
                     suffixIcon: const Icon(Icons.arrow_drop_down),
                   ),
                 ),

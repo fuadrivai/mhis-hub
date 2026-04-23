@@ -123,7 +123,7 @@ class _MyKpiWidgetState extends State<MyKpiWidget> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          leading: Icon(
+          leading: FaIcon(
             FontAwesomeIcons.circleDot,
             color: AppColors.primary,
             size: 25,

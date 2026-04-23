@@ -42,7 +42,7 @@ class _MapWidgetState extends State<MapWidget> {
   //   super.didChangeAppLifecycleState(state);
   // }
 
-  getLocation() async {
+  Future<void> getLocation() async {
     isLoading = true;
     bool isLocationActive = await Geolocator.isLocationServiceEnabled();
     if (isLocationActive) {
@@ -98,7 +98,7 @@ class _MapWidgetState extends State<MapWidget> {
                       ),
                     ),
                     child: const Center(
-                      child: Icon(FontAwesomeIcons.arrowsRotate),
+                      child: FaIcon(FontAwesomeIcons.arrowsRotate),
                     ),
                   ),
                 ),

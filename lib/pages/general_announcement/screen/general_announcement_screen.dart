@@ -62,7 +62,7 @@ class _GeneralAnnouncementScreenState extends State<GeneralAnnouncementScreen> {
                       itemBuilder: (context, i) {
                         Announcement ann = (state.announcements ?? [])[i];
                         return ListTile(
-                          leading: const Icon(FontAwesomeIcons.bellConcierge),
+                          leading: const FaIcon(FontAwesomeIcons.bellConcierge),
                           title: Text(ann.subject ?? ""),
                           subtitle: Text(Jiffy.parse(ann.date!)
                               .format(pattern: "dd MMMM yyyy")),

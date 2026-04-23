@@ -107,7 +107,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     });
                   },
                   decoration: TextFormDecoration.box(
-                    prefixIcon: const Icon(
+                    prefixIcon: const FaIcon(
                       FontAwesomeIcons.calendar,
                     ),
                     suffixIcon: const Icon(

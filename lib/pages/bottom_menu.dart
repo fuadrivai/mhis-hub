@@ -33,7 +33,7 @@ class _BottomMenuState extends State<BottomMenu> {
         },
         items: [
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.peopleGroup,
               color: bgColor,
             ),
@@ -53,7 +53,7 @@ class _BottomMenuState extends State<BottomMenu> {
             label: 'Academy',
           ),
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.house,
               color: bgColor,
             ),
@@ -74,7 +74,7 @@ class _BottomMenuState extends State<BottomMenu> {
             label: 'Talenta',
           ),
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.user,
               color: bgColor,
             ),

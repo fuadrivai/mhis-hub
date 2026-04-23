@@ -96,7 +96,7 @@ class VerticalMenu extends StatelessWidget {
 
   Widget listTile({
     required String title,
-    required IconData iconData,
+    required FaIconData iconData,
     GestureTapCallback? onTap,
   }) {
     return ListTile(

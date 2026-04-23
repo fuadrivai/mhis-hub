@@ -4,7 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class TileList extends StatelessWidget {
   final GestureTapCallback? onTap;
-  final IconData? iconData;
+  final FaIconData? iconData;
   final String title;
   final Widget? trailling;
 

@@ -21,7 +21,7 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => context.pop(),
-          icon: const Icon(FontAwesomeIcons.xmark),
+          icon: const FaIcon(FontAwesomeIcons.xmark),
         ),
       ),
       backgroundColor: Colors.white,

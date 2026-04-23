@@ -106,7 +106,7 @@ class ParentMenu {
 class ChildMenu {
   String? name;
   GestureTapCallback? onTap;
-  IconData? iconData;
+  FaIconData? iconData;
   bool? defaultTrailing;
 
   ChildMenu(

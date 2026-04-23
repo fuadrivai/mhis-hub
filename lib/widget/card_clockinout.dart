@@ -71,7 +71,7 @@ class CardClockInOut extends StatelessWidget {
                       icon: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          FaIcon(
                             FontAwesomeIcons.arrowRightToBracket,
                             color: AppColors.blue,
                           ),
@@ -93,10 +93,10 @@ class CardClockInOut extends StatelessWidget {
                   Expanded(
                     child: IconButton(
                       onPressed: () => context.goNamed("clockout"),
-                      icon: const Row(
+                      icon: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          FaIcon(
                             FontAwesomeIcons.arrowRightFromBracket,
                             color: AppColors.blue,
                           ),
