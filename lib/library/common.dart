@@ -42,7 +42,7 @@ class Common {
     stops: [0.3, 0.9],
   );
 
-  static modalInfo(
+  static void modalInfo(
     BuildContext context, {
     String? message,
     required String title,

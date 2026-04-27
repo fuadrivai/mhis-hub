@@ -18,7 +18,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
     super.initState();
   }
 
-  openTalenta() async {
+  Future<void> openTalenta() async {
     await LaunchApp.openApp(
       androidPackageName: 'co.talenta',
       openStore: true,

@@ -167,7 +167,7 @@ class RouteNavigation {
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
                     child: ClockinClockoutScreen(
-                      type: "checkin",
+                      type: "clock_in",
                     ),
                   );
                 },
@@ -179,7 +179,7 @@ class RouteNavigation {
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
                     child: ClockinClockoutScreen(
-                      type: "checkout",
+                      type: "clock_out",
                     ),
                   );
                 },
@@ -244,7 +244,7 @@ class RouteNavigation {
                   var extra = state.extra as Map<String, dynamic>;
                   return NoTransitionPage(
                     child: AttendanceResponseScreen(
-                      data: extra['data'],
+                      attendance: extra['data'],
                     ),
                   );
                 },

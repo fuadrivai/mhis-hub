@@ -1,0 +1,13 @@
+export 'package:fl_mhis_hr/models/v2/religion.dart';
+export 'package:fl_mhis_hr/models/v2/person.dart';
+export 'package:fl_mhis_hr/models/v2/branch.dart';
+export 'package:fl_mhis_hr/models/v2/job_level.dart';
+export 'package:fl_mhis_hr/models/v2/employment.dart';
+export 'package:fl_mhis_hr/models/v2/organization.dart';
+export 'package:fl_mhis_hr/models/v2/job_position.dart';
+export 'package:fl_mhis_hr/models/v2/user.dart';
+export 'package:fl_mhis_hr/models/v2/location.dart';
+export 'package:fl_mhis_hr/models/v2/employee.dart';
+export 'package:fl_mhis_hr/models/v2/attendance.dart';
+export 'package:fl_mhis_hr/models/v2/attendance_log.dart';
+export 'package:fl_mhis_hr/models/v2/active_schedule.dart';

@@ -1,5 +1,5 @@
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
@@ -121,86 +121,143 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(color: AppColors.white),
                   child: ListView.separated(
-                    itemCount: (state.history ?? []).length,
+                    itemCount: (state.histories ?? []).length,
                     itemBuilder: (context, i) {
-                      AttendanceHistory history = (state.history ?? [])[i];
-                      Color color = (history.dayoff ?? false)
+                      Attendance history = (state.histories ?? [])[i];
+                      Color color = (history.holiday == 1)
                           ? AppColors.danger
                           : AppColors.blackshade;
                       TextStyle style = TextStyle(color: color);
                       String dateMOnth =
                           Jiffy.parse(history.date!).format(pattern: "dd MMM");
-                      return SizedBox(
-                        height: 45,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: size.width * 30 / 100,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(dateMOnth, style: style),
-                                  Text(
-                                    history.shift ?? "--",
-                                    style: style.copyWith(fontSize: 11),
-                                  ),
-                                ],
+                      return InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: const BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20),
+                                  topRight: Radius.circular(20),
+                                ),
                               ),
-                            ),
-                            Expanded(
                               child: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Expanded(
-                                        child: Text(history.checkin ?? "--"),
-                                      ),
-                                      Expanded(
-                                        child: Text(history.checkout ?? "--"),
-                                      ),
-                                      const Align(
-                                        alignment: Alignment.centerRight,
-                                        child: Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          color: Color.fromARGB(
-                                              255, 101, 101, 101),
-                                          size: 15,
+                                      Text(
+                                        "${history.shiftName} (${history.scheduleIn}-${history.scheduleOut})",
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
                                         ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => context.pop(),
+                                        icon: const Icon(Icons.close),
                                       ),
                                     ],
                                   ),
-                                  Visibility(
-                                    visible: history.timeoffName != "",
-                                    child: Expanded(
-                                      child: Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 2, horizontal: 8),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.blue,
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                          ),
-                                          child: Text(
-                                            history.timeoffName ?? "--",
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              color: AppColors.white,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                  Text(Jiffy.parse(history.date!)
+                                      .format(pattern: "EEEE, dd MMMM yyyy")),
+                                  const Divider(),
+                                  const SizedBox(height: 12),
+                                  ListView.builder(
+                                    physics: ScrollPhysics(),
+                                    shrinkWrap: true,
+                                    itemBuilder: (context, idx) {
+                                      AttendanceLog log =
+                                          (history.logs ?? [])[idx];
+                                      return _buildDetailRow(
+                                        'Log ${idx + 1}',
+                                        log.type ?? '--',
+                                      );
+                                    },
                                   ),
+                                  const SizedBox(height: 20),
                                 ],
                               ),
-                            )
-                          ],
+                            ),
+                          );
+                        },
+                        child: SizedBox(
+                          height: 45,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: size.width * 30 / 100,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(dateMOnth, style: style),
+                                    Text(
+                                      history.shiftName ?? "--",
+                                      style: style.copyWith(fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(history.checkIn ?? "--"),
+                                        ),
+                                        Expanded(
+                                          child: Text(history.checkOut ?? "--"),
+                                        ),
+                                        const Align(
+                                          alignment: Alignment.centerRight,
+                                          child: Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            color: Color.fromARGB(
+                                                255, 101, 101, 101),
+                                            size: 15,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    // Visibility(
+                                    //   visible: history.timeoffName != "",
+                                    //   child: Expanded(
+                                    //     child: Align(
+                                    //       alignment: Alignment.centerLeft,
+                                    //       child: Container(
+                                    //         padding: const EdgeInsets.symmetric(
+                                    //             vertical: 2, horizontal: 8),
+                                    //         decoration: BoxDecoration(
+                                    //           color: AppColors.blue,
+                                    //           borderRadius:
+                                    //               BorderRadius.circular(6),
+                                    //         ),
+                                    //         child: Text(
+                                    //           history.timeoffName ?? "--",
+                                    //           style: const TextStyle(
+                                    //             fontSize: 11,
+                                    //             color: AppColors.white,
+                                    //             fontWeight: FontWeight.w700,
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                  ],
+                                ),
+                              )
+                            ],
+                          ),
                         ),
                       );
                     },
@@ -212,6 +269,30 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grey,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.dark,
+          ),
+        ),
+      ],
     );
   }
 }

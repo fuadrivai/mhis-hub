@@ -7,6 +7,7 @@ import 'package:fl_mhis_hr/pages/login/repository/login_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
@@ -45,6 +46,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       String password = map["password"];
 
       LoginResponse resp = await LoginApi.onLogin(map);
+      Map<String, dynamic> decodedToken =
+          JwtDecoder.decode(resp.authorization?.token ?? "");
 
       await Future.wait([
         Session.set("email", resp.user?.email ?? ""),
@@ -52,6 +55,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         Session.set("password", password),
         Session.set("userIdTalenta", resp.user?.userIdTalenta.toString() ?? ""),
         Session.set("token", resp.authorization?.token ?? ""),
+        Session.set("userId", decodedToken["id"].toString()),
       ]);
       emit(state.copyWith(
         isLoading: false,

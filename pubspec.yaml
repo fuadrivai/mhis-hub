@@ -73,6 +73,7 @@ dependencies:
   local_auth: ^2.3.0
   fingerprint_auth: ^0.0.2
   package_info_plus: ^9.0.0
+  jwt_decoder: ^2.0.1
 
 flutter_native_splash:
   android: true

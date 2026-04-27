@@ -2,14 +2,15 @@
 
 part of 'restclient.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
 class _RestClient implements RestClient {
-  // ignore: unused_element_parameter
   _RestClient(this._dio, {this.baseUrl, this.errorLogger});
 
   final Dio _dio;
@@ -43,7 +44,7 @@ class _RestClient implements RestClient {
           )
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -69,12 +70,10 @@ class _RestClient implements RestClient {
     late List<Newsletter> _value;
     try {
       _value = _result.data!
-          .map(
-            (dynamic i) => Newsletter.fromJson(i as Map<String, dynamic>),
-          )
+          .map((dynamic i) => Newsletter.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -122,7 +121,7 @@ class _RestClient implements RestClient {
     try {
       _value = _result.data!;
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -149,7 +148,69 @@ class _RestClient implements RestClient {
     try {
       _value = LoginResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<AttendanceLog> postLiveAttendance(
+    LiveAttendance liveAttendance,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(liveAttendance.toJson());
+    final _options = _setStreamType<AttendanceLog>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'attendance/live',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late AttendanceLog _value;
+    try {
+      _value = AttendanceLog.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<List<Attendance>> getAttendaceHistories(
+    Map<String, dynamic> map,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(map);
+    final _options = _setStreamType<List<Attendance>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'attendance/history',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<Attendance> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => Attendance.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -219,7 +280,7 @@ class _RestClient implements RestClient {
     try {
       _value = ServerSideEmployee.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -246,7 +307,7 @@ class _RestClient implements RestClient {
     try {
       _value = Employee.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -273,7 +334,7 @@ class _RestClient implements RestClient {
     try {
       _value = LiveAttendanceSchedule.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -308,7 +369,7 @@ class _RestClient implements RestClient {
           )
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -335,7 +396,7 @@ class _RestClient implements RestClient {
     try {
       _value = Pagination.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -367,7 +428,7 @@ class _RestClient implements RestClient {
           )
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -395,7 +456,7 @@ class _RestClient implements RestClient {
     try {
       _value = Announcement.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -421,12 +482,10 @@ class _RestClient implements RestClient {
     late List<Announcement> _value;
     try {
       _value = _result.data!
-          .map(
-            (dynamic i) => Announcement.fromJson(i as Map<String, dynamic>),
-          )
+          .map((dynamic i) => Announcement.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -455,7 +514,7 @@ class _RestClient implements RestClient {
           .map((dynamic i) => Branch.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -481,12 +540,10 @@ class _RestClient implements RestClient {
     late List<Organization> _value;
     try {
       _value = _result.data!
-          .map(
-            (dynamic i) => Organization.fromJson(i as Map<String, dynamic>),
-          )
+          .map((dynamic i) => Organization.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -512,12 +569,10 @@ class _RestClient implements RestClient {
     late List<JobPosition> _value;
     try {
       _value = _result.data!
-          .map(
-            (dynamic i) => JobPosition.fromJson(i as Map<String, dynamic>),
-          )
+          .map((dynamic i) => JobPosition.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -546,7 +601,7 @@ class _RestClient implements RestClient {
           .map((dynamic i) => JobLevel.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -574,7 +629,7 @@ class _RestClient implements RestClient {
     try {
       _value = PostPrayer.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -601,12 +656,10 @@ class _RestClient implements RestClient {
     late List<PostPrayer> _value;
     try {
       _value = _result.data!
-          .map(
-            (dynamic i) => PostPrayer.fromJson(i as Map<String, dynamic>),
-          )
+          .map((dynamic i) => PostPrayer.fromJson(i as Map<String, dynamic>))
           .toList();
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -633,7 +686,7 @@ class _RestClient implements RestClient {
     try {
       _value = Kpi.fromJson(_result.data!);
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -666,3 +719,5 @@ class _RestClient implements RestClient {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

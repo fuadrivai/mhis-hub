@@ -1,14 +1,17 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/main.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repositoty/attendance_api.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jiffy/jiffy.dart';
 
 class ClockinClockoutScreen extends StatefulWidget {
   final String type;
@@ -80,7 +83,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         floatingActionButton: FloatingActionButton(
           backgroundColor: Colors.white,
           isExtended: true,
-          onPressed: _takePicture,
+          onPressed: _takePictureV2,
           child: Padding(
             padding: const EdgeInsets.all(4.0),
             child: Container(
@@ -112,7 +115,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     }
   }
 
-  startCamera() async {
+  Future<void> startCamera() async {
     if (listCamera.isNotEmpty) {
       final frontCamera = listCamera.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
@@ -130,38 +133,44 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     }
   }
 
-  _stopCamera() {
+  void _stopCamera() {
     if (cameraController != null) {
       cameraController?.dispose();
     }
   }
 
-  _takePicture() async {
-    if (cameraController == null) return;
-    isLoading = true;
-    setState(() {});
-    final filePicture = await cameraController!.takePicture();
-    final file = File(filePicture.path);
-    Position position = await Common.determinePosition();
-    String? userId = await Session.get("userIdTalenta");
-    LiveAttendance liveAttendance = LiveAttendance();
-    liveAttendance.description = "${widget.type} description selfie";
-    liveAttendance.latitude = position.latitude;
-    liveAttendance.longitude = position.longitude;
-    liveAttendance.status = widget.type;
-    liveAttendance.userId = int.parse(userId!);
-    liveAttendance.file =
-        await MultipartFile.fromFile(file.path, filename: "$userId.jpg");
-    List<String> filePathList = [];
-    filePathList.add(file.path.toString());
-    var formData =
-        FormData.fromMap(liveAttendance.toJson(), ListFormat.multiCompatible);
-    AttendanceApi.postLiveAttendance(formData).then((data) {
+  Future<void> _takePictureV2() async {
+    try {
+      if (cameraController == null || !cameraController!.value.isInitialized) {
+        return;
+      }
+
+      isLoading = true;
+      if (mounted) setState(() {});
+
+      final filePicture = await cameraController!.takePicture();
+      final file = File(filePicture.path);
+
+      final bytes = await file.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      Position position = await Common.determinePosition();
+      String? userId = await Session.get("userId");
+
+      if (userId == null) throw Exception("User belum login");
+
+      LiveAttendance liveAttendance = LiveAttendance()
+        ..latitude = position.latitude
+        ..longitude = position.longitude
+        ..type = widget.type
+        ..userId = int.parse(userId)
+        ..date = Jiffy.now().format(pattern: "yyyy-MM-dd HH:mm:ss")
+        ..photo = base64Image;
+
+      AttendanceLog data = await AttendanceApi.postAttendance(liveAttendance);
       if (!mounted) return;
-      isLoading = false;
-      setState(() {});
       context.goNamed('attendance-response', extra: {'data': data});
-    }).catchError((e) {
+    } catch (e) {
       if (!mounted) return;
       isLoading = false;
       setState(() {});
@@ -175,6 +184,9 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         title: "Error",
         message: message,
       );
-    });
+    } finally {
+      isLoading = false;
+      if (mounted) setState(() {});
+    }
   }
 }

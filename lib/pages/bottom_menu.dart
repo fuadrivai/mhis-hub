@@ -85,7 +85,7 @@ class _BottomMenuState extends State<BottomMenu> {
     );
   }
 
-  callPage(int index) {
+  void callPage(int index) {
     switch (index) {
       case 0:
         context.go("/employee");

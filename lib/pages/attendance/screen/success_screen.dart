@@ -1,13 +1,10 @@
-import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:jiffy/jiffy.dart';
 
 class AttendanceResponseScreen extends StatefulWidget {
-  final AttendanceResponse? data;
-  const AttendanceResponseScreen({super.key, this.data});
+  final AttendanceLog? attendance;
+  const AttendanceResponseScreen({super.key, required this.attendance});
 
   @override
   State<AttendanceResponseScreen> createState() =>
@@ -17,54 +14,244 @@ class AttendanceResponseScreen extends StatefulWidget {
 class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
   @override
   Widget build(BuildContext context) {
+    final isCheckIn = widget.attendance?.type == "check_in";
+
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const FaIcon(FontAwesomeIcons.xmark),
-        ),
+        title: const Text("Back"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0,
       ),
-      backgroundColor: Colors.white,
-      body: Center(
-        child: IntrinsicHeight(
-          child: Column(
-            children: [
-              const FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: Color.fromARGB(255, 0, 249, 33),
-                size: 100,
-              ),
-              Text(
-                Common.capitalizeFirst(
-                    widget.data?.data?.attributes?.approvalStatus ?? ""),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 30,
+      backgroundColor: Colors.grey[50],
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 1000),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildHeader(isCheckIn),
+                    const SizedBox(height: 32),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        if (constraints.maxWidth > 700) {
+                          return _buildDesktopLayout(
+                            widget.attendance?.photo,
+                            widget.attendance?.time,
+                          );
+                        } else {
+                          return _buildMobileLayout(
+                            widget.attendance?.photo,
+                            widget.attendance?.time,
+                          );
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 3),
-              Text(
-                Common.capitalizeEvery(widget.data?.message ?? ""),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 17,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                Jiffy.parse(widget.data!.data!.attributes!.clockTime!)
-                    .format(pattern: "dd MMMM yyyy"),
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              Text(
-                "Time : ${Jiffy.parse(widget.data!.data!.attributes!.clockTime!).format(pattern: "HH:mm")}",
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              Text(Common.capitalizeFirst(
-                  widget.data?.data?.attributes?.locationName ?? "")),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(bool isCheckIn) {
+    return Column(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.check_circle_rounded,
+            size: 48,
+            color: Colors.green,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          "Success",
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.green,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          Jiffy.parse(widget.attendance?.clockDatetime ?? "")
+              .format(pattern: "EEEE, dd MMMM yyyy HH:mm"),
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          isCheckIn ? "Your attendance has been recorded" : "See you tomorrow!",
+          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDesktopLayout(String? photoUrl, String? time) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: _buildPhotoSection(photoUrl)),
+        const SizedBox(width: 32),
+        Expanded(child: _buildDetailSection(time)),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout(String? photoUrl, String? time) {
+    return Column(
+      children: [
+        SizedBox(width: 250, child: _buildPhotoSection(photoUrl)),
+        const SizedBox(height: 24),
+        _buildDetailSection(time),
+      ],
+    );
+  }
+
+  Widget _buildPhotoSection(String? photoUrl) {
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            width: 150,
+            height: 150,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.grey[100],
+            ),
+            child: photoUrl != null
+                ? Image.network(
+                    photoUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        _buildPhotoPlaceholder(),
+                  )
+                : _buildPhotoPlaceholder(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoPlaceholder() {
+    return Container(
+      color: Colors.grey[200],
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.photo_camera, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 8),
+          Text(
+            'photo not available',
+            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailSection(String? time) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "employee information",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildInfoItem(
+            icon: Icons.person_outline,
+            label: "Name",
+            value: widget.attendance?.employee?.personal?.fullname ?? "-",
+          ),
+          _buildInfoItem(
+            icon: Icons.business_outlined,
+            label: "Organization",
+            value: widget.attendance?.employee?.employment?.organizationName ??
+                "-",
+          ),
+          _buildInfoItem(
+            icon: Icons.work_outline,
+            label: "Position",
+            value:
+                widget.attendance?.employee?.employment?.jobPositionName ?? "-",
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    bool isHighlighted = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(right: 12, top: 2),
+            child: Icon(
+              icon,
+              size: 20,
+              color: isHighlighted ? Colors.green : Colors.grey[600],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isHighlighted ? Colors.green : Colors.grey[800],
+                    fontWeight:
+                        isHighlighted ? FontWeight.w600 : FontWeight.w400,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
