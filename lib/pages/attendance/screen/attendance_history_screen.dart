@@ -143,45 +143,66 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                   topRight: Radius.circular(20),
                                 ),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "${history.shiftName} (${history.scheduleIn}-${history.scheduleOut})",
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w600,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${history.shiftName} (${history.scheduleIn}-${history.scheduleOut})",
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () => context.pop(),
-                                        icon: const Icon(Icons.close),
-                                      ),
-                                    ],
-                                  ),
-                                  Text(Jiffy.parse(history.date!)
-                                      .format(pattern: "EEEE, dd MMMM yyyy")),
-                                  const Divider(),
-                                  const SizedBox(height: 12),
-                                  ListView.builder(
-                                    physics: ScrollPhysics(),
-                                    shrinkWrap: true,
-                                    itemBuilder: (context, idx) {
-                                      AttendanceLog log =
-                                          (history.logs ?? [])[idx];
-                                      return _buildDetailRow(
-                                        'Log ${idx + 1}',
-                                        log.type ?? '--',
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 20),
-                                ],
+                                        IconButton(
+                                          onPressed: () => context.pop(),
+                                          icon: const Icon(Icons.close),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(Jiffy.parse(history.date!)
+                                        .format(pattern: "EEEE, dd MMMM yyyy")),
+                                    const Divider(),
+                                    const SizedBox(height: 12),
+                                    ListView.builder(
+                                      physics: ScrollPhysics(),
+                                      shrinkWrap: true,
+                                      itemCount: (history.logs ?? []).length,
+                                      itemBuilder: (context, idx) {
+                                        AttendanceLog log =
+                                            (history.logs ?? [])[idx];
+                                        return Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(log.type ?? '--'),
+                                                ),
+                                                Expanded(
+                                                  child: Text(log.time ?? '--'),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(
+                                                      Icons.arrow_forward_ios),
+                                                  onPressed: () {
+                                                    // TODO: implement indicator click action
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
                               ),
                             ),
                           );
