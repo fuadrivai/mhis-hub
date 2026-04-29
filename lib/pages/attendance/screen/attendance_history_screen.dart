@@ -182,7 +182,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                             child: Row(
                                               children: [
                                                 Expanded(
-                                                  child: Text(log.type ?? '--'),
+                                                  child: Text(
+                                                      log.type == "check_in"
+                                                          ? "Check In"
+                                                          : "Check Out"),
                                                 ),
                                                 Expanded(
                                                   child: Text(log.time ?? '--'),
@@ -191,7 +194,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                                   icon: Icon(
                                                       Icons.arrow_forward_ios),
                                                   onPressed: () {
-                                                    // TODO: implement indicator click action
+                                                    context.pushNamed(
+                                                      'attendance-history-detail',
+                                                      extra: {'log': log},
+                                                    );
                                                   },
                                                 ),
                                               ],
@@ -249,31 +255,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                         ),
                                       ],
                                     ),
-                                    // Visibility(
-                                    //   visible: history.timeoffName != "",
-                                    //   child: Expanded(
-                                    //     child: Align(
-                                    //       alignment: Alignment.centerLeft,
-                                    //       child: Container(
-                                    //         padding: const EdgeInsets.symmetric(
-                                    //             vertical: 2, horizontal: 8),
-                                    //         decoration: BoxDecoration(
-                                    //           color: AppColors.blue,
-                                    //           borderRadius:
-                                    //               BorderRadius.circular(6),
-                                    //         ),
-                                    //         child: Text(
-                                    //           history.timeoffName ?? "--",
-                                    //           style: const TextStyle(
-                                    //             fontSize: 11,
-                                    //             color: AppColors.white,
-                                    //             fontWeight: FontWeight.w700,
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //     ),
-                                    //   ),
-                                    // ),
                                   ],
                                 ),
                               )
@@ -290,30 +271,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.grey,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.dark,
-          ),
-        ),
-      ],
     );
   }
 }
