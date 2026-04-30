@@ -21,17 +21,19 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print(
       "Message received in background: ${message.notification?.title}, ${message.notification?.body}");
 }
-
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   if (!Platform.isWindows) {
     cameraPermission = await Common.requestCameraPermission();
     listCamera = await availableCameras();
   }
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseMessaging.instance.subscribeToTopic('all');
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   setPathUrlStrategy();
@@ -49,6 +51,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   void initState() {
+    setupFCM();
     initialization();
     super.initState();
   }
@@ -57,6 +60,29 @@ class _MyAppState extends State<MyApp> {
     await Future.delayed(const Duration(seconds: 2));
     FlutterNativeSplash.remove();
   }
+
+  Future<void> setupFCM() async {
+  final messaging = FirebaseMessaging.instance;
+
+  // Request permission
+  await messaging.requestPermission();
+
+  // 🔥 Listen for token (THIS is the key fix)
+  messaging.onTokenRefresh.listen((token) async {
+    print("FCM Token ready: $token");
+    await messaging.subscribeToTopic('all');
+  });
+
+  // Try initial token
+  String? token = await messaging.getToken();
+
+  if (token != null) {
+    print("Initial FCM Token: $token");
+    await messaging.subscribeToTopic('all');
+  } else {
+    print("⚠️ Token not ready yet, waiting...");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
