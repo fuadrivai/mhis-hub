@@ -1,4 +1,4 @@
-package com.example.fl_mhis_hr
+package com.mhis.hris
 
 import io.flutter.embedding.android.FlutterActivity
 

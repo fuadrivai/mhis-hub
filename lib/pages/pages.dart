@@ -16,3 +16,6 @@ export 'package:fl_mhis_hr/pages/attendance/screen/Map_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/success_screen.dart';
 export 'package:fl_mhis_hr/pages/employee/screen/employee_screen.dart';
+export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_screen.dart';
+export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_form.dart';
+export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_view.dart';

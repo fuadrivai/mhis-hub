@@ -9,14 +9,18 @@ import 'package:fl_mhis_hr/widget/loading_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:math' as math;
+
 
 class ClockinClockoutScreen extends StatefulWidget {
   final String type;
   const ClockinClockoutScreen({super.key, required this.type});
 
+
   @override
   State<ClockinClockoutScreen> createState() => _ClockinClockoutScreenState();
 }
+
 
 class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     with WidgetsBindingObserver {
@@ -24,6 +28,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
   bool isLoading = true;
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool positionStreamStarted = false;
+
 
   @override
   void initState() {
@@ -37,6 +42,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         ResolutionPreset.max,
         enableAudio: false,
       );
+
 
       cameraController?.initialize().then((_) {
         if (!mounted) {
@@ -61,12 +67,14 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     super.initState();
   }
 
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _stopCamera();
     super.dispose();
   }
+
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -83,6 +91,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     super.didChangeAppLifecycleState(state);
   }
 
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -97,11 +106,15 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
       return Stack(
         children: [
           cameraPermission
-              ? Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.topCenter,
-                  child: CameraPreview(
-                    cameraController!,
+              ? Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.rotationY(math.pi),
+                  child: Transform.scale(
+                    scale: scale,
+                    alignment: Alignment.topCenter,
+                    child: CameraPreview(
+                      cameraController!,
+                    ),
                   ),
                 )
               : const Text("Camera Tidak Tersedia"),
@@ -136,6 +149,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     }
   }
 
+
   _startCamera() async {
     if (listCamera.isNotEmpty) {
       if (cameraController != null) {
@@ -153,40 +167,40 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     }
   }
 
+
   _stopCamera() {
     if (cameraController != null) {
       cameraController?.dispose();
     }
   }
 
+
   _takePicture() async {
     if (cameraController == null) return;
-    try {
-      isLoading = true;
+    isLoading = true;
+    setState(() {});
+    final filePicture = await cameraController!.takePicture();
+    final file = File(filePicture.path);
+    Position position = await Common.determinePosition();
+    String? userId = await Session.get("userIdTalenta");
+    LiveAttendance liveAttendance = LiveAttendance();
+    liveAttendance.description = "${widget.type} description selfie";
+    liveAttendance.latitude = position.latitude;
+    liveAttendance.longitude = position.longitude;
+    liveAttendance.status = widget.type;
+    liveAttendance.userId = int.parse(userId!);
+    liveAttendance.file =
+        await MultipartFile.fromFile(file.path, filename: "$userId.jpg");
+    List<String> filePathList = [];
+    filePathList.add(file.path.toString());
+    var formData =
+        FormData.fromMap(liveAttendance.toJson(), ListFormat.multiCompatible);
+    AttendanceApi.postLiveAttendance(formData).then((data) {
+      if (!mounted) return;
+      isLoading = false;
       setState(() {});
-      final filePicture = await cameraController!.takePicture();
-      final file = File(filePicture.path);
-      Position position = await Common.determinePosition();
-      String? userId = await Session.get("userIdTalenta");
-      LiveAttendance liveAttendance = LiveAttendance();
-      liveAttendance.description = "${widget.type} description selfie";
-      liveAttendance.latitude = position.latitude;
-      liveAttendance.longitude = position.longitude;
-      liveAttendance.status = widget.type;
-      liveAttendance.userId = int.parse(userId!);
-      liveAttendance.file =
-          await MultipartFile.fromFile(file.path, filename: "$userId.jpg");
-      List<String> filePathList = [];
-      filePathList.add(file.path.toString());
-      var formData =
-          FormData.fromMap(liveAttendance.toJson(), ListFormat.multiCompatible);
-      AttendanceApi.postLiveAttendance(formData).then((data) {
-        if (!mounted) return;
-        isLoading = false;
-        setState(() {});
-        context.goNamed('attendance-response', extra: {'data': data});
-      });
-    } catch (e) {
+      context.goNamed('attendance-response', extra: {'data': data});
+    }).catchError((e) {
       if (!mounted) return;
       isLoading = false;
       setState(() {});
@@ -200,9 +214,9 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         title: "Error",
         message: message,
       );
-      // ScaffoldMessenger.of(context)
-      //     .showSnackBar(SnackBar(content: Text(e.toString())));
-      // context.goNamed('attendance-failed');
-    }
+    });
   }
 }
+
+
+

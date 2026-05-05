@@ -60,6 +60,41 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'general-announcement',
+                name: "general-announcement",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: GeneralAnnouncementScreen(),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: _nav.navKey,
+                    path: 'form',
+                    name: "general-announcement-form",
+                    pageBuilder: (context, state) {
+                      return const NoTransitionPage(
+                        child: GeneralAnnouncementForm(),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    parentNavigatorKey: _nav.navKey,
+                    path: 'view',
+                    name: "general-announcement-view",
+                    pageBuilder: (context, state) {
+                      var extra = state.extra as Map<String, dynamic>;
+                      return NoTransitionPage(
+                        child: GeneralAnnouncementView(
+                          announcement: extra['announcement'],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'payment-slip',
                 name: "paymentsllip",
                 pageBuilder: (context, state) {

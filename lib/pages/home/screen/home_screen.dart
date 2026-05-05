@@ -97,6 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       listTile(
                         title: "General Announcement",
                         iconData: FontAwesomeIcons.paperPlane,
+                        onTap: () => context.goNamed('general-announcement'),
                       ),
                       const Divider(),
                       listTile(

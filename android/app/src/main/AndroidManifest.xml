@@ -16,7 +16,8 @@
             android:name="firebase_analytics_collection_enabled"
             android:value="false" />
         <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyDGhvE62dFCEGgtwvWhOsuJEPzR27oURZA"/>
+               android:value="AIzaSyAhPd4p9-KRS06GMC0pzoV_vbd7q5_kGuk"/>
+               <!-- android:value="AIzaSyDGhvE62dFCEGgtwvWhOsuJEPzR27oURZA"/> -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

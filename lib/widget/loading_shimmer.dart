@@ -26,7 +26,12 @@ class LoadingShimmer extends StatelessWidget {
         child: Shimmer.fromColors(
           baseColor: Colors.grey[300]!,
           highlightColor: Colors.grey[100]!,
-          child: const Text("Please Wait ..."),
+          child: const Text(
+            "Please Wait ...",
+            style: TextStyle(
+              color: AppColors.danger,
+            ),
+          ),
         ),
       ),
     );

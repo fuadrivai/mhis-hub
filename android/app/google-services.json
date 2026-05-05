@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1059253142118",
-    "project_id": "mhis-employee",
-    "storage_bucket": "mhis-employee.appspot.com"
+    "project_number": "592617177680",
+    "project_id": "mhis-hub",
+    "storage_bucket": "mhis-hub.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1059253142118:android:616957cc1efff76b9ae3a7",
+        "mobilesdk_app_id": "1:592617177680:android:eb4a3cdc54934a58c74755",
         "android_client_info": {
-          "package_name": "com.example.fl_mhis_hr"
+          "package_name": "com.mhis.fl_mhis_hr"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBC0G0-iYZiJOLIsnbFzYNrcM93XQSSR80"
+          "current_key": "AIzaSyCp8sQ47a2rM0IsWkjxSscDfHOiZ9Qs6io"
         }
       ],
       "services": {

@@ -41,46 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDgmvWzBTNdDFlld7OsEKs4U9DP4u8vy9g',
-    appId: '1:1059253142118:web:59dbf184a6aa1b9b9ae3a7',
-    messagingSenderId: '1059253142118',
-    projectId: 'mhis-employee',
-    authDomain: 'mhis-employee.firebaseapp.com',
-    storageBucket: 'mhis-employee.appspot.com',
+    apiKey: 'AIzaSyBZ7kMinTZzo-c_VHa3Uh38OwlEDhhugWA',
+    appId: '1:592617177680:web:97aa15a67c3a18bbc74755',
+    messagingSenderId: '592617177680',
+    projectId: 'mhis-hub',
+    authDomain: 'mhis-hub.firebaseapp.com',
+    storageBucket: 'mhis-hub.appspot.com',
+    measurementId: 'G-NQZNBXV7Q1',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBC0G0-iYZiJOLIsnbFzYNrcM93XQSSR80',
-    appId: '1:1059253142118:android:616957cc1efff76b9ae3a7',
-    messagingSenderId: '1059253142118',
-    projectId: 'mhis-employee',
-    storageBucket: 'mhis-employee.appspot.com',
+    apiKey: 'AIzaSyCp8sQ47a2rM0IsWkjxSscDfHOiZ9Qs6io',
+    appId: '1:592617177680:android:eb4a3cdc54934a58c74755',
+    messagingSenderId: '592617177680',
+    projectId: 'mhis-hub',
+    storageBucket: 'mhis-hub.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyB845oghvP8Z9Okjefpjj7w8YtjQe0x_hw',
-    appId: '1:1059253142118:ios:e0813a24c04272519ae3a7',
-    messagingSenderId: '1059253142118',
-    projectId: 'mhis-employee',
-    storageBucket: 'mhis-employee.appspot.com',
-    iosBundleId: 'com.example.flMhisHr',
+    apiKey: 'AIzaSyCfGEetLgIRpQ6gsm2smoOtFQEjEqfZDt4',
+    appId: '1:592617177680:ios:8bf1acab94d8c239c74755',
+    messagingSenderId: '592617177680',
+    projectId: 'mhis-hub',
+    storageBucket: 'mhis-hub.appspot.com',
+    iosBundleId: 'com.mhis.hris',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyB845oghvP8Z9Okjefpjj7w8YtjQe0x_hw',
-    appId: '1:1059253142118:ios:e0813a24c04272519ae3a7',
-    messagingSenderId: '1059253142118',
-    projectId: 'mhis-employee',
-    storageBucket: 'mhis-employee.appspot.com',
-    iosBundleId: 'com.example.flMhisHr',
+    apiKey: 'AIzaSyCfGEetLgIRpQ6gsm2smoOtFQEjEqfZDt4',
+    appId: '1:592617177680:ios:8bf1acab94d8c239c74755',
+    messagingSenderId: '592617177680',
+    projectId: 'mhis-hub',
+    storageBucket: 'mhis-hub.appspot.com',
+    iosBundleId: 'com.mhis.hris',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDgmvWzBTNdDFlld7OsEKs4U9DP4u8vy9g',
-    appId: '1:1059253142118:web:05c2e22a2c5560959ae3a7',
-    messagingSenderId: '1059253142118',
-    projectId: 'mhis-employee',
-    authDomain: 'mhis-employee.firebaseapp.com',
-    storageBucket: 'mhis-employee.appspot.com',
+    apiKey: 'AIzaSyBZ7kMinTZzo-c_VHa3Uh38OwlEDhhugWA',
+    appId: '1:592617177680:web:56e85b3184cc4f19c74755',
+    messagingSenderId: '592617177680',
+    projectId: 'mhis-hub',
+    authDomain: 'mhis-hub.firebaseapp.com',
+    storageBucket: 'mhis-hub.appspot.com',
+    measurementId: 'G-QV54KPC0JB',
   );
+
 }

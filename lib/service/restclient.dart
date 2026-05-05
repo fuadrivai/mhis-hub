@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:fl_mhis_hr/models/job_level.dart';
+import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -44,4 +46,25 @@ abstract class RestClient {
 
   @GET("payslip")
   Future<Pagination> getPaySlipData();
+
+  @GET("category")
+  Future<List<AnnouncementCategory>> getAllCategory();
+
+  @POST("announcement")
+  Future<Announcement> postAnnouncement(@Body() Announcement announcement);
+
+  @GET("announcement")
+  Future<List<Announcement>> getAnnouncement();
+
+  @GET("branch")
+  Future<List<Branch>> getAllBranch();
+
+  @GET("organization")
+  Future<List<Organization>> getAllOrganization();
+
+  @GET("position")
+  Future<List<JobPosition>> getAllJobPosition();
+
+  @GET("level")
+  Future<List<JobLevel>> getAllJobLevel();
 }

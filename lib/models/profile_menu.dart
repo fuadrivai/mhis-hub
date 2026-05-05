@@ -32,36 +32,36 @@ class ParentMenu {
                     extra: {"data": employee.employment});
               },
             ),
-            ChildMenu(
-              name: "Emergency Contact Info",
-              iconData: FontAwesomeIcons.flag,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Family Info",
-              iconData: FontAwesomeIcons.peopleGroup,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Education and Experience",
-              iconData: FontAwesomeIcons.solidBuilding,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Payroll Info",
-              iconData: FontAwesomeIcons.sackDollar,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "My files",
-              iconData: FontAwesomeIcons.folderOpen,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Reprimand",
-              iconData: FontAwesomeIcons.triangleExclamation,
-              onTap: () {},
-            ),
+            // ChildMenu(
+            //   name: "Emergency Contact Info",
+            //   iconData: FontAwesomeIcons.flag,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Family Info",
+            //   iconData: FontAwesomeIcons.peopleGroup,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Education and Experience",
+            //   iconData: FontAwesomeIcons.solidBuilding,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Payroll Info",
+            //   iconData: FontAwesomeIcons.sackDollar,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "My files",
+            //   iconData: FontAwesomeIcons.folderOpen,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Reprimand",
+            //   iconData: FontAwesomeIcons.triangleExclamation,
+            //   onTap: () {},
+            // ),
           ],
         ),
         ParentMenu(
@@ -72,26 +72,26 @@ class ParentMenu {
               iconData: FontAwesomeIcons.lock,
               onTap: () => context.goNamed("change-password"),
             ),
-            ChildMenu(
-              name: "PIN",
-              iconData: FontAwesomeIcons.key,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Enable Authentication",
-              iconData: FontAwesomeIcons.fingerprint,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Reminder Clock in/out",
-              iconData: FontAwesomeIcons.clock,
-              onTap: () {},
-            ),
-            ChildMenu(
-              name: "Language",
-              iconData: FontAwesomeIcons.comment,
-              onTap: () {},
-            ),
+            // ChildMenu(
+            //   name: "PIN",
+            //   iconData: FontAwesomeIcons.key,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Enable Authentication",
+            //   iconData: FontAwesomeIcons.fingerprint,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Reminder Clock in/out",
+            //   iconData: FontAwesomeIcons.clock,
+            //   onTap: () {},
+            // ),
+            // ChildMenu(
+            //   name: "Language",
+            //   iconData: FontAwesomeIcons.comment,
+            //   onTap: () {},
+            // ),
           ],
         ),
       ];

@@ -2,6 +2,7 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -24,7 +25,13 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
   }
 
-  getLocation() {
+  getLocation() async {
+    bool isLocationActive = await Geolocator.isLocationServiceEnabled();
+  if (isLocationActive) {
+    await Common.determinePosition();
+  } else {
+    Geolocator.openLocationSettings();
+  }
     isLoading = true;
     Common.determinePosition().then((val) {
       setState(() {

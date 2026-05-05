@@ -1,21 +1,24 @@
-class JobLebel {
+class JobLevel {
   int? id;
-  String? title;
-  int? level;
+  String? name;
+  String? createdAt;
+  String? updatedAt;
 
-  JobLebel({this.id, this.title, this.level});
+  JobLevel({this.id, this.name, this.createdAt, this.updatedAt});
 
-  JobLebel.fromJson(Map<String, dynamic> json) {
+  JobLevel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    title = json['title'];
-    level = json['level'];
+    name = json['name'];
+    createdAt = json['created_at'];
+    updatedAt = json['updated_at'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
-    data['title'] = title;
-    data['level'] = level;
+    data['name'] = name;
+    data['created_at'] = createdAt;
+    data['updated_at'] = updatedAt;
     return data;
   }
 }

@@ -1,6 +1,7 @@
 import 'package:fl_mhis_hr/pages/academy/bloc/academy_bloc.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/pages/employee/bloc/employee_bloc.dart';
+import 'package:fl_mhis_hr/pages/general_announcement/bloc/general_announcement_bloc.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
 import 'package:fl_mhis_hr/pages/login/bloc/login_bloc.dart';
 import 'package:fl_mhis_hr/pages/payslip/bloc/payslip_bloc.dart';
@@ -20,6 +21,8 @@ class ProviderBloc {
       BlocProvider<AttendanceBloc>(create: (__) => AttendanceBloc()),
       BlocProvider<EmployeeBloc>(create: (__) => EmployeeBloc()),
       BlocProvider<PayslipBloc>(create: (__) => PayslipBloc()),
+      BlocProvider<GeneralAnnouncementBloc>(
+          create: (__) => GeneralAnnouncementBloc()),
     ];
   }
 }

@@ -39,15 +39,33 @@ class _PaymentslipScreenState extends State<PaymentslipScreen> {
           if (state.isLoading) {
             return const LoadingWidget();
           }
+
+          if ((state.payslips?.isEmpty ?? true)) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  "There are currently no payslips available. Please check back later.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            );
+          }
+
           return RefreshIndicator(
             onRefresh: () async {
               context.read<PayslipBloc>().add(const OnInit());
             },
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: (state.payslips ?? []).length,
+              itemCount: state.payslips?.length ?? 0,
               itemBuilder: (ctx, i) {
-                Payslip payslip = (state.payslips ?? [])[i];
+                Payslip payslip = state.payslips![i];
                 return ListTile(
                   title: Text(
                       "Periode : ${Jiffy.parse(payslip.periode!).format(pattern: "MMMM yyyy")}"),
@@ -57,9 +75,9 @@ class _PaymentslipScreenState extends State<PaymentslipScreen> {
                     color: AppColors.secondary,
                   ),
                   onTap: () {
-                    if (payslip.link != null || payslip.link != "") {
-                    launchUrl(Uri.parse(payslip.link!));
-                  }
+                    if (payslip.link != null && payslip.link!.isNotEmpty) {
+                      launchUrl(Uri.parse(payslip.link!));
+                    }
                   },
                 );
               },

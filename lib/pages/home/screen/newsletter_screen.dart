@@ -25,7 +25,6 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.transparent,
       appBar: CustomAppbar(
         backgroundColor: AppColors.whiteshade,
         leading: IconButton(

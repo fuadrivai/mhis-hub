@@ -26,7 +26,7 @@ class AcademyUser {
   int? provinceId;
   int? cityId;
   int? districtId;
-  Location? location;
+  Branch? location;
   int? levelOfTraining;
   String? meetingType;
   String? status;
@@ -133,7 +133,7 @@ class AcademyUser {
     cityId = json['city_id'];
     districtId = json['district_id'];
     location =
-        json['location'] != null ? Location.fromJson(json['location']) : null;
+        json['location'] != null ? Branch.fromJson(json['location']) : null;
     levelOfTraining = json['level_of_training'];
     meetingType = json['meeting_type'];
     status = json['status'];

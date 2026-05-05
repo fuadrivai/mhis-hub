@@ -25,7 +25,15 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         showAction: false,
       ));
 
-      await FirebaseMessaging.instance.requestPermission(provisional: true);
+      await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+    announcement: true,
+    badge: true,
+    carPlay: false,
+    criticalAlert: true,
+    provisional: false,
+    sound: true,
+      );
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       String? token = await messaging.getToken();
 
