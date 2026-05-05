@@ -1,3 +1,4 @@
+
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
@@ -18,7 +19,7 @@ class _TalentaScreenState extends State<TalentaScreen> {
     super.initState();
   }
 
-  openTalenta() async {
+  Future<void> openTalenta() async {
     await LaunchApp.openApp(
       androidPackageName: 'co.talenta',
       openStore: true,

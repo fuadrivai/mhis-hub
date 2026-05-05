@@ -1,3 +1,4 @@
+
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
@@ -33,7 +34,7 @@ class _BottomMenuState extends State<BottomMenu> {
         },
         items: [
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.peopleGroup,
               color: bgColor,
             ),
@@ -53,7 +54,7 @@ class _BottomMenuState extends State<BottomMenu> {
             label: 'Academy',
           ),
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.house,
               color: bgColor,
             ),
@@ -74,7 +75,7 @@ class _BottomMenuState extends State<BottomMenu> {
             label: 'Talenta',
           ),
           CurvedNavigationBarItem(
-            child: Icon(
+            child: FaIcon(
               FontAwesomeIcons.user,
               color: bgColor,
             ),
@@ -85,7 +86,7 @@ class _BottomMenuState extends State<BottomMenu> {
     );
   }
 
-  callPage(int index) {
+  void callPage(int index) {
     switch (index) {
       case 0:
         context.go("/employee");

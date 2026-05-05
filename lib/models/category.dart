@@ -1,3 +1,4 @@
+
 class Category {
   int? id;
   String? slug;

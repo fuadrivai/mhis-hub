@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 late List<CameraDescription> listCamera;
@@ -35,7 +34,6 @@ void main() async {
   await FirebaseMessaging.instance.subscribeToTopic('all');
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  
   setPathUrlStrategy();
   setupLocator();
   runApp(const MyApp());

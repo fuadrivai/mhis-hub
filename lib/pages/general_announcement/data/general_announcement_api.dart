@@ -1,4 +1,3 @@
-import 'package:fl_mhis_hr/models/job_level.dart';
 import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/service/api.dart';

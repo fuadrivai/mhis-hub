@@ -1,3 +1,4 @@
+
 export 'package:fl_mhis_hr/models/schedule.dart';
 export 'package:fl_mhis_hr/models/branch.dart';
 export 'package:fl_mhis_hr/models/category.dart';
@@ -22,5 +23,9 @@ export 'package:fl_mhis_hr/models/attendance_response.dart';
 export 'package:fl_mhis_hr/models/organization.dart';
 export 'package:fl_mhis_hr/models/announcement_category.dart';
 export 'package:fl_mhis_hr/models/announcement.dart';
+export 'package:fl_mhis_hr/models/post_prayer.dart';
+export 'package:fl_mhis_hr/models/job_level.dart';
+export 'package:fl_mhis_hr/models/schedule_solat.dart';
+export 'package:fl_mhis_hr/models/kpi.dart';
 export 'package:fl_mhis_hr/models/serverside/pagination.dart';
 export 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';

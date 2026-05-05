@@ -24,11 +24,10 @@ class CustomAppbar extends StatelessWidget implements PreferredSize {
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: backgroundColor ??
-              AppColors.whiteshade.withOpacity(topBarOpacity),
+          color: backgroundColor ?? AppColors.whiteshade,
           boxShadow: <BoxShadow>[
             BoxShadow(
-              color: AppColors.grey.withOpacity(0.4 * topBarOpacity),
+              color: AppColors.grey.withValues(alpha: 0.4 * topBarOpacity),
               offset: const Offset(1.1, 1.1),
               blurRadius: 10.0,
             ),

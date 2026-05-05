@@ -1,16 +1,21 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:crypto/crypto.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:another_flushbar/flushbar.dart';
 
 class Common {
   Common._();
+  static String logoHub = 'assets/images/logo-hub.png';
+  static String logoSplash = 'assets/images/splash.png';
   static String imageLogo = 'assets/images/logo.png';
+  static String imageProfile = 'assets/images/profile.png';
   static String talentaLogo = 'assets/images/talenta.png';
   static String hmacUsername = 'VSkLSBDZBI7LnyPX';
   static String hmacSecret = '9hntyY9mqhQLHG9G5KZVkPPk9DKqagqU';
@@ -37,11 +42,11 @@ class Common {
     stops: [0.3, 0.9],
   );
 
-  static modalInfo(
+  static void modalInfo(
     BuildContext context, {
     String? message,
     required String title,
-    Icon? icon,
+    Widget? icon,
     MODE? mode,
     bool? showAction,
     GestureTapCallback? onTap,
@@ -102,17 +107,49 @@ class Common {
     );
   }
 
+  static MonthPickerDialogSettings monthPickerDialog() {
+    return MonthPickerDialogSettings(
+      headerSettings: const PickerHeaderSettings(
+        headerBackgroundColor: AppColors.primary,
+        headerCurrentPageTextStyle: TextStyle(
+          fontSize: 25,
+          color: AppColors.white,
+          fontWeight: FontWeight.w700,
+        ),
+        headerSelectedIntervalTextStyle: TextStyle(
+          fontSize: 16,
+          color: AppColors.white,
+        ),
+      ),
+      dateButtonsSettings: PickerDateButtonsSettings(
+        selectedMonthBackgroundColor: AppColors.danger.withValues(
+          red: 0.3,
+          blue: 0.3,
+          green: 0.3,
+          colorSpace: ColorSpace.displayP3,
+        ),
+      ),
+      dialogSettings: PickerDialogSettings(
+        locale: const Locale('en'),
+        dialogRoundedCornersRadius: 20,
+        dialogBackgroundColor: AppColors.whiteshade,
+      ),
+    );
+  }
+
   static Future flushBar(BuildContext context,
-      {required String title, required String message}) async {
+      {required String title,
+      required String message,
+      FlushbarPosition? position}) async {
     await Flushbar(
-      flushbarPosition: FlushbarPosition.TOP,
+      flushbarPosition: position ?? FlushbarPosition.TOP,
       flushbarStyle: FlushbarStyle.FLOATING,
       title: title,
       message: message,
       reverseAnimationCurve: Curves.decelerate,
       forwardAnimationCurve: Curves.elasticOut,
       backgroundColor: AppColors.primary,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 7),
       icon: const Icon(Icons.notification_add, color: AppColors.white),
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Text(
@@ -180,7 +217,10 @@ class Common {
       Geolocator.openLocationSettings();
     }
     return await Geolocator.getCurrentPosition(
-        forceAndroidLocationManager: true);
+      locationSettings: LocationSettings(),
+      // ignore: deprecated_member_use
+      forceAndroidLocationManager: true,
+    );
   }
 
   static String capitalizeFirst(String word) {

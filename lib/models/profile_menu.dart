@@ -1,3 +1,4 @@
+
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -72,6 +73,12 @@ class ParentMenu {
               iconData: FontAwesomeIcons.lock,
               onTap: () => context.goNamed("change-password"),
             ),
+            ChildMenu(
+              name: "Login With Biometric",
+              defaultTrailing: false,
+              iconData: FontAwesomeIcons.fingerprint,
+              onTap: () {},
+            ),
             // ChildMenu(
             //   name: "PIN",
             //   iconData: FontAwesomeIcons.key,
@@ -100,11 +107,9 @@ class ParentMenu {
 class ChildMenu {
   String? name;
   GestureTapCallback? onTap;
-  IconData? iconData;
+  FaIconData? iconData;
+  bool? defaultTrailing;
 
-  ChildMenu({
-    this.iconData,
-    this.name,
-    this.onTap,
-  });
+  ChildMenu(
+      {this.iconData, this.name, this.onTap, this.defaultTrailing = true});
 }

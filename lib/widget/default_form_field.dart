@@ -56,7 +56,7 @@ class _DefaultFormFieldState extends State<DefaultFormField> {
                             widget.onChangeSwitch!(val);
                           });
                         },
-                        activeColor: Colors.blue[400],
+                        activeThumbColor: Colors.blue[400],
                       ),
                     )
                   ],

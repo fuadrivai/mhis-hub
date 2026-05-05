@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fl_mhis_hr/models/job_level.dart';
 import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/data/general_announcement_api.dart';
@@ -127,6 +126,7 @@ class GeneralAnnouncementBloc
       List<Organization> organizations = [];
       List<JobLevel> levels = [];
       List<JobPosition> positions = [];
+      announcement.allEmployees = event.val;
       if (!event.val) {
         await Future.wait([
           GeneralAnnouncementApi.getBranch().then((val) => branches = val),
@@ -146,6 +146,10 @@ class GeneralAnnouncementBloc
         ));
       } else {
         announcement.allEmployees = event.val;
+        announcement.branches = [];
+        announcement.organizations = [];
+        announcement.levels = [];
+        announcement.positions = [];
         emit(state.copyWith(
           announcement: announcement,
           levels: levels,
@@ -199,7 +203,7 @@ class GeneralAnnouncementBloc
   void _onInitForm(
       OnInitForm event, Emitter<GeneralAnnouncementState> emit) async {
     try {
-      emit(state.copyWith(loadingForm: true));
+      emit(state.copyWith(loadingForm: true, announcement: Announcement()));
       List<AnnouncementCategory> categories = [];
       categories.add(
         AnnouncementCategory(description: null, id: 0, name: "Uncategorized"),

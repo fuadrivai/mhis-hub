@@ -1,3 +1,4 @@
+
 class Education {
   List<dynamic>? formalEducationHistory;
   List<dynamic>? informalEducationHistory;

@@ -1,5 +1,4 @@
 import 'package:fl_mhis_hr/injector/injector.dart';
-import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
@@ -13,22 +12,38 @@ final GlobalKey<NavigatorState> _dashboardNavigatorKey =
 class RouteNavigation {
   static final GoRouter router = GoRouter(
     navigatorKey: _nav.navKey,
-    redirect: (context, state) async {
-      String? token = await Session.get("token");
-      if (token == null || token == "") {
-        return '/auth';
-      } else {
-        return null;
-      }
-    },
-    initialLocation: '/',
+    // redirect: (context, state) async {
+    //   String? token = await Session.get("token");
+    //   if (token == null || token == "" || token.isEmpty) {
+    //     return '/auth';
+    //   } else {
+    //     return null;
+    //   }
+    // },
+    initialLocation: '/splash',
     routes: [
+      GoRoute(
+        parentNavigatorKey: _nav.navKey,
+        path: '/splash',
+        pageBuilder: (context, state) => const NoTransitionPage(
+          child: SplashScreen(),
+        ),
+      ),
       GoRoute(
         parentNavigatorKey: _nav.navKey,
         path: '/auth',
         pageBuilder: (context, state) {
           return const NoTransitionPage(
             child: LoginScreen(),
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _nav.navKey,
+        path: '/finggerprint',
+        pageBuilder: (context, state) {
+          return const NoTransitionPage(
+            child: FingerprintLoginScreen(),
           );
         },
       ),
@@ -105,6 +120,38 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'kpi',
+                name: "kpi",
+                pageBuilder: (context, state) {
+                  return NoTransitionPage(
+                    child: KpiScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
+                path: 'live-ashar',
+                name: "live-ashar",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: ClockInAsharScreen(),
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: _nav.navKey,
+                    path: 'tap-in',
+                    name: "tap-in-ashar",
+                    pageBuilder: (context, state) {
+                      return const NoTransitionPage(
+                        child: PrayMapScreen(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'attendance-history',
                 name: "attendance-history",
                 pageBuilder: (context, state) {
@@ -115,56 +162,80 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'location/clockin',
-                name: "location-clockin",
+                path: 'attendance/clockin',
+                name: "clockin",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: MapScreen(
-                      type: "checkin",
+                    child: ClockinClockoutScreen(
+                      type: "clock_in",
                     ),
                   );
                 },
-                routes: [
-                  GoRoute(
-                    parentNavigatorKey: _nav.navKey,
-                    path: 'attendance',
-                    name: "clockin",
-                    pageBuilder: (context, state) {
-                      return const NoTransitionPage(
-                        child: ClockinClockoutScreen(
-                          type: "checkin",
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
-                path: 'location/clockout',
-                name: "location-clockout",
+                path: 'attendance/checkout',
+                name: "clockout",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: MapScreen(
-                      type: "checkout",
+                    child: ClockinClockoutScreen(
+                      type: "clock_out",
                     ),
                   );
                 },
-                routes: [
-                  GoRoute(
-                    parentNavigatorKey: _nav.navKey,
-                    path: 'attendance',
-                    name: "clockout",
-                    pageBuilder: (context, state) {
-                      return const NoTransitionPage(
-                        child: ClockinClockoutScreen(
-                          type: "checkout",
-                        ),
-                      );
-                    },
-                  ),
-                ],
               ),
+              // GoRoute(
+              //   parentNavigatorKey: _nav.navKey,
+              //   path: 'location/clockin',
+              //   name: "location-clockin",
+              //   pageBuilder: (context, state) {
+              //     return const NoTransitionPage(
+              //       child: MapScreen(
+              //         type: "checkin",
+              //       ),
+              //     );
+              //   },
+              //   routes: [
+              //     GoRoute(
+              //       parentNavigatorKey: _nav.navKey,
+              //       path: 'attendance',
+              //       name: "clockin",
+              //       pageBuilder: (context, state) {
+              //         return const NoTransitionPage(
+              //           child: ClockinClockoutScreen(
+              //             type: "checkin",
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   ],
+              // ),
+              // GoRoute(
+              //   parentNavigatorKey: _nav.navKey,
+              //   path: 'location/clockout',
+              //   name: "location-clockout",
+              //   pageBuilder: (context, state) {
+              //     return const NoTransitionPage(
+              //       child: MapScreen(
+              //         type: "checkout",
+              //       ),
+              //     );
+              //   },
+              //   routes: [
+              //     GoRoute(
+              //       parentNavigatorKey: _nav.navKey,
+              //       path: 'attendance',
+              //       name: "clockout",
+              //       pageBuilder: (context, state) {
+              //         return const NoTransitionPage(
+              //           child: ClockinClockoutScreen(
+              //             type: "checkout",
+              //           ),
+              //         );
+              //       },
+              //     ),
+              //   ],
+              // ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
                 path: 'attendance-response',
@@ -173,7 +244,7 @@ class RouteNavigation {
                   var extra = state.extra as Map<String, dynamic>;
                   return NoTransitionPage(
                     child: AttendanceResponseScreen(
-                      data: extra['data'],
+                      attendance: extra['data'],
                     ),
                   );
                 },

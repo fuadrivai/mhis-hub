@@ -170,17 +170,17 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
     );
   }
 
-  lauchEmail(String email) async {
+  Future<void> lauchEmail(String email) async {
     final url = "mailto:$email";
     await launchUrl(Uri.parse(url));
   }
 
-  phoneDial(String contact) async {
+  Future<void> phoneDial(String contact) async {
     final Uri url = Uri(scheme: "tel", path: contact);
     await launchUrl(url);
   }
 
-  whatsapp(String contact) async {
+  Future<void> whatsapp(String contact) async {
     String te = contact.substring(0, 1);
     String newContact = "";
     if (te == "0") {

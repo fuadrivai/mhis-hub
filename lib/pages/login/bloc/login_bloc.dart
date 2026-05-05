@@ -7,6 +7,7 @@ import 'package:fl_mhis_hr/pages/login/repository/login_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 part 'login_event.dart';
 part 'login_state.dart';
@@ -27,12 +28,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       await FirebaseMessaging.instance.requestPermission(
         alert: true,
-    announcement: true,
-    badge: true,
-    carPlay: false,
-    criticalAlert: true,
-    provisional: false,
-    sound: true,
+        announcement: true,
+        badge: true,
+        carPlay: false,
+        criticalAlert: true,
+        provisional: false,
+        sound: true,
       );
       FirebaseMessaging messaging = FirebaseMessaging.instance;
       String? token = await messaging.getToken();
@@ -42,13 +43,18 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       map['device_id'] = token;
       map['device'] = device;
 
-      LoginResponse resp = await LoginApi.onLogin(map);
+      String password = map["password"];
 
+      LoginResponse resp = await LoginApi.onLogin(map);
+      Map<String, dynamic> decodedToken =
+          JwtDecoder.decode(resp.authorization?.token ?? "");
       await Future.wait([
         Session.set("email", resp.user?.email ?? ""),
         Session.set("name", resp.user?.name ?? ""),
+        Session.set("password", password),
         Session.set("userIdTalenta", resp.user?.userIdTalenta.toString() ?? ""),
         Session.set("token", resp.authorization?.token ?? ""),
+        Session.set("userId", decodedToken["id"].toString()),
       ]);
       emit(state.copyWith(
         isLoading: false,

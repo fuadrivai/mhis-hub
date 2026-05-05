@@ -38,32 +38,48 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
           if (state.newsletterLoading) {
             return const LoadingWidget();
           }
-          return ListView.separated(
-            itemCount: (state.newsletters ?? []).length,
-            itemBuilder: (ctx, i) {
-              Newsletter e = state.newsletters![i];
-              return ListTile(
-                title: Text(
-                  e.newsletter ?? "--",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(e.level ?? "Level"),
-                leading: const FaIcon(
-                  FontAwesomeIcons.newspaper,
-                  color: AppColors.secondary,
-                ),
-                onTap: () {
-                  if (e.link != null || e.link != "") {
-                    launchUrl(Uri.parse(e.link!));
-                  }
-                },
-              );
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<HomeBloc>().add(const OnGetNewsletter());
             },
-            separatorBuilder: (ctx, i) {
-              return const Divider();
-            },
+            child: Container(
+              decoration: const BoxDecoration(color: AppColors.white),
+              child: (state.newsletters ?? []).isEmpty
+                  ? EmptyWidget(
+                      onTap: () {
+                        context.read<HomeBloc>().add(const OnGetNewsletter());
+                      },
+                    )
+                  : ListView.separated(
+                      itemCount: (state.newsletters ?? []).length,
+                      itemBuilder: (ctx, i) {
+                        Newsletter e = state.newsletters![i];
+                        return ListTile(
+                          dense: false,
+                          visualDensity: const VisualDensity(vertical: -1),
+                          title: Text(
+                            e.newsletter ?? "--",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Text(e.level ?? "Level"),
+                          leading: const FaIcon(
+                            FontAwesomeIcons.newspaper,
+                            color: AppColors.secondary,
+                          ),
+                          onTap: () {
+                            if (e.link != null || e.link != "") {
+                              launchUrl(Uri.parse(e.link!));
+                            }
+                          },
+                        );
+                      },
+                      separatorBuilder: (ctx, i) {
+                        return const Divider();
+                      },
+                    ),
+            ),
           );
         },
       ),

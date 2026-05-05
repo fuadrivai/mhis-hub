@@ -30,9 +30,10 @@ class WidgetBox extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             icon ??
-                Icon(
+                FaIcon(
                   FontAwesomeIcons.car,
                   size: 35,
+                  // ignore: deprecated_member_use
                   color: AppColors.primary.withOpacity(0.7),
                 ),
             Text(

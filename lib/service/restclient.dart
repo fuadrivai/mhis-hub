@@ -1,7 +1,9 @@
+
 import 'package:dio/dio.dart';
-import 'package:fl_mhis_hr/models/job_level.dart';
 import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/attendance.dart';
+import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'restclient.g.dart';
@@ -23,7 +25,16 @@ abstract class RestClient {
   Future<bool> checkUser(@Path() String email);
 
   @POST("login")
+  // ignore: strict_top_level_inference
   Future<LoginResponse> onLogin(@Body() data);
+
+  @POST("attendance/live")
+  Future<AttendanceLog> postLiveAttendance(
+      @Body() LiveAttendance liveAttendance);
+
+  @GET("attendance/history")
+  Future<List<Attendance>> getAttendaceHistories(
+      @Body() Map<String, dynamic> map);
 
   @POST("password/change")
   Future<dynamic> changePassword(@Body() Map<String, dynamic> map);
@@ -67,4 +78,13 @@ abstract class RestClient {
 
   @GET("level")
   Future<List<JobLevel>> getAllJobLevel();
+
+  @POST("absent")
+  Future<PostPrayer> postPrayer(@Body() PostPrayer post);
+
+  @GET("absent/filter")
+  Future<List<PostPrayer>> getPrayerHistory(@Body() Map<String, dynamic> post);
+
+  @GET("kpi")
+  Future<Kpi> getKpi();
 }

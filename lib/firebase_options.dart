@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCp8sQ47a2rM0IsWkjxSscDfHOiZ9Qs6io',
-    appId: '1:592617177680:android:eb4a3cdc54934a58c74755',
+    appId: '1:592617177680:android:7531ee003c0181c0c74755',
     messagingSenderId: '592617177680',
     projectId: 'mhis-hub',
     storageBucket: 'mhis-hub.appspot.com',
@@ -85,5 +85,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'mhis-hub.appspot.com',
     measurementId: 'G-QV54KPC0JB',
   );
-
 }

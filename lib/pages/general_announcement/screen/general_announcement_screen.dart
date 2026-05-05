@@ -40,46 +40,44 @@ class _GeneralAnnouncementScreenState extends State<GeneralAnnouncementScreen> {
       ),
       body: BlocBuilder<GeneralAnnouncementBloc, GeneralAnnouncementState>(
         builder: (context, state) {
+          if (state.isLoading) {
+            return const LoadingWidget();
+          }
           return RefreshIndicator(
             onRefresh: () async {
               context.read<GeneralAnnouncementBloc>().add(const OnInit());
             },
-            child: (state.announcements?.isEmpty ?? true)
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        "There are currently no announcements available. Please check back later for updates.",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors
-                              .grey[600], // Adjust color to match your design
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+            child: Container(
+              decoration: const BoxDecoration(color: AppColors.white),
+              child: (state.announcements ?? []).isEmpty
+                  ? EmptyWidget(
+                      onTap: () {
+                        context
+                            .read<GeneralAnnouncementBloc>()
+                            .add(const OnInit());
+                      },
+                    )
+                  : ListView.separated(
+                      shrinkWrap: true,
+                      itemBuilder: (context, i) {
+                        Announcement ann = (state.announcements ?? [])[i];
+                        return ListTile(
+                          leading: const FaIcon(FontAwesomeIcons.bellConcierge),
+                          title: Text(ann.subject ?? ""),
+                          subtitle: Text(Jiffy.parse(ann.date!)
+                              .format(pattern: "dd MMMM yyyy")),
+                          onTap: () {
+                            context.goNamed("general-announcement-view",
+                                extra: {"announcement": ann});
+                          },
+                        );
+                      },
+                      itemCount: (state.announcements ?? []).length,
+                      separatorBuilder: (context, index) {
+                        return const Divider();
+                      },
                     ),
-                  )
-                : ListView.separated(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemBuilder: (context, i) {
-                      Announcement ann = state.announcements![i];
-                      return ListTile(
-                        leading: const Icon(FontAwesomeIcons.bellConcierge),
-                        title: Text(ann.subject ?? ""),
-                        subtitle: Text(Jiffy.parse(ann.date!)
-                            .format(pattern: "dd MMMM yyyy")),
-                        onTap: () {
-                          context.goNamed("general-announcement-view",
-                              extra: {"announcement": ann});
-                        },
-                      );
-                    },
-                    itemCount: state.announcements?.length ?? 0,
-                    separatorBuilder: (context, index) {
-                      return const Divider();
-                    },
-                  ),
+            ),
           );
         },
       ),

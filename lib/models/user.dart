@@ -1,3 +1,4 @@
+
 import 'package:fl_mhis_hr/models/model.dart';
 
 class AcademyUser {

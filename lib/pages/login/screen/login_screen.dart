@@ -28,7 +28,7 @@ class LoginScreenState extends State<LoginScreen> {
         String? token = await Session.get("token");
         if (token != "" || token != null) {
           // ignore: use_build_context_synchronously
-          context.go("/");
+          context.go("/splash");
         }
       },
       child: Scaffold(

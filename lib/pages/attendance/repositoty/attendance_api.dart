@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
 class AttendanceApi {
@@ -25,6 +26,13 @@ class AttendanceApi {
     return AttendanceResponse.fromJson(response.data);
   }
 
+  static Future<AttendanceLog> postAttendance(
+      LiveAttendance liveAttendance) async {
+    final client = await Api.restClient();
+    var data = client.postLiveAttendance(liveAttendance);
+    return data;
+  }
+
   static Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(
       int userId) async {
     final client = await Api.restClient();
@@ -36,6 +44,13 @@ class AttendanceApi {
       Map<String, dynamic> map) async {
     final client = await Api.restClient();
     var data = client.getAttendanceHistory(map);
+    return data;
+  }
+
+  static Future<List<Attendance>> getAttendaceHistories(
+      Map<String, dynamic> map) async {
+    final client = await Api.restClient();
+    var data = client.getAttendaceHistories(map);
     return data;
   }
 }

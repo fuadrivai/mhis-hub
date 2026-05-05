@@ -1,26 +1,26 @@
+
+import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/main.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repositoty/attendance_api.dart';
-import 'package:fl_mhis_hr/widget/loading_widget.dart';
+import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:math' as math;
-
+import 'package:jiffy/jiffy.dart';
 
 class ClockinClockoutScreen extends StatefulWidget {
   final String type;
   const ClockinClockoutScreen({super.key, required this.type});
 
-
   @override
   State<ClockinClockoutScreen> createState() => _ClockinClockoutScreenState();
 }
-
 
 class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     with WidgetsBindingObserver {
@@ -29,44 +29,14 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool positionStreamStarted = false;
 
-
   @override
   void initState() {
     isLoading = true;
-    setState(() {});
-    if (listCamera.isNotEmpty) {
-      _geolocatorPlatform.getServiceStatusStream();
-      WidgetsBinding.instance.addObserver(this);
-      cameraController = CameraController(
-        listCamera[1],
-        ResolutionPreset.max,
-        enableAudio: false,
-      );
-
-
-      cameraController?.initialize().then((_) {
-        if (!mounted) {
-          return;
-        }
-        isLoading = false;
-        setState(() {});
-      }).catchError((Object e) {
-        if (e is CameraException) {
-          switch (e.code) {
-            case 'CameraAccessDenied':
-              break;
-            default:
-              break;
-          }
-          isLoading = false;
-          setState(() {});
-        }
-      });
-      setState(() {});
-    }
+    _geolocatorPlatform.getServiceStatusStream();
+    WidgetsBinding.instance.addObserver(this);
+    startCamera();
     super.initState();
   }
-
 
   @override
   void dispose() {
@@ -74,7 +44,6 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     _stopCamera();
     super.dispose();
   }
-
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -86,11 +55,10 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     } else if (state == AppLifecycleState.resumed &&
         cameraController != null &&
         cameraController!.value.isInitialized) {
-      _startCamera();
+      startCamera();
     }
     super.didChangeAppLifecycleState(state);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,47 +68,46 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
       );
     }
     if (cameraController != null) {
-      final scale = 1 /
+      final scale = 0.9 /
           ((cameraController?.value.aspectRatio ?? 0) *
               MediaQuery.of(context).size.aspectRatio);
-      return Stack(
-        children: [
-          cameraPermission
-              ? Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.rotationY(math.pi),
-                  child: Transform.scale(
-                    scale: scale,
-                    alignment: Alignment.topCenter,
-                    child: CameraPreview(
-                      cameraController!,
-                    ),
-                  ),
-                )
-              : const Text("Camera Tidak Tersedia"),
-          Scaffold(
-            backgroundColor: Colors.transparent,
-            floatingActionButton: FloatingActionButton(
-              backgroundColor: Colors.white,
-              isExtended: true,
-              onPressed: _takePicture,
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Container(
-                  height: 150,
-                  width: 150,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: 5),
-                    borderRadius: BorderRadius.circular(50),
-                    color: Colors.white,
-                  ),
-                ),
+
+      return Scaffold(
+        appBar: CustomAppbar(
+          backgroundColor: AppColors.whiteshade,
+          leading: IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: widget.type.toUpperCase(),
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.white,
+          isExtended: true,
+          onPressed: _takePictureV2,
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Container(
+              height: 150,
+              width: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 5),
+                borderRadius: BorderRadius.circular(50),
+                color: Colors.white,
               ),
             ),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
-          )
-        ],
+          ),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        body: cameraPermission
+            ? Transform.scale(
+                scale: scale,
+                alignment: Alignment.topCenter,
+                child: CameraPreview(
+                  cameraController!,
+                ),
+              )
+            : const Text("Camera Tidak Tersedia"),
       );
     } else {
       return const Center(
@@ -149,58 +116,62 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
     }
   }
 
-
-  _startCamera() async {
+  Future<void> startCamera() async {
     if (listCamera.isNotEmpty) {
-      if (cameraController != null) {
-        cameraController = CameraController(
-          listCamera[0],
-          ResolutionPreset.max,
-          enableAudio: false,
-        );
-        await cameraController?.initialize();
-        if (!mounted) {
-          return;
-        }
-        setState(() {});
-      }
+      final frontCamera = listCamera.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => listCamera.first, // Fallback to any camera
+      );
+      cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.max,
+        enableAudio: false,
+      );
+
+      await cameraController?.initialize();
+      isLoading = false;
+      setState(() {});
     }
   }
 
-
-  _stopCamera() {
+  void _stopCamera() {
     if (cameraController != null) {
       cameraController?.dispose();
     }
   }
 
+  Future<void> _takePictureV2() async {
+    try {
+      if (cameraController == null || !cameraController!.value.isInitialized) {
+        return;
+      }
 
-  _takePicture() async {
-    if (cameraController == null) return;
-    isLoading = true;
-    setState(() {});
-    final filePicture = await cameraController!.takePicture();
-    final file = File(filePicture.path);
-    Position position = await Common.determinePosition();
-    String? userId = await Session.get("userIdTalenta");
-    LiveAttendance liveAttendance = LiveAttendance();
-    liveAttendance.description = "${widget.type} description selfie";
-    liveAttendance.latitude = position.latitude;
-    liveAttendance.longitude = position.longitude;
-    liveAttendance.status = widget.type;
-    liveAttendance.userId = int.parse(userId!);
-    liveAttendance.file =
-        await MultipartFile.fromFile(file.path, filename: "$userId.jpg");
-    List<String> filePathList = [];
-    filePathList.add(file.path.toString());
-    var formData =
-        FormData.fromMap(liveAttendance.toJson(), ListFormat.multiCompatible);
-    AttendanceApi.postLiveAttendance(formData).then((data) {
+      isLoading = true;
+      if (mounted) setState(() {});
+
+      final filePicture = await cameraController!.takePicture();
+      final file = File(filePicture.path);
+
+      final bytes = await file.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      Position position = await Common.determinePosition();
+      String? userId = await Session.get("userId");
+
+      if (userId == null) throw Exception("User belum login");
+
+      LiveAttendance liveAttendance = LiveAttendance()
+        ..latitude = position.latitude
+        ..longitude = position.longitude
+        ..type = widget.type
+        ..userId = int.parse(userId)
+        ..date = Jiffy.now().format(pattern: "yyyy-MM-dd HH:mm:ss")
+        ..photo = base64Image;
+
+      AttendanceLog data = await AttendanceApi.postAttendance(liveAttendance);
       if (!mounted) return;
-      isLoading = false;
-      setState(() {});
       context.goNamed('attendance-response', extra: {'data': data});
-    }).catchError((e) {
+    } catch (e) {
       if (!mounted) return;
       isLoading = false;
       setState(() {});
@@ -214,9 +185,9 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         title: "Error",
         message: message,
       );
-    });
+    } finally {
+      isLoading = false;
+      if (mounted) setState(() {});
+    }
   }
 }
-
-
-

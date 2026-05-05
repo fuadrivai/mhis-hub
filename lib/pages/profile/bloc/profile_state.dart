@@ -6,7 +6,11 @@ final class ProfileState extends Equatable {
   final String? errorMessage;
   final String? passwordErrorMessage;
   final Employee? employee;
+  final PackageInfo? packageInfo;
+  final bool? canAuthenticateWithBiometrics;
+  final bool? isBiometric;
   const ProfileState({
+    this.canAuthenticateWithBiometrics = false,
     this.isLoading = true,
     this.isError = false,
     this.loadingFormPassword = false,
@@ -14,6 +18,8 @@ final class ProfileState extends Equatable {
     this.passwordErrorMessage,
     this.user,
     this.employee,
+    this.packageInfo,
+    this.isBiometric,
   });
 
   ProfileState copyWith({
@@ -24,6 +30,9 @@ final class ProfileState extends Equatable {
     bool? loadingFormPassword,
     AcademyUser? user,
     Employee? employee,
+    PackageInfo? packageInfo,
+    bool? canAuthenticateWithBiometrics,
+    bool? isBiometric,
   }) {
     return ProfileState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -33,6 +42,10 @@ final class ProfileState extends Equatable {
       passwordErrorMessage: passwordErrorMessage ?? this.passwordErrorMessage,
       user: user ?? this.user,
       employee: employee ?? this.employee,
+      packageInfo: packageInfo ?? this.packageInfo,
+      canAuthenticateWithBiometrics:
+          canAuthenticateWithBiometrics ?? this.canAuthenticateWithBiometrics,
+      isBiometric: isBiometric ?? this.isBiometric,
     );
   }
 
@@ -45,5 +58,8 @@ final class ProfileState extends Equatable {
         loadingFormPassword,
         passwordErrorMessage,
         employee,
+        packageInfo,
+        canAuthenticateWithBiometrics,
+        isBiometric,
       ];
 }

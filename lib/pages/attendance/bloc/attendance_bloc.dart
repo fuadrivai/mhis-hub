@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repositoty/attendance_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -44,16 +45,16 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
       historyLoading: true,
       isError: false,
       isSuccess: false,
-      history: [],
+      histories: [],
     ));
     try {
-      List<AttendanceHistory> histories = [];
-      histories = await AttendanceApi.getAttendanceHistory(event.map);
+      List<Attendance> histories =
+          await AttendanceApi.getAttendaceHistories(event.map);
       emit(state.copyWith(
         historyLoading: false,
         isError: false,
         isSuccess: true,
-        history: histories,
+        histories: histories,
       ));
     } catch (e) {
       String errorMessage = e.toString();
@@ -65,7 +66,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         historyLoading: false,
         isError: true,
         isSuccess: false,
-        history: state.history,
+        histories: state.histories,
         errorMessage: errorMessage,
       ));
     }

@@ -16,14 +16,10 @@ class _ClockInOutHomeState extends State<ClockInOutHome> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         if (state.attendanceLoading) {
-          return const LoadingShimmer(
-            height: 150,
-          );
+          return const LoadingShimmer(height: 150);
         }
         if (state.attendanceError) {
-          return Center(
-            child: Text(state.attendanceErrorMessage ?? "Error"),
-          );
+          return Center(child: Text(state.attendanceErrorMessage ?? "Error"));
         }
         return CardClockInOut(schedule: state.attendaceSchedule);
       },

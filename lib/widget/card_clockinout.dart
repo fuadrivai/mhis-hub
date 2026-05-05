@@ -21,7 +21,6 @@ class CardClockInOut extends StatelessWidget {
         width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: AppColors.danger,
           gradient: Common.redGradient,
         ),
         padding: const EdgeInsets.all(20),
@@ -68,11 +67,11 @@ class CardClockInOut extends StatelessWidget {
                 children: [
                   Expanded(
                     child: IconButton(
-                      onPressed: () => context.goNamed("location-clockin"),
+                      onPressed: () => context.goNamed("clockin"),
                       icon: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          FaIcon(
                             FontAwesomeIcons.arrowRightToBracket,
                             color: AppColors.blue,
                           ),
@@ -93,11 +92,11 @@ class CardClockInOut extends StatelessWidget {
                   ),
                   Expanded(
                     child: IconButton(
-                      onPressed: () => context.goNamed("location-clockout"),
-                      icon: const Row(
+                      onPressed: () => context.goNamed("clockout"),
+                      icon: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          FaIcon(
                             FontAwesomeIcons.arrowRightFromBracket,
                             color: AppColors.blue,
                           ),

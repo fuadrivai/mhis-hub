@@ -1,3 +1,4 @@
+
 class Newsletter {
   String? level;
   String? newsletter;
