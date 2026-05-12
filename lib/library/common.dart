@@ -189,18 +189,33 @@ class Common {
   }
 
   static Future<bool> requestCameraPermission() async {
-    final status = await Permission.camera.request();
-    if (status == PermissionStatus.granted) {
+    final status = await Permission.camera.status;
+
+    if (status == PermissionStatus.granted ||
+        status == PermissionStatus.limited) {
       return true;
-    } else if (status == PermissionStatus.limited) {
-      return true;
-    } else if (status == PermissionStatus.permanentlyDenied) {
-      return false;
-    } else if (status == PermissionStatus.restricted) {
-      return true;
-    } else {
+    }
+
+    if (status == PermissionStatus.denied) {
+      final result = await Permission.camera.request();
+      if (result == PermissionStatus.granted ||
+          result == PermissionStatus.limited) {
+        return true;
+      }
+
+      if (result == PermissionStatus.permanentlyDenied ||
+          result == PermissionStatus.restricted) {
+        await openAppSettings();
+      }
       return false;
     }
+
+    if (status == PermissionStatus.permanentlyDenied ||
+        status == PermissionStatus.restricted) {
+      await openAppSettings();
+    }
+
+    return false;
   }
 
   static Future<Position> determinePosition() async {

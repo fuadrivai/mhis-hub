@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "prepare-ios-build-symlink",
+      "type": "shell",
+      "command": "mkdir -p /tmp/mhis_hub_build && rm -rf build && ln -s /tmp/mhis_hub_build build",
+      "problemMatcher": []
+    }
+  ]
+}

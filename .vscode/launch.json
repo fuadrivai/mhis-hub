@@ -1,0 +1,13 @@
+{
+  "version": "0.3.0",
+  "configurations": [
+    {
+      "name": "iPhone (mobile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "preLaunchTask": "prepare-ios-build-symlink",
+      "deviceId": "00008120-0004703A22300032"
+    }
+  ]
+}

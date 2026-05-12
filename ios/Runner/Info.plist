@@ -37,7 +37,7 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>your usage description here</string>
+	<string>This app uses the camera for attendance check-in and profile verification.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

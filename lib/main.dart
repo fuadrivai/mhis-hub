@@ -14,29 +14,81 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-late List<CameraDescription> listCamera;
-late bool cameraPermission;
+List<CameraDescription> listCamera = [];
+bool cameraPermission = false;
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // ignore: avoid_print
   print(
       "Message received in background: ${message.notification?.title}, ${message.notification?.body}");
 }
 
+Future<void> initializeFirebaseMessaging() async {
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  await messaging.requestPermission(alert: true, badge: true, sound: true);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  if (Platform.isIOS) {
+    String? apnsToken;
+    for (int attempt = 0; attempt < 10; attempt++) {
+      apnsToken = await messaging.getAPNSToken();
+      if (apnsToken != null) {
+        break;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    if (apnsToken == null) {
+      debugPrint(
+          'APNs token is not available yet. Skipping Firebase topic subscription for now.');
+      return;
+    }
+  }
+
+  try {
+    await messaging.subscribeToTopic('all');
+  } catch (e) {
+    debugPrint('Failed to subscribe to topic "all": $e');
+  }
+}
+
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  if (!Platform.isWindows) {
-    cameraPermission = await Common.requestCameraPermission();
-    listCamera = await availableCameras();
-  }
+  await _initializeCamera();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseMessaging.instance.subscribeToTopic('all');
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  if (Platform.isAndroid || Platform.isIOS) {
+    await initializeFirebaseMessaging();
+  }
 
   setPathUrlStrategy();
   setupLocator();
   runApp(const MyApp());
+}
+
+Future<void> _initializeCamera() async {
+  if (!(Platform.isAndroid || Platform.isIOS)) {
+    return;
+  }
+
+  cameraPermission = await Common.requestCameraPermission();
+  if (!cameraPermission) {
+    listCamera = [];
+    debugPrint('Camera permission not granted.');
+    return;
+  }
+
+  try {
+    listCamera = await availableCameras();
+    if (listCamera.isEmpty) {
+      debugPrint('No camera available on this device.');
+    }
+  } on CameraException catch (e) {
+    listCamera = [];
+    cameraPermission = false;
+    debugPrint('Failed to load camera list: ${e.code} - ${e.description}');
+  }
 }
 
 class MyApp extends StatefulWidget {

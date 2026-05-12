@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'package:camera/camera.dart';
@@ -129,6 +128,9 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
       );
 
       await cameraController?.initialize();
+      isLoading = false;
+      setState(() {});
+    } else {
       isLoading = false;
       setState(() {});
     }

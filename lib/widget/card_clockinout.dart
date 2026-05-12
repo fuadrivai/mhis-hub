@@ -67,7 +67,9 @@ class CardClockInOut extends StatelessWidget {
                 children: [
                   Expanded(
                     child: IconButton(
-                      onPressed: () => context.goNamed("clockin"),
+                      onPressed: () {
+                        return context.goNamed("clockin");
+                      },
                       icon: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
