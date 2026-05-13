@@ -6,7 +6,7 @@ final class KpiState extends Equatable {
   final String? kpiErrorMessage;
   final String? empErrorMessage;
   final Kpi? kpi;
-  final Employee? employee;
+  final EmployeeOld? employee;
   const KpiState({
     this.kpiLoading = false,
     this.kpiError = false,
@@ -29,7 +29,7 @@ final class KpiState extends Equatable {
     bool? empSuccess,
     String? empErrorMessage,
     Kpi? kpi,
-    Employee? employee,
+    EmployeeOld? employee,
   }) {
     return KpiState(
       kpiErrorMessage: kpiErrorMessage ?? this.kpiErrorMessage,

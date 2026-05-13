@@ -54,7 +54,7 @@ class KpiBloc extends Bloc<KpiEvent, KpiState> {
 
       String? id = await Session.get("userIdTalenta");
       int employeeId = int.parse(id!);
-      Employee employee = await ProfileApi.getEmployeeById(employeeId);
+      EmployeeOld employee = await ProfileApi.getEmployeeById(employeeId);
 
       emit(state.copyWith(
         empLoading: false,

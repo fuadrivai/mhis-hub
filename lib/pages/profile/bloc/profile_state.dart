@@ -5,7 +5,7 @@ final class ProfileState extends Equatable {
   final AcademyUser? user;
   final String? errorMessage;
   final String? passwordErrorMessage;
-  final Employee? employee;
+  final EmployeeOld? employee;
   final PackageInfo? packageInfo;
   final bool? canAuthenticateWithBiometrics;
   final bool? isBiometric;
@@ -29,7 +29,7 @@ final class ProfileState extends Equatable {
     bool? isError,
     bool? loadingFormPassword,
     AcademyUser? user,
-    Employee? employee,
+    EmployeeOld? employee,
     PackageInfo? packageInfo,
     bool? canAuthenticateWithBiometrics,
     bool? isBiometric,

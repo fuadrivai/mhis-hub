@@ -1,5 +1,6 @@
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/timeoff.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:flutter/material.dart';
@@ -330,14 +331,37 @@ class RouteNavigation {
               );
             },
           ),
+          // GoRoute(
+          //   parentNavigatorKey: _dashboardNavigatorKey,
+          //   path: '/talenta',
+          //   pageBuilder: (context, state) {
+          //     return const NoTransitionPage(
+          //       child: TalentaScreen(),
+          //     );
+          //   },
+          // ),
           GoRoute(
             parentNavigatorKey: _dashboardNavigatorKey,
-            path: '/talenta',
+            path: '/timeoff',
             pageBuilder: (context, state) {
               return const NoTransitionPage(
-                child: TalentaScreen(),
+                child: TimeoffScreen(),
               );
             },
+            routes: [
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
+                path: 'create',
+                name: "create-timeoff",
+                pageBuilder: (context, state) {
+                  var extra = state.extra as Map<String, dynamic>;
+                  Timeoff timeoff = extra['data'];
+                  return NoTransitionPage(
+                    child: TimeoffFormScreen(timeoff: timeoff),
+                  );
+                },
+              ),
+            ],
           ),
           GoRoute(
             parentNavigatorKey: _dashboardNavigatorKey,

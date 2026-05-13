@@ -63,7 +63,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       emit(state.copyWith(isLoading: true));
 
-      Employee employee = await ProfileApi.getEmployeeById(event.id);
+      EmployeeOld employee = await ProfileApi.getEmployeeById(event.id);
       final packageInfo = await PackageInfo.fromPlatform();
       bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
       bool? isBiometric =

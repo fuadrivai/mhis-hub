@@ -1,4 +1,3 @@
-
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
@@ -15,7 +14,7 @@ class BottomMenu extends StatefulWidget {
 }
 
 class _BottomMenuState extends State<BottomMenu> {
-  int _currentIndex = 2;
+  int _currentIndex = 0;
   Color bgColor = AppColors.primary;
 
   @override
@@ -35,10 +34,24 @@ class _BottomMenuState extends State<BottomMenu> {
         items: [
           CurvedNavigationBarItem(
             child: FaIcon(
+              FontAwesomeIcons.house,
+              color: bgColor,
+            ),
+            label: 'Home',
+          ),
+          CurvedNavigationBarItem(
+            child: FaIcon(
               FontAwesomeIcons.peopleGroup,
               color: bgColor,
             ),
-            label: 'Employee',
+            label: 'Contacts',
+          ),
+          CurvedNavigationBarItem(
+            child: FaIcon(
+              FontAwesomeIcons.clockRotateLeft,
+              color: bgColor,
+            ),
+            label: 'Timeoff',
           ),
           CurvedNavigationBarItem(
             child: Container(
@@ -55,27 +68,6 @@ class _BottomMenuState extends State<BottomMenu> {
           ),
           CurvedNavigationBarItem(
             child: FaIcon(
-              FontAwesomeIcons.house,
-              color: bgColor,
-            ),
-            label: 'Home',
-          ),
-          CurvedNavigationBarItem(
-            child: Container(
-              height: 35,
-              width: 35,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                image: DecorationImage(
-                  image: AssetImage(Common.talentaLogo),
-                  scale: 2,
-                ),
-              ),
-            ),
-            label: 'Talenta',
-          ),
-          CurvedNavigationBarItem(
-            child: FaIcon(
               FontAwesomeIcons.user,
               color: bgColor,
             ),
@@ -89,13 +81,13 @@ class _BottomMenuState extends State<BottomMenu> {
   void callPage(int index) {
     switch (index) {
       case 0:
-        context.go("/employee");
-      case 1:
-        context.go("/academy");
-      case 2:
         context.go("/");
+      case 1:
+        context.go("/employee");
+      case 2:
+        context.go("/timeoff");
       case 3:
-        context.go("/talenta");
+        context.go("/academy");
       case 4:
         context.go("/profile");
       default:

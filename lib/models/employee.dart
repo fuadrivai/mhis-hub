@@ -1,6 +1,6 @@
 import 'package:fl_mhis_hr/models/model.dart';
 
-class Employee {
+class EmployeeOld {
   int? userId;
   String? ssoId;
   String? createdAt;
@@ -13,7 +13,7 @@ class Employee {
   List<dynamic>? customField;
   AccessRole? accessRole;
 
-  Employee({
+  EmployeeOld({
     this.userId,
     this.ssoId,
     this.createdAt,
@@ -27,7 +27,7 @@ class Employee {
     this.accessRole,
   });
 
-  Employee.fromJson(Map<String, dynamic> json) {
+  EmployeeOld.fromJson(Map<String, dynamic> json) {
     userId = json['user_id'];
     ssoId = json['sso_id'];
     createdAt = json['created_at'];

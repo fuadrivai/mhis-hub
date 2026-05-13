@@ -1,9 +1,10 @@
-
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/attendance.dart';
 import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
+import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/models/v2/timeoff.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'restclient.g.dart';
@@ -46,7 +47,7 @@ abstract class RestClient {
   Future<ServerSideEmployee> getEmployee();
 
   @GET("person/{id}")
-  Future<Employee> getEmployeeById(@Path() int id);
+  Future<EmployeeOld> getEmployeeById(@Path() int id);
 
   @GET("attendance/schedule/{userId}")
   Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(@Path() int userId);
@@ -87,4 +88,10 @@ abstract class RestClient {
 
   @GET("kpi")
   Future<Kpi> getKpi();
+
+  @GET("timeoff")
+  Future<List<Timeoff>> getTimeoffs();
+
+  @GET("employee/{id}")
+  Future<Employee> employeeById(@Path() int id);
 }

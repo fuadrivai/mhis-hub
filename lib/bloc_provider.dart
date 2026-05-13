@@ -1,4 +1,3 @@
-
 import 'package:fl_mhis_hr/pages/academy/bloc/academy_bloc.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/pages/clockin_prayer/bloc/clockin_prayer_bloc.dart';
@@ -9,6 +8,7 @@ import 'package:fl_mhis_hr/pages/kpi/bloc/kpi_bloc.dart';
 import 'package:fl_mhis_hr/pages/login/bloc/login_bloc.dart';
 import 'package:fl_mhis_hr/pages/payslip/bloc/payslip_bloc.dart';
 import 'package:fl_mhis_hr/pages/profile/bloc/profile_bloc.dart';
+import 'package:fl_mhis_hr/pages/timeoff/bloc/timeoff_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProviderBloc {
@@ -26,6 +26,7 @@ class ProviderBloc {
       BlocProvider<PayslipBloc>(create: (__) => PayslipBloc()),
       BlocProvider<ClockinPrayerBloc>(create: (__) => ClockinPrayerBloc()),
       BlocProvider<KpiBloc>(create: (__) => KpiBloc()),
+      BlocProvider<TimeoffBloc>(create: (__) => TimeoffBloc()),
       BlocProvider<GeneralAnnouncementBloc>(
           create: (__) => GeneralAnnouncementBloc()),
     ];

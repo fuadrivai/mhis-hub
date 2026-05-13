@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
-import 'package:fl_mhis_hr/pages/attendance/repositoty/attendance_api.dart';
+import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
 import 'package:fl_mhis_hr/pages/home/repository/home_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

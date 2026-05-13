@@ -1,4 +1,3 @@
-
 import 'package:another_flushbar/flushbar.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
@@ -149,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   Column(
                     children: ParentMenu()
-                        .menu(context, state.employee ?? Employee())
+                        .menu(context, state.employee ?? EmployeeOld())
                         .map((menu) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),

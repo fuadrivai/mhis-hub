@@ -8,7 +8,7 @@ class ProfileApi {
     return data;
   }
 
-  static Future<Employee> getEmployeeById(int id) async {
+  static Future<EmployeeOld> getEmployeeById(int id) async {
     final client = await Api.restClient();
     var data = client.getEmployeeById(id);
     return data;

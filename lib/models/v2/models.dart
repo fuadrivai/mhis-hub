@@ -11,3 +11,4 @@ export 'package:fl_mhis_hr/models/v2/employee.dart';
 export 'package:fl_mhis_hr/models/v2/attendance.dart';
 export 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 export 'package:fl_mhis_hr/models/v2/active_schedule.dart';
+export 'package:fl_mhis_hr/models/v2/timeoff.dart';
