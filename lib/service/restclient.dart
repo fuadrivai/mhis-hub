@@ -92,6 +92,19 @@ abstract class RestClient {
   @GET("timeoff")
   Future<List<Timeoff>> getTimeoffs();
 
-  @GET("employee/{id}")
+  @GET("employee/user/{id}")
   Future<Employee> employeeById(@Path() int id);
+
+  @POST("time/request")
+  @MultiPart()
+  Future<dynamic> postTimeoffMultipart(
+    @Part(name: 'requester_employee_id') int requesterEmployeeId,
+    @Part(name: 'timeoff_id') int timeoffId,
+    @Part(name: 'note') String? note,
+    @Part(name: 'dynamic_fields') String? dynamicFields,
+    @Part(name: 'attachments[]') List<MultipartFile>? attachments,
+  );
+
+  @GET("time/request/user")
+  Future<dynamic> getUserTimeoff();
 }

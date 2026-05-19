@@ -81,9 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               const ClockInOutHome(),
+              const InformationHomeWidget(),
               const CalendarCard(),
               const SizedBox(height: 10),
-              const InformationHomeWidget()
             ],
           ),
         ),

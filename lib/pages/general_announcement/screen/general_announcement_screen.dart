@@ -61,15 +61,19 @@ class _GeneralAnnouncementScreenState extends State<GeneralAnnouncementScreen> {
                       shrinkWrap: true,
                       itemBuilder: (context, i) {
                         Announcement ann = (state.announcements ?? [])[i];
-                        return ListTile(
-                          leading: const FaIcon(FontAwesomeIcons.bellConcierge),
-                          title: Text(ann.subject ?? ""),
-                          subtitle: Text(Jiffy.parse(ann.date!)
-                              .format(pattern: "dd MMMM yyyy")),
-                          onTap: () {
-                            context.goNamed("general-announcement-view",
-                                extra: {"announcement": ann});
-                          },
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            leading:
+                                const FaIcon(FontAwesomeIcons.bellConcierge),
+                            title: Text(ann.subject ?? ""),
+                            subtitle: Text(Jiffy.parse(ann.date!)
+                                .format(pattern: "dd MMMM yyyy")),
+                            onTap: () {
+                              context.goNamed("general-announcement-view",
+                                  extra: {"announcement": ann});
+                            },
+                          ),
                         );
                       },
                       itemCount: (state.announcements ?? []).length,

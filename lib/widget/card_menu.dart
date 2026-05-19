@@ -60,7 +60,8 @@ class TileList extends StatelessWidget {
 
 class TextTitle extends StatelessWidget {
   final String title;
-  const TextTitle({super.key, required this.title});
+  final TextStyle? textStyle;
+  const TextTitle({super.key, required this.title, this.textStyle});
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +74,12 @@ class TextTitle extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: Text(
           title,
-          style: const TextStyle(
-            color: AppColors.dismissibleBackground,
-            fontWeight: FontWeight.w600,
-            fontSize: 21,
-          ),
+          style: textStyle ??
+              const TextStyle(
+                color: AppColors.dismissibleBackground,
+                fontWeight: FontWeight.w600,
+                fontSize: 21,
+              ),
         ),
       ),
     );

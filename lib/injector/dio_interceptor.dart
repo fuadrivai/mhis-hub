@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/injector/injector.dart';
@@ -9,14 +8,31 @@ class DioInterceptors extends InterceptorsWrapper {
   DioInterceptors(this.dio);
   final NavigationService _nav = locator<NavigationService>();
 
+  String _resolveErrorMessage(DioException err) {
+    final data = err.response?.data;
+
+    if (data is Map<String, dynamic>) {
+      return (data['message'] ?? err.message ?? "Gagal Mengakses Server")
+          .toString();
+    }
+
+    if (data is String && data.isNotEmpty) {
+      if (data.contains('<!DOCTYPE html>')) {
+        return "Respon server tidak valid (terdeteksi redirect HTML).";
+      }
+      return data;
+    }
+
+    return err.message ?? "Gagal Mengakses Server";
+  }
+
   @override
-  Future onError(err, handler) async {
+  Future onError(DioException err, ErrorInterceptorHandler handler) async {
     int? responseCode = err.response?.statusCode;
-    var data = err.response?.data;
-    // ignore: avoid_print
-    print(data);
+    final errorMessage = _resolveErrorMessage(err);
+
     if (responseCode != null) {
-      if (responseCode == 403) {
+      if (responseCode == 302 || responseCode == 401 || responseCode == 403) {
         Session.clear().then((value) {
           (_nav.navKey.currentContext!).go("/auth");
         });
@@ -25,9 +41,7 @@ class DioInterceptors extends InterceptorsWrapper {
           _nav.navKey.currentContext!,
           title: "Error",
           mode: MODE.error,
-          message: err.response?.data['message'] ??
-              err.message ??
-              "Gagal Mengakses Server",
+          message: errorMessage,
         );
       }
     } else {
@@ -35,9 +49,7 @@ class DioInterceptors extends InterceptorsWrapper {
         _nav.navKey.currentContext!,
         title: "Error",
         mode: MODE.error,
-        message: err.response?.data['message'] ??
-            err.message ??
-            "Gagal Mengakses Server",
+        message: errorMessage,
       );
     }
     super.onError(err, handler);

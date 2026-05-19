@@ -113,33 +113,36 @@ class _MyKpiWidgetState extends State<MyKpiWidget> {
   Widget _kpiName({required String name, required String value}) {
     return Column(
       children: [
-        ListTile(
-          dense: false,
-          visualDensity: VisualDensity(vertical: -1),
-          title: Text(
-            name,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+        Material(
+          color: Colors.transparent,
+          child: ListTile(
+            dense: false,
+            visualDensity: VisualDensity(vertical: -1),
+            title: Text(
+              name,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          leading: FaIcon(
-            FontAwesomeIcons.circleDot,
-            color: AppColors.primary,
-            size: 25,
-          ),
-          trailing: Container(
-            padding: EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              color: AppColors.danger,
+            leading: FaIcon(
+              FontAwesomeIcons.circleDot,
+              color: AppColors.primary,
+              size: 25,
             ),
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: AppColors.white,
+            trailing: Container(
+              padding: EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                color: AppColors.danger,
+              ),
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: AppColors.white,
+                ),
               ),
             ),
           ),

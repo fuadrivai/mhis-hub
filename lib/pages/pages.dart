@@ -26,3 +26,5 @@ export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcemen
 export 'package:fl_mhis_hr/pages/splash_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_form_screen.dart';
+export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_detail_screen.dart';
+export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_request_screen.dart';

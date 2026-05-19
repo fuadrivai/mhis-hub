@@ -44,6 +44,7 @@ class TimeoffSchema {
   String? label;
   List<dynamic>? options;
   bool? required;
+  Map<String, dynamic>? showIf;
 
   TimeoffSchema({
     this.name,
@@ -51,6 +52,7 @@ class TimeoffSchema {
     this.label,
     this.options,
     this.required,
+    this.showIf,
   });
 
   TimeoffSchema.fromJson(Map<String, dynamic> json) {
@@ -60,6 +62,9 @@ class TimeoffSchema {
     options =
         json['options'] != null ? List<dynamic>.from(json['options']) : null;
     required = json['required'];
+    showIf = json['show_if'] != null
+        ? Map<String, dynamic>.from(json['show_if'] as Map)
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -69,6 +74,7 @@ class TimeoffSchema {
     data['label'] = label;
     data['options'] = options;
     data['required'] = required;
+    if (showIf != null) data['show_if'] = showIf;
     return data;
   }
 }

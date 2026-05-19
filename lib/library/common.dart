@@ -42,6 +42,16 @@ class Common {
     stops: [0.3, 0.9],
   );
 
+  static Color seededColor(
+    int seed, {
+    double saturation = 0.62,
+    double lightness = 0.56,
+  }) {
+    final hue = (seed * 37) % 360;
+    return HSLColor.fromAHSL(1, hue.toDouble(), saturation, lightness)
+        .toColor();
+  }
+
   static void modalInfo(
     BuildContext context, {
     String? message,

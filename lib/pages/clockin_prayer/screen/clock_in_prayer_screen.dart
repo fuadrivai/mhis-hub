@@ -265,32 +265,35 @@ class _ClockInAsharScreenState extends State<ClockInAsharScreen> {
                       itemCount: (state.histories ?? []).length,
                       itemBuilder: (context, i) {
                         PostPrayer e = (state.histories ?? [])[i];
-                        return ListTile(
-                          dense: true,
-                          visualDensity: const VisualDensity(vertical: -2),
-                          title: Text(
-                            e.date(e.clockTime!),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            dense: true,
+                            visualDensity: const VisualDensity(vertical: -2),
+                            title: Text(
+                              e.date(e.clockTime!),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                          subtitle: Row(
-                            children: [
-                              const FaIcon(
-                                FontAwesomeIcons.clock,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 5),
-                              Text(
-                                e.hourMinute(e.clockTime!),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                          leading: const FaIcon(
-                            FontAwesomeIcons.mosque,
-                            color: AppColors.blue,
+                            subtitle: Row(
+                              children: [
+                                const FaIcon(
+                                  FontAwesomeIcons.clock,
+                                  size: 12,
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  e.hourMinute(e.clockTime!),
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ],
+                            ),
+                            leading: const FaIcon(
+                              FontAwesomeIcons.mosque,
+                              color: AppColors.blue,
+                            ),
                           ),
                         );
                       },

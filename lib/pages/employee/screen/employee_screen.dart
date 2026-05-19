@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/pages/employee/bloc/employee_bloc.dart';
@@ -43,7 +44,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
           ),
           child: Image.asset(Common.imageLogo),
         ),
-        title: "Employee",
+        title: 'Employee',
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -59,7 +60,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                 child: TextFormField(
                   validator: ValidForm.emptyValue,
                   decoration: TextFormDecoration.box(
-                    hintText: "Search by Employee Email...",
+                    hintText: 'Search by Employee Email...',
                   ),
                   onChanged: (str) {
                     context.read<EmployeeBloc>().add(OnSearchChanged(str));
@@ -71,6 +72,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                   if (state.isLoading) {
                     return const LoadingWidget();
                   }
+
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 25.0),
                     child: Container(
@@ -83,80 +85,95 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
                             physics: const ScrollPhysics(),
                             itemCount: (state.employees ?? []).length,
                             itemBuilder: (context, index) {
-                              EmployeeV3 employee =
+                              final EmployeeV3 employee =
                                   (state.employees ?? [])[index];
-                              return ListTile(
-                                visualDensity:
-                                    const VisualDensity(vertical: -1),
-                                leading: InkWell(
-                                  onTap: () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) => ImageDialog(
-                                          imageUrl: employee.avatar ?? ""),
-                                    );
-                                  },
-                                  child: CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                      employee.avatar ?? "",
+
+                              return Material(
+                                color: Colors.transparent,
+                                child: ListTile(
+                                  visualDensity:
+                                      const VisualDensity(vertical: -1),
+                                  leading: InkWell(
+                                    onTap: () async {
+                                      await showDialog(
+                                        context: context,
+                                        builder: (_) => ImageDialog(
+                                          imageUrl: employee.avatar ?? '',
+                                        ),
+                                      );
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundImage: NetworkImage(
+                                        employee.avatar ?? '',
+                                      ),
                                     ),
                                   ),
-                                ),
-                                title: Text(
-                                  employee.firstName ?? "",
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w500),
-                                ),
-                                subtitle: Text(employee.email ?? ""),
-                                trailing: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Visibility(
-                                      visible: employee.mobilePhone != "",
-                                      child: GestureDetector(
-                                        onTap: () =>
-                                            phoneDial(employee.mobilePhone!),
-                                        child: const FaIcon(
-                                          FontAwesomeIcons.phoneFlip,
-                                          color: AppColors.danger,
+                                  title: Text(
+                                    employee.firstName ?? '',
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w500),
+                                  ),
+                                  subtitle: Text(employee.email ?? ''),
+                                  trailing: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Visibility(
+                                        visible: employee.mobilePhone != '',
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              phoneDial(employee.mobilePhone!),
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.phoneFlip,
+                                            color: AppColors.danger,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 19),
-                                    GestureDetector(
-                                      onTap: () => lauchEmail(employee.email!),
-                                      child: const FaIcon(
-                                        FontAwesomeIcons.envelope,
-                                        color: AppColors.blue,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 19),
-                                    Visibility(
-                                      visible: (employee.mobilePhone != ""),
-                                      child: GestureDetector(
+                                      const SizedBox(width: 19),
+                                      GestureDetector(
                                         onTap: () =>
-                                            whatsapp(employee.mobilePhone!),
+                                            lauchEmail(employee.email!),
                                         child: const FaIcon(
-                                          FontAwesomeIcons.whatsapp,
-                                          color: Colors.green,
+                                          FontAwesomeIcons.envelope,
+                                          color: AppColors.blue,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 19),
+                                      Visibility(
+                                        visible: employee.mobilePhone != '',
+                                        child: GestureDetector(
+                                          onTap: () =>
+                                              whatsapp(employee.mobilePhone!),
+                                          child: const FaIcon(
+                                            FontAwesomeIcons.whatsapp,
+                                            color: Colors.green,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () {},
                                 ),
-                                onTap: () {},
                               );
                             },
                             separatorBuilder: (context, index) =>
                                 const Divider(),
                           ),
+                          Visibility(
+                            visible: state.employees?.isEmpty ?? false,
+                            child: const Positioned(
+                              top: 50,
+                              child: Text('No Data'),
+                            ),
+                          ),
                           state.loadMore
                               ? const Positioned(
                                   bottom: 20,
                                   child: Center(
-                                      child: CircularProgressIndicator()))
-                              : const SizedBox.shrink()
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                         ],
                       ),
                     ),
@@ -171,23 +188,23 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
   }
 
   Future<void> lauchEmail(String email) async {
-    final url = "mailto:$email";
+    final String url = 'mailto:$email';
     await launchUrl(Uri.parse(url));
   }
 
   Future<void> phoneDial(String contact) async {
-    final Uri url = Uri(scheme: "tel", path: contact);
+    final Uri url = Uri(scheme: 'tel', path: contact);
     await launchUrl(url);
   }
 
   Future<void> whatsapp(String contact) async {
-    String te = contact.substring(0, 1);
-    String newContact = "";
-    if (te == "0") {
-      newContact = replaceFirstCharacter(contact, "62");
+    final String te = contact.substring(0, 1);
+    String newContact = '';
+    if (te == '0') {
+      newContact = replaceFirstCharacter(contact, '62');
     }
-    var androidUrl = "whatsapp://send?phone=$newContact";
-    var iosUrl = "https://wa.me/$newContact";
+    final String androidUrl = 'whatsapp://send?phone=$newContact';
+    final String iosUrl = 'https://wa.me/$newContact';
 
     try {
       if (Platform.isIOS) {
@@ -197,7 +214,7 @@ class _EmployeeScreenState extends State<EmployeeScreen> {
       }
     } on Exception {
       // ignore: avoid_print
-      print("wahtsapp not installed");
+      print('wahtsapp not installed');
     }
   }
 

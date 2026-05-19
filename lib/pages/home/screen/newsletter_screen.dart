@@ -54,25 +54,28 @@ class _NewsletterScreenState extends State<NewsletterScreen> {
                       itemCount: (state.newsletters ?? []).length,
                       itemBuilder: (ctx, i) {
                         Newsletter e = state.newsletters![i];
-                        return ListTile(
-                          dense: false,
-                          visualDensity: const VisualDensity(vertical: -1),
-                          title: Text(
-                            e.newsletter ?? "--",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
+                        return Material(
+                          color: Colors.transparent,
+                          child: ListTile(
+                            dense: false,
+                            visualDensity: const VisualDensity(vertical: -1),
+                            title: Text(
+                              e.newsletter ?? "--",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                            subtitle: Text(e.level ?? "Level"),
+                            leading: const FaIcon(
+                              FontAwesomeIcons.newspaper,
+                              color: AppColors.secondary,
+                            ),
+                            onTap: () {
+                              if (e.link != null || e.link != "") {
+                                launchUrl(Uri.parse(e.link!));
+                              }
+                            },
                           ),
-                          subtitle: Text(e.level ?? "Level"),
-                          leading: const FaIcon(
-                            FontAwesomeIcons.newspaper,
-                            color: AppColors.secondary,
-                          ),
-                          onTap: () {
-                            if (e.link != null || e.link != "") {
-                              launchUrl(Uri.parse(e.link!));
-                            }
-                          },
                         );
                       },
                       separatorBuilder: (ctx, i) {

@@ -4,7 +4,6 @@ import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
@@ -107,8 +106,8 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                     });
                   },
                   decoration: TextFormDecoration.box(
-                    prefixIcon: const FaIcon(
-                      FontAwesomeIcons.calendar,
+                    prefixIcon: const Icon(
+                      Icons.calendar_month,
                     ),
                     suffixIcon: const Icon(
                       Icons.arrow_drop_down,
