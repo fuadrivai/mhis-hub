@@ -96,7 +96,6 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
         isFormSuccess: false,
       ));
 
-      // Build attachments list if file path provided
       List<FileAttachment>? attachments;
       if (event.attachmentPath != null && event.attachmentPath!.isNotEmpty) {
         final file = File(event.attachmentPath!);
@@ -111,7 +110,6 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
         ];
       }
 
-      // Create approval request with multipart data
       final approvalRequest = Request(
         requesterEmployeeId: state.employee?.id ?? 0,
         timeoffId: event.timeoffId,

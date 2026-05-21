@@ -27,4 +27,5 @@ export 'package:fl_mhis_hr/pages/splash_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_form_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_detail_screen.dart';
-export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_request_screen.dart';
+export 'package:fl_mhis_hr/pages/request_approval/screen/request_screen.dart';
+export 'package:fl_mhis_hr/pages/request_approval/screen/request_detail_screen.dart';

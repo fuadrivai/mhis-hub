@@ -5,6 +5,7 @@ import 'package:fl_mhis_hr/models/v2/attendance.dart';
 import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/models/v2/timeoff.dart';
+import 'package:fl_mhis_hr/models/v2/approval_request.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'restclient.g.dart';
@@ -106,5 +107,9 @@ abstract class RestClient {
   );
 
   @GET("time/request/user")
-  Future<dynamic> getUserTimeoff();
+  Future<List<ApprovalRequest>> getUserTimeoff(
+      @Body() Map<String, dynamic> post);
+
+  @GET("time/request/{id}")
+  Future<ApprovalRequest> getTimeoffDetail(@Path() int id);
 }

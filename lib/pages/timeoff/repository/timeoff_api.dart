@@ -49,10 +49,4 @@ class TimeoffApi {
 
     return response.data;
   }
-
-  static Future<dynamic> getUserTimeoff() async {
-    final client = await Api.restClient();
-    var data = client.getUserTimeoff();
-    return data;
-  }
 }

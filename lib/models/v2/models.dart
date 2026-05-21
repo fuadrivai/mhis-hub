@@ -18,3 +18,6 @@ export 'package:fl_mhis_hr/models/v2/approval_request.dart';
 export 'package:fl_mhis_hr/models/v2/approval_rule.dart';
 export 'package:fl_mhis_hr/models/v2/approval_history.dart';
 export 'package:fl_mhis_hr/models/v2/grid_menu_item.dart';
+export 'package:fl_mhis_hr/models/v2/file_attachment.dart';
+export 'package:fl_mhis_hr/models/v2/timeoff_schema.dart';
+export 'package:fl_mhis_hr/models/v2/approval.dart';

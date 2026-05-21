@@ -1,18 +1,18 @@
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/pages/timeoff/screen/my_request_widget.dart';
+import 'package:fl_mhis_hr/pages/request_approval/screen/my_request_widget.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-class TimeoffRequestScreen extends StatefulWidget {
-  const TimeoffRequestScreen({super.key});
+class RequestScreen extends StatefulWidget {
+  const RequestScreen({super.key});
 
   @override
-  State<TimeoffRequestScreen> createState() => _TimeoffRequestScreenState();
+  State<RequestScreen> createState() => _RequestScreenState();
 }
 
-class _TimeoffRequestScreenState extends State<TimeoffRequestScreen>
+class _RequestScreenState extends State<RequestScreen>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
@@ -23,7 +23,7 @@ class _TimeoffRequestScreenState extends State<TimeoffRequestScreen>
   }
 
   @override
-  void didUpdateWidget(TimeoffRequestScreen oldWidget) {
+  void didUpdateWidget(RequestScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     _tabController ??= TabController(length: 2, vsync: this);
   }

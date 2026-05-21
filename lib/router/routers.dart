@@ -115,9 +115,24 @@ class RouteNavigation {
                 name: "timeoff",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: TimeoffRequestScreen(),
+                    child: RequestScreen(),
                   );
                 },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: _nav.navKey,
+                    path: 'detail',
+                    name: "timeoff-detail",
+                    pageBuilder: (context, state) {
+                      var extra = state.extra as Map<String, dynamic>;
+                      return NoTransitionPage(
+                        child: RequestDetailScreen(
+                          requestId: extra['requestId'],
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,

@@ -48,7 +48,7 @@ dependencies:
   intl: ^0.20.2
   dio: ^5.9.2
   shared_preferences: ^2.5.5
-  syncfusion_flutter_calendar: ^33.2.6
+  syncfusion_flutter_calendar: ^33.2.7
   color_parser: ^0.0.3
   url_launcher: ^6.3.2
   loading_animation_widget: ^1.3.0
