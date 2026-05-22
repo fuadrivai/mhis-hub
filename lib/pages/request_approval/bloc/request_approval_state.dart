@@ -5,7 +5,9 @@ final class RequestApprovalState extends Equatable {
   final bool isFormLoading, isFormError, isFormSuccess;
   final String? errorMessage;
   final List<ApprovalRequest> requests;
+  final List<Approval> approvals;
   final ApprovalRequest? request;
+  final Approval? approval;
   const RequestApprovalState({
     this.isLoading = false,
     this.isFormLoading = false,
@@ -16,7 +18,9 @@ final class RequestApprovalState extends Equatable {
     this.errorMessage,
     this.loadMore = false,
     this.requests = const [],
+    this.approvals = const [],
     this.request,
+    this.approval,
   });
   RequestApprovalState copyWith({
     bool? isLoading,
@@ -28,7 +32,9 @@ final class RequestApprovalState extends Equatable {
     bool? isFormError,
     bool? isFormSuccess,
     List<ApprovalRequest>? requests,
+    List<Approval>? approvals,
     ApprovalRequest? request,
+    Approval? approval,
   }) {
     return RequestApprovalState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -41,6 +47,8 @@ final class RequestApprovalState extends Equatable {
       isFormSuccess: isFormSuccess ?? this.isFormSuccess,
       requests: requests ?? this.requests,
       request: request ?? this.request,
+      approvals: approvals ?? this.approvals,
+      approval: approval ?? this.approval,
     );
   }
 
@@ -56,5 +64,7 @@ final class RequestApprovalState extends Equatable {
         isFormSuccess,
         requests,
         request,
+        approvals,
+        approval,
       ];
 }

@@ -4,9 +4,16 @@ abstract class RequestApprovalEvent extends Equatable {
   const RequestApprovalEvent();
 }
 
-class OnInit extends RequestApprovalEvent {
+class OnInitRequest extends RequestApprovalEvent {
   final Map<String, dynamic> map;
-  const OnInit(this.map);
+  const OnInitRequest(this.map);
+  @override
+  List<Object?> get props => [map];
+}
+
+class OnInitApproval extends RequestApprovalEvent {
+  final Map<String, dynamic> map;
+  const OnInitApproval(this.map);
   @override
   List<Object?> get props => [map];
 }
@@ -16,4 +23,19 @@ class OnInitDetail extends RequestApprovalEvent {
   const OnInitDetail(this.id);
   @override
   List<Object?> get props => [id];
+}
+
+class PostAction extends RequestApprovalEvent {
+  final Map<String, dynamic> map;
+  const PostAction(this.map);
+  @override
+  List<Object?> get props => [map];
+}
+
+class PostCancelRequest extends RequestApprovalEvent {
+  final int id;
+  final Map<String, dynamic> map;
+  const PostCancelRequest(this.id, this.map);
+  @override
+  List<Object?> get props => [id, map];
 }

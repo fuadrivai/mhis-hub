@@ -1,5 +1,6 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/request_approval/screen/my_request_widget.dart';
+import 'package:fl_mhis_hr/pages/request_approval/screen/my_approval_widget.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -87,18 +88,12 @@ class _RequestScreenState extends State<RequestScreen>
               controller: _tabController!,
               children: [
                 const MyRequestWidget(),
-                _buildDelegationTab(),
+                const MyApprovalWidget(),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDelegationTab() {
-    return const Center(
-      child: Text("Delegation content coming soon"),
     );
   }
 }

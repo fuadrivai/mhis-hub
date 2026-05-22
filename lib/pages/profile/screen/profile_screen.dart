@@ -85,66 +85,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: <Widget>[
                   Container(
-                    height: 200,
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 20),
                     decoration: BoxDecoration(gradient: Common.gradient),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        InkWell(
-                          onTap: () async {
-                            await showDialog(
-                              context: context,
-                              builder: (_) => ImageDialog(
-                                imageUrl: state.employee?.person?.avatar ?? "",
-                              ),
-                            );
-                          },
-                          child: CircleAvatar(
-                            backgroundColor: AppColors.danger,
-                            minRadius: 60.0,
+                        Builder(builder: (context) {
+                          final avatarUrl =
+                              state.employee?.person?.avatar ?? "";
+                          final hasAvatar = avatarUrl.isNotEmpty;
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(52),
+                            onTap: hasAvatar
+                                ? () async {
+                                    await showDialog(
+                                      context: context,
+                                      builder: (_) =>
+                                          ImageDialog(imageUrl: avatarUrl),
+                                    );
+                                  }
+                                : null,
                             child: CircleAvatar(
-                              radius: 59.5,
-                              backgroundImage: NetworkImage(
-                                state.employee?.person?.avatar ?? "",
+                              radius: 52,
+                              backgroundColor: Colors.white24,
+                              child: CircleAvatar(
+                                radius: 48,
+                                backgroundColor: Colors.white,
+                                backgroundImage:
+                                    hasAvatar ? NetworkImage(avatarUrl) : null,
+                                child: hasAvatar
+                                    ? null
+                                    : const Icon(
+                                        Icons.person,
+                                        size: 40,
+                                        color: AppColors.primary,
+                                      ),
                               ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
+                          );
+                        }),
+                        const SizedBox(height: 12),
                         Text(
                           state.employee?.person?.fullName ?? "-",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           state.employee?.person?.email ?? "-",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 15,
-                            color: Colors.white,
+                            fontSize: 13,
+                            color: Colors.white70,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Row(
-                    children: <Widget>[
-                      title(
-                        color: AppColors.primary2,
-                        position:
-                            state.employee?.employment?.organizationName ?? "-",
-                        title: "Division",
-                      ),
-                      title(
-                        color: AppColors.primary,
-                        position:
-                            state.employee?.employment?.jobPosition ?? "-",
-                        title: "Position",
-                      ),
-                    ],
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.whiteshade,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        title(
+                          color: Colors.transparent,
+                          position: state.employee?.employment?.organizationName
+                                      ?.trim()
+                                      .isNotEmpty ==
+                                  true
+                              ? state.employee?.employment?.organizationName
+                              : "-",
+                          title: "Division",
+                        ),
+                        Container(
+                          width: 1,
+                          height: 52,
+                          color: Colors.black12,
+                        ),
+                        title(
+                          color: Colors.transparent,
+                          position: state.employee?.employment?.jobPosition
+                                      ?.trim()
+                                      .isNotEmpty ==
+                                  true
+                              ? state.employee?.employment?.jobPosition
+                              : "-",
+                          title: "Position",
+                        ),
+                      ],
+                    ),
                   ),
                   Column(
                     children: ParentMenu()
@@ -338,25 +378,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return Expanded(
       child: Container(
-        color: color ?? AppColors.primary,
-        child: ListTile(
-          title: Text(
-            position ?? "",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 15,
-              color: Colors.white,
+        color: color ?? Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Column(
+          children: [
+            Text(
+              title ?? "",
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          subtitle: Text(
-            title ?? "",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              color: Colors.white70,
+            const SizedBox(height: 4),
+            Text(
+              position ?? "",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: Colors.black87,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -4,7 +4,6 @@ import 'package:fl_mhis_hr/pages/request_approval/bloc/request_approval_bloc.dar
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:jiffy/jiffy.dart';
@@ -29,14 +28,14 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
     String year = Jiffy.parseFromDateTime(selectedDate).format(pattern: "yyyy");
     String month = Jiffy.parseFromDateTime(selectedDate).format(pattern: "M");
     map = {"month": month, "year": year};
-    context.read<RequestApprovalBloc>().add(OnInit(map));
+    context.read<RequestApprovalBloc>().add(OnInitRequest(map));
   }
 
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<RequestApprovalBloc>().add(OnInit(map));
+        context.read<RequestApprovalBloc>().add(OnInitRequest(map));
       },
       child: SingleChildScrollView(
         child: Column(
@@ -77,7 +76,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
                               map = {"month": month, "year": year};
                               context
                                   .read<RequestApprovalBloc>()
-                                  .add(OnInit(map));
+                                  .add(OnInitRequest(map));
                             });
                           }
                         });
@@ -93,26 +92,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {},
-                        child: const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: FaIcon(
-                            FontAwesomeIcons.sliders,
-                            size: 20,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  FilterIconWidget(onTap: () {}),
                 ],
               ),
             ),
@@ -185,11 +165,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
                       date: ApprovalRequestData.formatRequestDate(request),
                       reason: request.note ?? "--",
                       status: request.status ?? "--",
-                      statusColor: request.status == "Approved"
-                          ? Colors.green
-                          : request.status == "Rejected"
-                              ? Colors.red
-                              : Colors.orange,
+                      statusColor: Common.statusColor(request.status),
                       onTap: () {
                         context.pushNamed(
                           "timeoff-detail",

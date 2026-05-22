@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/approval.dart';
 import 'package:fl_mhis_hr/models/v2/attendance.dart';
 import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
@@ -112,4 +113,14 @@ abstract class RestClient {
 
   @GET("time/request/{id}")
   Future<ApprovalRequest> getTimeoffDetail(@Path() int id);
+
+  @GET("time/request/approval")
+  Future<List<Approval>> getUserApproval(@Body() Map<String, dynamic> post);
+
+  @POST("time/request/action")
+  Future<Approval> postAction(@Body() Map<String, dynamic> post);
+
+  @POST("time/request/cancel/{id}")
+  Future<ApprovalRequest> postCancelRequest(
+      @Path() int id, @Body() Map<String, dynamic> post);
 }

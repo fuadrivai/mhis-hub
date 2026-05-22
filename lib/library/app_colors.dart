@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 
 class AppColors {
@@ -7,6 +6,7 @@ class AppColors {
   static const white = Color.fromARGB(255, 255, 255, 255);
   static const blue = Color(0xFF497fff);
   static const lightblueshade = Color(0xFF758CC8);
+  static const amber = Color(0xFFF2A93B);
   static const grayshade = Color(0xFFEBEBEB);
   static const lightblue = Color(0xFF4B68D1);
   static const blackshade = Color(0xFF555555);

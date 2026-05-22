@@ -9,9 +9,29 @@ class RequestApprovalApi {
     return data;
   }
 
+  static Future<List<Approval>> getUserApproval(
+      Map<String, dynamic> params) async {
+    final client = await Api.restClient();
+    var data = client.getUserApproval(params);
+    return data;
+  }
+
   static Future<ApprovalRequest> getTimeoffDetail(int id) async {
     final client = await Api.restClient();
     var data = client.getTimeoffDetail(id);
+    return data;
+  }
+
+  static Future<Approval> postAction(Map<String, dynamic> params) async {
+    final client = await Api.restClient();
+    var data = client.postAction(params);
+    return data;
+  }
+
+  static Future<ApprovalRequest> postCancelRequest(
+      int id, Map<String, dynamic> params) async {
+    final client = await Api.restClient();
+    var data = client.postCancelRequest(id, params);
     return data;
   }
 }

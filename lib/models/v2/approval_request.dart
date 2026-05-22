@@ -13,6 +13,7 @@ class ApprovalRequest {
   ApprovalRule? approvalRule;
   List<FileAttachment>? attachments;
   List<ApprovalHistory>? histories;
+  bool showCancel = false;
   String? createdAt;
   String? updatedAt;
 
@@ -29,7 +30,8 @@ class ApprovalRequest {
       this.attachments,
       this.histories,
       this.createdAt,
-      this.updatedAt});
+      this.updatedAt,
+      this.showCancel = false});
 
   ApprovalRequest.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -46,6 +48,7 @@ class ApprovalRequest {
         approvals!.add(Approval.fromJson(v));
       });
     }
+    showCancel = json['show_cancel'] ?? false;
     requester =
         json['requester'] != null ? Employee.fromJson(json['requester']) : null;
     approvalRule = json['approval_rule'] != null

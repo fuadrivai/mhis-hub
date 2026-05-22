@@ -19,12 +19,20 @@ class RequestDetailScreen extends StatefulWidget {
 class _RequestDetailScreenState extends State<RequestDetailScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  int employeeId = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     context.read<RequestApprovalBloc>().add(OnInitDetail(widget.requestId));
+    Session.get('employeeId').then((empId) {
+      employeeId = int.tryParse(empId ?? '') ?? 0;
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    });
   }
 
   @override
@@ -88,6 +96,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
           }
 
           final ApprovalRequest request = state.request!;
+          final Approval? approval = request.approvals?.firstWhere(
+              (a) => a.approver?.id == employeeId,
+              orElse: () => Approval());
+          final bool canCancelRequest =
+              request.requester?.id == employeeId && request.showCancel;
 
           return Column(
             children: [
@@ -96,7 +109,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _DetailTab(request: request),
+                    _DetailTab(
+                      request: request,
+                      approval: approval,
+                      canCancelRequest: canCancelRequest,
+                    ),
                     _ApprovalTab(request: request),
                   ],
                 ),
@@ -119,7 +136,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
         '';
     final String? avatar = request.requester?.personal?.avatar;
     final String timeoffName = request.type?.name ?? '--';
-    final String createdAt = _formatDateTime(request.createdAt) ?? '--';
+    final String createdAt = Approval.formatDateTime(request.createdAt) ?? '--';
     final int totalSteps =
         request.approvalRule?.steps.length ?? (request.approvals?.length ?? 0);
     final String currentStep = totalSteps > 0
@@ -213,20 +230,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
         return AppColors.blackshade;
     }
   }
-
-  static String? _formatDateTime(String? value) {
-    final DateTime? parsed = ApprovalRequestData.parseDynamicDate(value);
-    if (parsed == null) {
-      return null;
-    }
-
-    return Jiffy.parseFromDateTime(parsed).format(pattern: 'dd MMMM yyyy');
-  }
 }
 
 class _DetailTab extends StatelessWidget {
   final ApprovalRequest request;
-  const _DetailTab({required this.request});
+  final Approval? approval;
+  final bool canCancelRequest;
+  const _DetailTab({
+    required this.request,
+    this.approval,
+    this.canCancelRequest = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -268,8 +282,158 @@ class _DetailTab extends StatelessWidget {
                 )
               : const _EmptyHint('No attachments available'),
         ),
+        if (approval?.showAction == true || canCancelRequest) ...[
+          const SizedBox(height: 12),
+          if (approval?.showAction == true)
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      _showActionReasonDialog(context, action: 'rejected')
+                          .then((reason) {
+                        if (reason == null || reason.trim().isEmpty) {
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        Common.flushBar(
+                          context,
+                          title: 'Reject action clicked',
+                          message: reason,
+                        );
+                      });
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.danger),
+                      foregroundColor: AppColors.danger,
+                    ),
+                    child: const Text('Reject'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _showActionReasonDialog(context, action: 'approved')
+                          .then((reason) {
+                        if (reason == null || reason.trim().isEmpty) {
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        Common.flushBar(
+                          context,
+                          title: 'Approve action clicked',
+                          message: reason,
+                        );
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.whiteshade,
+                    ),
+                    child: const Text('Approve'),
+                  ),
+                ),
+              ],
+            ),
+          if (approval?.showAction == true && canCancelRequest)
+            const SizedBox(height: 10),
+          if (canCancelRequest)
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  _showActionReasonDialog(context, action: 'cancelled')
+                      .then((reason) {
+                    if (reason == null || reason.trim().isEmpty) {
+                      return;
+                    }
+                    if (!context.mounted) return;
+                    Common.flushBar(
+                      context,
+                      title: 'Cancel action clicked',
+                      message: reason,
+                    );
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.danger),
+                  foregroundColor: AppColors.danger,
+                ),
+                child: const Text('Cancel Request'),
+              ),
+            ),
+        ],
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Future<String?> _showActionReasonDialog(
+    BuildContext context, {
+    required String action,
+  }) {
+    final TextEditingController controller = TextEditingController();
+    String? errorText;
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text('$action Request'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Reason / Note',
+                      hintText: 'Enter your reason',
+                      errorText: errorText,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final String value = controller.text.trim();
+                    Map<String, dynamic> map = {
+                      "requestId": request.id,
+                      "action": action.toLowerCase(),
+                      "reason": value,
+                    };
+                    if (action.toLowerCase() == 'cancelled') {
+                      context
+                          .read<RequestApprovalBloc>()
+                          .add(PostCancelRequest(request.id!, map));
+                    } else {
+                      context.read<RequestApprovalBloc>().add(PostAction(map));
+                    }
+                    Navigator.pop(dialogContext, value);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: action == 'Reject'
+                        ? AppColors.danger
+                        : AppColors.primary,
+                    foregroundColor: AppColors.whiteshade,
+                  ),
+                  child: Text(action),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -390,7 +554,9 @@ class _ApprovalTab extends StatelessWidget {
                   step: ap.stepOrder ?? (index + 1),
                   name: name,
                   status: ap.status,
-                  note: ap.note,
+                  note: ap.actionedDate != null
+                      ? 'Actioned on ${Approval.formatDateTime(ap.actionedDate)}'
+                      : null,
                   isLast: index == approvals.length - 1,
                 );
               }).toList(),
@@ -434,19 +600,6 @@ class _ApprovalTab extends StatelessWidget {
 
   static String _capitalize(String s) =>
       s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1).toLowerCase()}';
-
-  static Color _statusColor(String? status) {
-    switch ((status ?? '').toLowerCase()) {
-      case 'approved':
-        return const Color(0xFF0EA56A);
-      case 'rejected':
-        return const Color(0xFFD64545);
-      case 'pending':
-        return const Color(0xFFF2A93B);
-      default:
-        return AppColors.blackshade;
-    }
-  }
 }
 
 class _SectionCard extends StatelessWidget {
@@ -693,9 +846,6 @@ class _HistoryRow extends StatelessWidget {
         history.approver?.user?.name ??
         'System';
 
-    final String stepLabel =
-        history.stepOrder != null ? ' · Step ${history.stepOrder}' : '';
-
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 0 : 4),
       child: Row(
@@ -722,16 +872,12 @@ class _HistoryRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    history.action ?? 'Status updated',
+                    "Timeoff request ${history.action ?? 'updated'}${actor != 'System' ? ' by $actor' : ''}",
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: dotColor),
                   ),
-                  const SizedBox(height: 2),
-                  Text('$actor$stepLabel',
-                      style:
-                          const TextStyle(fontSize: 13, color: AppColors.dark)),
                   const SizedBox(height: 2),
                   Text(formattedDate,
                       style: const TextStyle(

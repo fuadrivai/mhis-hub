@@ -26,8 +26,8 @@ class LoginScreenState extends State<LoginScreen> {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) async {
         String? token = await Session.get("token");
-        if (token != "" || token != null) {
-          // ignore: use_build_context_synchronously
+        if (!context.mounted) return;
+        if (token != null && token.isNotEmpty) {
           context.go("/splash");
         }
       },
@@ -40,6 +40,7 @@ class LoginScreenState extends State<LoginScreen> {
         ),
         body: BlocListener<LoginBloc, LoginState>(
           listener: (context, state) {
+            if (!context.mounted) return;
             if (state.isError) {
               Common.modalInfo(
                 context,

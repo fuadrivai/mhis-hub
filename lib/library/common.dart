@@ -61,9 +61,11 @@ class Common {
     bool? showAction,
     GestureTapCallback? onTap,
   }) {
+    if (!context.mounted) return;
+
     showDialog(
       context: context,
-      builder: (__) {
+      builder: (dialogContext) {
         return Dialog(
           child: Container(
             decoration: BoxDecoration(
@@ -104,7 +106,7 @@ class Common {
                     const SizedBox(height: 20),
                     const Divider(),
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.of(dialogContext).maybePop(),
                       child: const Text("Dismiss"),
                     ),
                   ],
@@ -115,6 +117,21 @@ class Common {
         );
       },
     );
+  }
+
+  static Color statusColor(String? status) {
+    switch ((status ?? '').toLowerCase()) {
+      case 'approved':
+        return AppColors.primary;
+      case 'rejected':
+      case 'reject':
+        return AppColors.danger;
+      case 'skipped':
+        return AppColors.grey;
+      case 'pending':
+      default:
+        return AppColors.amber;
+    }
   }
 
   static MonthPickerDialogSettings monthPickerDialog() {

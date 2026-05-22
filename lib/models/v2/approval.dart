@@ -1,4 +1,5 @@
 import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:jiffy/jiffy.dart';
 
 class Approval {
   int? id;
@@ -9,7 +10,9 @@ class Approval {
   String? note;
   String? createdAt;
   String? updatedAt;
+  bool? showAction = false;
   Employee? approver;
+  ApprovalRequest? approvalRequest;
   List<ApprovalRequestData>? approvalRequestData;
 
   Approval(
@@ -22,6 +25,8 @@ class Approval {
       this.createdAt,
       this.updatedAt,
       this.approver,
+      this.showAction = false,
+      this.approvalRequest,
       this.approvalRequestData});
 
   Approval.fromJson(Map<String, dynamic> json) {
@@ -33,6 +38,7 @@ class Approval {
     note = json['note'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
+    showAction = json['show_action'] ?? false;
     approver =
         json['approver'] != null ? Employee.fromJson(json['approver']) : null;
     if (json['approval_request_data'] != null) {
@@ -41,5 +47,17 @@ class Approval {
         approvalRequestData!.add(ApprovalRequestData.fromJson(v));
       });
     }
+    if (json['approval_request'] != null) {
+      approvalRequest = ApprovalRequest.fromJson(json['approval_request']);
+    }
+  }
+
+  static String? formatDateTime(String? value) {
+    final DateTime? parsed = ApprovalRequestData.parseDynamicDate(value);
+    if (parsed == null) {
+      return null;
+    }
+
+    return Jiffy.parseFromDateTime(parsed).format(pattern: 'dd MMMM yyyy');
   }
 }
