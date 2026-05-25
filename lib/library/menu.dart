@@ -14,7 +14,7 @@ class Menu {
     GridMenuItem(
       title: 'Live Attendance',
       icon: FontAwesomeIcons.userCheck,
-      routeCandidates: ['live-attendance', 'live-ashar'],
+      routeCandidates: ['attendance-screen'],
       seed: 202,
     ),
     GridMenuItem(
@@ -57,12 +57,6 @@ class Menu {
 
   static const List<GridMenuItem> dialog = [
     GridMenuItem(
-      title: 'Calendar',
-      icon: FontAwesomeIcons.calendarDays,
-      routeCandidates: [],
-      seed: 909,
-    ),
-    GridMenuItem(
       title: 'Timeoff',
       icon: FontAwesomeIcons.suitcase,
       routeCandidates: ['timeoff'],
@@ -71,7 +65,7 @@ class Menu {
     GridMenuItem(
       title: 'Live Attendance',
       icon: FontAwesomeIcons.userCheck,
-      routeCandidates: ['live-attendance', 'live-ashar'],
+      routeCandidates: ['attendance-screen'],
       seed: 202,
     ),
     GridMenuItem(
@@ -103,6 +97,18 @@ class Menu {
       icon: FontAwesomeIcons.newspaper,
       routeCandidates: ['announcement', 'general-announcement'],
       seed: 808,
+    ),
+    GridMenuItem(
+      title: 'Ashars',
+      icon: FontAwesomeIcons.mosque,
+      routeCandidates: ['live-attendance', 'live-ashar'],
+      seed: 150,
+    ),
+    GridMenuItem(
+      title: 'Calendar',
+      icon: FontAwesomeIcons.calendarDays,
+      routeCandidates: [],
+      seed: 909,
     ),
   ];
 }

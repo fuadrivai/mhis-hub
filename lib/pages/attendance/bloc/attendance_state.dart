@@ -6,6 +6,7 @@ final class AttendanceState extends Equatable {
   final LiveAttendanceSchedule? schedule;
   final Position? position;
   final List<Attendance>? histories;
+  final List<AttendanceLog>? logs;
   const AttendanceState({
     this.isLoading = false,
     this.historyLoading = false,
@@ -15,6 +16,7 @@ final class AttendanceState extends Equatable {
     this.schedule,
     this.position,
     this.histories,
+    this.logs,
   });
   AttendanceState copyWith({
     bool? isLoading,
@@ -25,6 +27,7 @@ final class AttendanceState extends Equatable {
     LiveAttendanceSchedule? schedule,
     Position? position,
     List<Attendance>? histories,
+    List<AttendanceLog>? logs,
   }) {
     return AttendanceState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -35,6 +38,7 @@ final class AttendanceState extends Equatable {
       schedule: schedule ?? this.schedule,
       histories: histories ?? this.histories,
       historyLoading: historyLoading ?? this.historyLoading,
+      logs: logs ?? this.logs,
     );
   }
 
@@ -48,5 +52,6 @@ final class AttendanceState extends Equatable {
         schedule,
         histories,
         historyLoading,
+        logs,
       ];
 }

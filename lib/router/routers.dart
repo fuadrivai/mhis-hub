@@ -111,6 +111,16 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'home/attendance',
+                name: "attendance-screen",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: AttendanceScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'home/timeoff',
                 name: "timeoff",
                 pageBuilder: (context, state) {
@@ -347,15 +357,15 @@ class RouteNavigation {
               );
             },
           ),
-          GoRoute(
-            parentNavigatorKey: _dashboardNavigatorKey,
-            path: '/attendance',
-            pageBuilder: (context, state) {
-              return const NoTransitionPage(
-                child: AttendanceScreen(),
-              );
-            },
-          ),
+          // GoRoute(
+          //   parentNavigatorKey: _dashboardNavigatorKey,
+          //   path: '/attendance',
+          //   pageBuilder: (context, state) {
+          //     return const NoTransitionPage(
+          //       child: AttendanceScreen(),
+          //     );
+          //   },
+          // ),
           // GoRoute(
           //   parentNavigatorKey: _dashboardNavigatorKey,
           //   path: '/talenta',

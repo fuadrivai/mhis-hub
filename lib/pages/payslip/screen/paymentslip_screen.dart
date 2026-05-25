@@ -1,4 +1,3 @@
-
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/pages/payslip/bloc/payslip_bloc.dart';
@@ -57,19 +56,20 @@ class _PaymentslipScreenState extends State<PaymentslipScreen> {
                       itemCount: (state.payslips ?? []).length,
                       itemBuilder: (ctx, i) {
                         Payslip payslip = (state.payslips ?? [])[i];
-                        return ListTile(
-                          title: Text(
-                              "Periode : ${Jiffy.parse(payslip.periode!).format(pattern: "MMMM yyyy")}"),
-                          subtitle: const Text("Payment Slip"),
-                          leading: const FaIcon(
-                            FontAwesomeIcons.sackDollar,
-                            color: AppColors.secondary,
-                          ),
+                        return TileWidget(
+                          title:
+                              "Periode : ${Jiffy.parse(payslip.periode!).format(pattern: "MMMM yyyy")}",
+                          subtitle: "Payment Slip",
                           onTap: () {
                             if (payslip.link != null || payslip.link != "") {
                               launchUrl(Uri.parse(payslip.link!));
                             }
                           },
+                          icon: const FaIcon(
+                            FontAwesomeIcons.sackDollar,
+                            color: AppColors.primary,
+                            size: 18,
+                          ),
                         );
                       },
                       separatorBuilder: (ctx, i) {

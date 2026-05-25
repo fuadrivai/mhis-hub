@@ -45,7 +45,9 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
       appBar: CustomAppbar(
         backgroundColor: AppColors.whiteshade,
         leading: IconButton(
-          onPressed: () => context.pop(),
+          onPressed: () {
+            Navigator.pop(context);
+          },
           icon: const Icon(Icons.arrow_back),
         ),
         title: "Attendance",

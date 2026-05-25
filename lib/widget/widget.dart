@@ -13,3 +13,4 @@ export 'package:fl_mhis_hr/widget/empty_widget.dart';
 export 'package:fl_mhis_hr/widget/information_home_widget.dart';
 export 'package:fl_mhis_hr/widget/grid_menu_tile_widget.dart';
 export 'package:fl_mhis_hr/widget/filter_icon_widget.dart';
+export 'package:fl_mhis_hr/widget/tile_widget.dart';

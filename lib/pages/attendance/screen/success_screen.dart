@@ -1,6 +1,8 @@
-
 import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_screen.dart';
+import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jiffy/jiffy.dart';
 
 class AttendanceResponseScreen extends StatefulWidget {
@@ -18,11 +20,9 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
     final isCheckIn = widget.attendance?.type == "check_in";
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Back"),
+      appBar: CustomAppbar(
+        title: isCheckIn ? "Check-In" : "Check-Out",
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
-        elevation: 0,
       ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
@@ -102,11 +102,27 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
     );
   }
 
+  void _goToAttendanceHistory() {
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const AttendanceHistoryScreen()));
+  }
+
   Widget _buildDesktopLayout(String? photoUrl, String? time) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _buildPhotoSection(photoUrl)),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildPhotoSection(photoUrl),
+              const SizedBox(height: 16),
+              _buildAttendanceHistoryButton(),
+            ],
+          ),
+        ),
         const SizedBox(width: 32),
         Expanded(child: _buildDetailSection(time)),
       ],
@@ -117,9 +133,25 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
     return Column(
       children: [
         SizedBox(width: 250, child: _buildPhotoSection(photoUrl)),
+        const SizedBox(height: 16),
+        _buildAttendanceHistoryButton(),
         const SizedBox(height: 24),
         _buildDetailSection(time),
       ],
+    );
+  }
+
+  Widget _buildAttendanceHistoryButton() {
+    return SizedBox(
+      width: 155,
+      child: ElevatedButton.icon(
+        onPressed: _goToAttendanceHistory,
+        icon: const Icon(Icons.history),
+        label: const Text('Attendance History'),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
     );
   }
 
@@ -178,7 +210,7 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "employee information",
+            "Employee Information",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
