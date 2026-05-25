@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
@@ -87,7 +86,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  _buildHeroSection(state.schedule),
+                  _buildHeroSection(state.shift),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     child: _buildLogSection(context, latestLog),
@@ -101,7 +100,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildHeroSection(LiveAttendanceSchedule? schedule) {
+  Widget _buildHeroSection(Shift? shift) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 0, 24, 35),
@@ -140,7 +139,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              _buildScheduleCard(context, schedule),
+              _buildScheduleCard(context, shift),
             ],
           ),
         ],
@@ -150,7 +149,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   Widget _buildScheduleCard(
     BuildContext context,
-    LiveAttendanceSchedule? schedule,
+    Shift? shift,
   ) {
     return Container(
       width: double.infinity,
@@ -169,7 +168,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       child: Column(
         children: [
           Text(
-            "Schedule: ${_scheduleDateLabel(schedule)}",
+            "Schedule: ${_scheduleDateLabel()}",
             style: const TextStyle(
               color: Color(0xFF808080),
               fontSize: 16,
@@ -177,7 +176,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            schedule?.currentShiftName ?? "-",
+            shift?.name ?? "-",
             style: const TextStyle(
               color: Color(0xFF222222),
               fontSize: 22,
@@ -186,7 +185,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            _scheduleTimeLabel(schedule),
+            _scheduleTimeLabel(shift),
             style: const TextStyle(
               color: Color(0xFF222222),
               fontSize: 20,
@@ -412,19 +411,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return DateTime.fromMillisecondsSinceEpoch(0);
   }
 
-  String _scheduleDateLabel(LiveAttendanceSchedule? schedule) {
-    final rawDate = schedule?.currentShiftDate;
-    if (rawDate == null || rawDate.isEmpty) return "--";
-    try {
-      return Jiffy.parse(rawDate).format(pattern: "dd MMM yyyy");
-    } catch (_) {
-      return rawDate;
-    }
+  String _scheduleDateLabel() {
+    return Jiffy.now().format(pattern: "dd MMM yyyy");
   }
 
-  String _scheduleTimeLabel(LiveAttendanceSchedule? schedule) {
-    final start = _formatShiftTime(schedule?.currentShiftScIn);
-    final end = _formatShiftTime(schedule?.currentShiftScOut);
+  String _scheduleTimeLabel(Shift? shift) {
+    final start = _formatShiftTime(shift?.scheduleIn);
+    final end = _formatShiftTime(shift?.scheduleOut);
     return "$start - $end";
   }
 

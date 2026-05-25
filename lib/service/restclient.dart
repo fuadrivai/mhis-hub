@@ -5,6 +5,7 @@ import 'package:fl_mhis_hr/models/v2/approval.dart';
 import 'package:fl_mhis_hr/models/v2/attendance.dart';
 import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/models/v2/shift.dart';
 import 'package:fl_mhis_hr/models/v2/timeoff.dart';
 import 'package:fl_mhis_hr/models/v2/approval_request.dart';
 import 'package:retrofit/retrofit.dart';
@@ -97,6 +98,9 @@ abstract class RestClient {
   @GET("employee/user/{id}")
   Future<Employee> employeeById(@Path() int id);
 
+  @GET("employee/profile")
+  Future<Employee> getEmployeeProfile();
+
   @POST("time/request")
   @MultiPart()
   Future<dynamic> postTimeoffMultipart(
@@ -116,6 +120,12 @@ abstract class RestClient {
 
   @GET("time/request/approval")
   Future<List<Approval>> getUserApproval(@Body() Map<String, dynamic> post);
+
+  @GET("employee/schedule/active")
+  Future<Shift> getActiveShift();
+
+  @GET("employee/datatable")
+  Future<Pagination> getEmployees();
 
   @POST("time/request/action")
   Future<Approval> postAction(@Body() Map<String, dynamic> post);

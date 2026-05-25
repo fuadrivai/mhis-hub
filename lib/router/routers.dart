@@ -403,7 +403,7 @@ class RouteNavigation {
             path: '/employee',
             pageBuilder: (context, state) {
               return const NoTransitionPage(
-                child: EmployeeScreen(),
+                child: EmployeeScreenV2(),
               );
             },
           ),

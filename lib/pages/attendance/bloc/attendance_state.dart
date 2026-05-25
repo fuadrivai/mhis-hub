@@ -3,7 +3,7 @@ part of 'attendance_bloc.dart';
 final class AttendanceState extends Equatable {
   final bool isLoading, isError, isSuccess, historyLoading;
   final String? errorMessage;
-  final LiveAttendanceSchedule? schedule;
+  final Shift? shift;
   final Position? position;
   final List<Attendance>? histories;
   final List<AttendanceLog>? logs;
@@ -13,7 +13,7 @@ final class AttendanceState extends Equatable {
     this.isError = false,
     this.isSuccess = false,
     this.errorMessage,
-    this.schedule,
+    this.shift,
     this.position,
     this.histories,
     this.logs,
@@ -28,6 +28,7 @@ final class AttendanceState extends Equatable {
     Position? position,
     List<Attendance>? histories,
     List<AttendanceLog>? logs,
+    Shift? shift,
   }) {
     return AttendanceState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -35,10 +36,10 @@ final class AttendanceState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isSuccess: isSuccess ?? this.isSuccess,
       position: position ?? this.position,
-      schedule: schedule ?? this.schedule,
       histories: histories ?? this.histories,
       historyLoading: historyLoading ?? this.historyLoading,
       logs: logs ?? this.logs,
+      shift: shift ?? this.shift,
     );
   }
 
@@ -49,9 +50,9 @@ final class AttendanceState extends Equatable {
         isError,
         isSuccess,
         position,
-        schedule,
         histories,
         historyLoading,
         logs,
+        shift,
       ];
 }

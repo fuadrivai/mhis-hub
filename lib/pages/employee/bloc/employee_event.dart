@@ -10,6 +10,12 @@ class OnInit extends EmployeeEvent {
   List<Object?> get props => [];
 }
 
+class OnInitV2 extends EmployeeEvent {
+  const OnInitV2();
+  @override
+  List<Object?> get props => [];
+}
+
 class OnLoadMore extends EmployeeEvent {
   const OnLoadMore();
   @override

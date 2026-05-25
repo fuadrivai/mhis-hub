@@ -1,7 +1,7 @@
 import 'package:another_flushbar/flushbar.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/profile_menu.dart';
+import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/profile/bloc/profile_bloc.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
@@ -27,14 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void initState() {
-    Session.get("userIdTalenta").then((id) {
-      if (id != null || id != "") {
-        setState(() {
-          userIdTalenta = int.parse(id!);
-          context.read<ProfileBloc>().add(OnGetUserById(userIdTalenta));
-        });
-      }
-    });
+    context.read<ProfileBloc>().add(OnGetUserById());
     super.initState();
   }
 
@@ -72,8 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       body: RefreshIndicator(
-        onRefresh: () async =>
-            context.read<ProfileBloc>().add(OnGetUserById(userIdTalenta)),
+        onRefresh: () async => context.read<ProfileBloc>().add(OnGetUserById()),
         child: BlocBuilder<ProfileBloc, ProfileState>(
           builder: (context, state) {
             isBiometric = state.isBiometric ?? false;
@@ -94,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: <Widget>[
                         Builder(builder: (context) {
                           final avatarUrl =
-                              state.employee?.person?.avatar ?? "";
+                              state.employee?.personal?.avatar ?? "";
                           final hasAvatar = avatarUrl.isNotEmpty;
                           return InkWell(
                             borderRadius: BorderRadius.circular(52),
@@ -128,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }),
                         const SizedBox(height: 12),
                         Text(
-                          state.employee?.person?.fullName ?? "-",
+                          state.employee?.personal?.fullname ?? "-",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -139,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          state.employee?.person?.email ?? "-",
+                          state.employee?.personal?.email ?? "-",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -175,11 +167,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         title(
                           color: Colors.transparent,
-                          position: state.employee?.employment?.jobPosition
+                          position: state
+                                      .employee?.employment?.jobPosition?.name
                                       ?.trim()
                                       .isNotEmpty ==
                                   true
-                              ? state.employee?.employment?.jobPosition
+                              ? state.employee?.employment?.jobPosition?.name
                               : "-",
                           title: "Position",
                         ),
@@ -188,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   Column(
                     children: ParentMenu()
-                        .menu(context, state.employee ?? EmployeeOld())
+                        .menu(context, state.employee ?? Employee())
                         .map((menu) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),

@@ -1,12 +1,12 @@
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 class CardClockInOut extends StatelessWidget {
-  final LiveAttendanceSchedule? schedule;
-  const CardClockInOut({super.key, required this.schedule});
+  final Shift? shift;
+  const CardClockInOut({super.key, required this.shift});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,7 @@ class CardClockInOut extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              schedule?.currentShiftName ?? "WS",
+              shift?.name ?? "WS",
               style: const TextStyle(
                 color: AppColors.grayshade,
                 fontWeight: FontWeight.w700,
@@ -43,9 +43,9 @@ class CardClockInOut extends StatelessWidget {
                   color: AppColors.white,
                 ),
                 const SizedBox(width: 10),
-                if (schedule != null)
+                if (shift != null)
                   Text(
-                    schedule?.fullDateTime ?? "--",
+                    shift!.fullScheduleTime(),
                     style: const TextStyle(
                       color: AppColors.white,
                       fontWeight: FontWeight.w700,

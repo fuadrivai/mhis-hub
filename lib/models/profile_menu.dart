@@ -1,4 +1,4 @@
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -12,7 +12,7 @@ class ParentMenu {
     this.child,
   });
 
-  List<ParentMenu> menu(BuildContext context, EmployeeOld employee) => [
+  List<ParentMenu> menu(BuildContext context, Employee employee) => [
         ParentMenu(
           parent: "My Info",
           child: [
@@ -20,8 +20,8 @@ class ParentMenu {
               name: "Personal Info",
               iconData: FontAwesomeIcons.person,
               onTap: () {
-                context
-                    .goNamed("personal-info", extra: {"data": employee.person});
+                context.goNamed("personal-info",
+                    extra: {"data": employee.personal});
               },
             ),
             ChildMenu(

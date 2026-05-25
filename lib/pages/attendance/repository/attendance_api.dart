@@ -53,4 +53,10 @@ class AttendanceApi {
     var data = client.getAttendaceHistories(map);
     return data;
   }
+
+  static Future<Shift> getActiveShift() async {
+    final client = await Api.restClient();
+    var data = client.getActiveShift();
+    return data;
+  }
 }

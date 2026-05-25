@@ -21,7 +21,7 @@ class _ClockInOutHomeState extends State<ClockInOutHome> {
         if (state.attendanceError) {
           return Center(child: Text(state.attendanceErrorMessage ?? "Error"));
         }
-        return CardClockInOut(schedule: state.attendaceSchedule);
+        return CardClockInOut(shift: state.shift);
       },
     );
   }

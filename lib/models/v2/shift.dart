@@ -1,3 +1,5 @@
+import 'package:jiffy/jiffy.dart';
+
 class Shift {
   int? id;
   String? name;
@@ -53,5 +55,10 @@ class Shift {
     data['is_overnight'] = isOvernight;
     data['show_in_request'] = showInRequest;
     return data;
+  }
+
+  String fullScheduleTime() {
+    String now = Jiffy.now().format(pattern: "EEE, dd MMMM yyyy");
+    return "$now - ($scheduleIn - $scheduleOut)";
   }
 }

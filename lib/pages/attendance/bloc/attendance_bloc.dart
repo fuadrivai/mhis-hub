@@ -20,15 +20,14 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     emit(state.copyWith(isLoading: true, isError: false, isSuccess: false));
     try {
       Position? position = await Common.determinePosition();
-      String? userId = await Session.get("userIdTalenta");
-      LiveAttendanceSchedule? schedule =
-          await AttendanceApi.getLiveAttendanceSchedule(int.parse(userId!));
+
+      Shift shift = await AttendanceApi.getActiveShift();
       emit(state.copyWith(
         isLoading: false,
         isError: false,
         isSuccess: true,
         position: position,
-        schedule: schedule,
+        shift: shift,
       ));
     } catch (e) {
       emit(state.copyWith(

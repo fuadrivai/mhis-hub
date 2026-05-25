@@ -5,6 +5,10 @@ final class EmployeeState extends Equatable {
   final String? errorMessage;
   final ServerSideEmployee? serverside;
   final List<EmployeeV3>? employees;
+
+  final Pagination? pagination;
+  final List<Employee>? employees2;
+
   const EmployeeState({
     this.isLoading = false,
     this.isError = false,
@@ -13,6 +17,8 @@ final class EmployeeState extends Equatable {
     this.serverside,
     this.employees,
     this.loadMore = false,
+    this.pagination,
+    this.employees2,
   });
   EmployeeState copyWith({
     bool? isLoading,
@@ -22,6 +28,8 @@ final class EmployeeState extends Equatable {
     String? errorMessage,
     ServerSideEmployee? serverside,
     List<EmployeeV3>? employees,
+    Pagination? pagination,
+    List<Employee>? employees2,
   }) {
     return EmployeeState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -31,6 +39,8 @@ final class EmployeeState extends Equatable {
       employees: employees ?? this.employees,
       serverside: serverside ?? this.serverside,
       loadMore: loadMore ?? this.loadMore,
+      pagination: pagination ?? this.pagination,
+      employees2: employees2 ?? this.employees2,
     );
   }
 
@@ -43,5 +53,7 @@ final class EmployeeState extends Equatable {
         employees,
         serverside,
         loadMore,
+        pagination,
+        employees2,
       ];
 }

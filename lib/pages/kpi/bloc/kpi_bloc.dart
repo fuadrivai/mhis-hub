@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:fl_mhis_hr/pages/kpi/repository/kpi_api.dart';
-import 'package:fl_mhis_hr/pages/profile/repository/profile_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'kpi_event.dart';
@@ -51,10 +51,7 @@ class KpiBloc extends Bloc<KpiEvent, KpiState> {
         empError: false,
         empSuccess: false,
       ));
-
-      String? id = await Session.get("userIdTalenta");
-      int employeeId = int.parse(id!);
-      EmployeeOld employee = await ProfileApi.getEmployeeById(employeeId);
+      Employee employee = await EmployeeApi.getEmployeeProfile();
 
       emit(state.copyWith(
         empLoading: false,

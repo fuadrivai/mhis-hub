@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:fl_mhis_hr/pages/login/repository/login_api.dart';
 import 'package:fl_mhis_hr/pages/profile/repository/profile_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -63,7 +65,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     try {
       emit(state.copyWith(isLoading: true));
 
-      EmployeeOld employee = await ProfileApi.getEmployeeById(event.id);
+      Employee employee = await EmployeeApi.getEmployeeProfile();
       final packageInfo = await PackageInfo.fromPlatform();
       bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
       bool? isBiometric =

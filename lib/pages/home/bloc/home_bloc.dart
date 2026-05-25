@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/shift.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
 import 'package:fl_mhis_hr/pages/home/repository/home_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,11 +44,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       OnInitAttendance event, Emitter<HomeState> emit) async {
     try {
       emit(state.copyWith(attendanceLoading: true));
-      String? userId = await Session.get("userIdTalenta");
-      LiveAttendanceSchedule? schedule =
-          await AttendanceApi.getLiveAttendanceSchedule(int.parse(userId!));
+      Shift? shift = await AttendanceApi.getActiveShift();
       emit(state.copyWith(
-        attendaceSchedule: schedule,
+        shift: shift,
         attendanceLoading: false,
         attendanceError: false,
       ));
@@ -61,8 +59,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(
         attendanceLoading: false,
         attendanceErrorMessage: errorMessage,
-        attendaceSchedule: state.attendaceSchedule,
         attendanceError: true,
+        shift: state.shift,
       ));
     }
   }

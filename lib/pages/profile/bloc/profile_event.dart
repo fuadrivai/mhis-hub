@@ -18,8 +18,7 @@ class OnResetAuthenticationBiometrics extends ProfileEvent {
 }
 
 class OnGetUserById extends ProfileEvent {
-  final int id;
-  const OnGetUserById(this.id);
+  const OnGetUserById();
   @override
   List<Object> get props => [];
 }

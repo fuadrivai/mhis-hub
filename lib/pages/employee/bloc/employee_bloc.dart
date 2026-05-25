@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,8 +8,10 @@ part 'employee_event.dart';
 part 'employee_state.dart';
 
 class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
+  int perpage = 20;
   EmployeeBloc() : super(const EmployeeState()) {
     on<OnInit>(_onInit);
+    on<OnInitV2>(_onInitV2);
     on<OnSearchChanged>(_onSearchChanged);
     on<OnLoadMore>(_onLoadMore);
   }
@@ -32,14 +35,13 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   void _onSearchChanged(
       OnSearchChanged event, Emitter<EmployeeState> emit) async {
     emit(state.copyWith(isLoading: true));
-    ServerSideEmployee serverside = await EmployeeApi.getEmployee(
-        params: {"limit": 30, "email": event.email});
-    List<EmployeeV3>? employees = serverside.employees ?? [];
-    employees.removeWhere(
-        (item) => item.email == "rollando.m@mutiaraharapan.sch.id");
+    Pagination serverside = await EmployeeApi.getEmployees(
+        params: {"perpage": perpage, "search": event.email});
+    List<Employee>? employees =
+        serverside.data?.map((e) => Employee.fromJson(e)).toList() ?? [];
     emit(state.copyWith(
-      serverside: serverside,
-      employees: employees,
+      pagination: serverside,
+      employees2: employees,
       isLoading: false,
       isError: false,
       isSuccess: true,
@@ -49,25 +51,38 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
   void _onLoadMore(OnLoadMore event, Emitter<EmployeeState> emit) async {
     emit(state.copyWith(loadMore: true));
     Map<String, dynamic> params = {};
-    var url = Uri.parse(state.serverside!.pagination!.nextPageUrl!);
+    var url = Uri.parse(state.pagination!.nextPageUrl!);
     List<String> listParam = url.query.split("&");
     for (var v in listParam) {
       params[v.split("=")[0]] = v.split("=")[1];
     }
-    ServerSideEmployee serverside =
-        await EmployeeApi.getEmployee(params: params);
-    List<EmployeeV3> employees = state.employees ?? [];
-    employees = employees + (serverside.employees ?? []);
-    employees.removeWhere(
-        (item) => item.email == "rollando.m@mutiaraharapan.sch.id");
+    Pagination serverside = await EmployeeApi.getEmployees(params: params);
+    List<Employee> employees = state.employees2 ?? [];
+    employees = employees +
+        ((serverside.data ?? []).map((e) => Employee.fromJson(e)).toList());
     emit(state.copyWith(
-      serverside: serverside,
-      employees: employees,
+      pagination: serverside,
+      employees2: employees,
       loadMore: false,
     ));
     emit(state.copyWith(
-      serverside: serverside,
-      employees: employees,
+      pagination: serverside,
+      employees2: employees,
+      isLoading: false,
+      isError: false,
+      isSuccess: true,
+    ));
+  }
+
+  void _onInitV2(OnInitV2 event, Emitter<EmployeeState> emit) async {
+    emit(state.copyWith(isLoading: true));
+    Pagination pagination = await EmployeeApi.getEmployees(
+        params: {"perpage": perpage, "is_active": 1});
+    List<Employee>? employees =
+        (pagination.data ?? []).map((e) => Employee.fromJson(e)).toList();
+    emit(state.copyWith(
+      pagination: pagination,
+      employees2: employees,
       isLoading: false,
       isError: false,
       isSuccess: true,

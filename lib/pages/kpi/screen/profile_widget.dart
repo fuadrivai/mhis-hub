@@ -42,17 +42,18 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        state.employee?.person?.fullName ?? "Teacher's Name",
+                        state.employee?.personal?.fullname ?? "Teacher's Name",
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 18,
                         ),
                       ),
                       Text(
-                        state.employee?.person?.email ?? "Teacher's email",
+                        state.employee?.personal?.email ?? "Teacher's email",
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
-                      Text(state.employee?.employment?.jobPosition ?? "--"),
+                      Text(state.employee?.employment?.jobPosition?.name ??
+                          "--"),
                     ],
                   ),
                 ),
@@ -67,9 +68,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                     child: CircleAvatar(
                       radius: 40,
                       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                      backgroundImage: state.employee?.person?.avatar == ""
+                      backgroundImage: state.employee?.personal?.avatar == ""
                           ? AssetImage(Common.imageProfile)
-                          : NetworkImage(state.employee?.person?.avatar ?? ""),
+                          : NetworkImage(
+                              state.employee?.personal?.avatar ?? ""),
                     ),
                   ),
                 ),

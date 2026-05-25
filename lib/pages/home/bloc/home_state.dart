@@ -9,7 +9,7 @@ final class HomeState extends Equatable {
     this.attendanceLoading = true,
     this.attendanceError = false,
     this.attendanceErrorMessage,
-    this.attendaceSchedule,
+    this.shift,
     this.newsletters,
     this.newsletterLoading = true,
     this.newsletterError = false,
@@ -19,7 +19,7 @@ final class HomeState extends Equatable {
   final bool attendanceLoading;
   final bool attendanceError;
   final String? attendanceErrorMessage;
-  final LiveAttendanceSchedule? attendaceSchedule;
+  final Shift? shift;
 
   final bool calendarLoading;
   final bool calendarError;
@@ -35,7 +35,7 @@ final class HomeState extends Equatable {
     bool? attendanceLoading,
     bool? attendanceError,
     String? attendanceErrorMessage,
-    LiveAttendanceSchedule? attendaceSchedule,
+    Shift? shift,
     bool? calendarLoading,
     bool? calendarError,
     String? calendarErrorMessage,
@@ -50,7 +50,7 @@ final class HomeState extends Equatable {
       attendanceError: attendanceError ?? this.attendanceError,
       attendanceErrorMessage:
           attendanceErrorMessage ?? this.attendanceErrorMessage,
-      attendaceSchedule: attendaceSchedule ?? this.attendaceSchedule,
+      shift: shift ?? this.shift,
       calendarLoading: calendarLoading ?? this.calendarLoading,
       calendarError: calendarError ?? this.calendarError,
       calendarErrorMessage: calendarErrorMessage ?? this.calendarErrorMessage,
@@ -68,7 +68,7 @@ final class HomeState extends Equatable {
         attendanceLoading,
         attendanceError,
         attendanceErrorMessage,
-        attendaceSchedule,
+        shift,
         calendarLoading,
         calendarError,
         calendarErrorMessage,
