@@ -287,68 +287,6 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(int userId) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<LiveAttendanceSchedule>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            'attendance/schedule/${userId}',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late LiveAttendanceSchedule _value;
-    try {
-      _value = LiveAttendanceSchedule.fromJson(_result.data!);
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
-  Future<List<AttendanceHistory>> getAttendanceHistory(
-    Map<String, dynamic> map,
-  ) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(map);
-    final _options = _setStreamType<List<AttendanceHistory>>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            'attendance/history',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<AttendanceHistory> _value;
-    try {
-      _value = _result.data!
-          .map(
-            (dynamic i) =>
-                AttendanceHistory.fromJson(i as Map<String, dynamic>),
-          )
-          .toList();
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options, response: _result);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
   Future<Pagination> getPaySlipData() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
