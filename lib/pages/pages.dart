@@ -10,7 +10,6 @@ export 'package:fl_mhis_hr/pages/profile/screen/profile_screen.dart';
 export 'package:fl_mhis_hr/pages/profile/screen/setting_screen.dart';
 export 'package:fl_mhis_hr/pages/profile/screen/change_password_screen.dart';
 export 'package:fl_mhis_hr/pages/profile/screen/my_info/personal_info_form.dart';
-export 'package:fl_mhis_hr/pages/talenta/screen/talenta_screen.dart';
 export 'package:fl_mhis_hr/pages/academy/screen/academy_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/attendance_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/clockin_clockout_screen.dart';
