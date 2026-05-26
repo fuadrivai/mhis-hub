@@ -117,4 +117,32 @@ class Employment {
     }
     return data;
   }
+
+  String calculateWorkingPeriod() {
+    if (joinDate != null && endDate != null) {
+      DateTime join = DateTime.parse(joinDate!);
+      DateTime end = DateTime.parse(endDate!);
+      Duration difference = end.difference(join);
+      int years = difference.inDays ~/ 365;
+      int months = (difference.inDays % 365) ~/ 30;
+      return "$years years, $months months";
+    }
+    return "--";
+  }
+
+  List<Map<String, dynamic>> listForm() => [
+        {"title": "Employee Id", "value": employeeId},
+        {"title": "Barcode", "value": barcode},
+        {"title": "Branch", "value": branch?.name ?? ""},
+        {"title": "Organization Name", "value": organization?.name ?? ""},
+        {"title": "Job Position", "value": jobPosition?.name ?? ""},
+        {"title": "Job Level", "value": jobLevel?.name ?? ""},
+        {
+          "title": "Employment Status",
+          "value": status == 1 ? "Active" : "Non Active"
+        },
+        {"title": "Join Date", "value": joinDate},
+        {"title": "End Contract Date", "value": endDate},
+        {"title": "Working Period", "value": calculateWorkingPeriod()},
+      ];
 }

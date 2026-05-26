@@ -1,16 +1,17 @@
 import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 
 class ServerSideEmployee {
-  List<EmployeeV3>? employees;
+  List<Employee>? employees;
   Pagination? pagination;
 
   ServerSideEmployee({this.employees, this.pagination});
 
   ServerSideEmployee.fromJson(Map<String, dynamic> json) {
     if (json['employees'] != null) {
-      employees = <EmployeeV3>[];
+      employees = <Employee>[];
       json['employees'].forEach((v) {
-        employees!.add(EmployeeV3.fromJson(v));
+        employees!.add(Employee.fromJson(v));
       });
     }
     pagination = json['pagination'] != null

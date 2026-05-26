@@ -118,14 +118,15 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
         attachments: attachments,
       );
 
-      await TimeoffApi.postTimeoff(approvalRequest);
+      var response = await TimeoffApi.postTimeoff(approvalRequest);
 
       emit(state.copyWith(
           isFormLoading: false,
           isFormError: false,
           isFormSuccess: true,
           errorMessage: null,
-          isSuccess: true));
+          isSuccess: true,
+          requestId: response['id'] as int?));
     } catch (e) {
       final errorMessage = _extractErrorMessage(e);
       emit(state.copyWith(

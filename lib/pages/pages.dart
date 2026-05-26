@@ -2,6 +2,7 @@ export 'package:fl_mhis_hr/pages/home/screen/home_screen.dart';
 export 'package:fl_mhis_hr/pages/home/screen/clockinout_home.dart';
 export 'package:fl_mhis_hr/pages/home/screen/calendar_card.dart';
 export 'package:fl_mhis_hr/pages/home/screen/newsletter_screen.dart';
+export 'package:fl_mhis_hr/pages/home/screen/contact_screen.dart';
 export 'package:fl_mhis_hr/pages/payslip/screen/paymentslip_screen.dart';
 export 'package:fl_mhis_hr/pages/login/screen/login_screen.dart';
 export 'package:fl_mhis_hr/pages/login/screen/login_biometric.dart';
@@ -16,7 +17,6 @@ export 'package:fl_mhis_hr/pages/attendance/screen/clockin_clockout_screen.dart'
 export 'package:fl_mhis_hr/pages/attendance/screen/Map_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/success_screen.dart';
-export 'package:fl_mhis_hr/pages/employee/screen/employee_screen.dart';
 export 'package:fl_mhis_hr/pages/employee/screen/employee_screen_v2.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/clock_in_prayer_screen.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/pray_map_screen.dart';
@@ -26,7 +26,7 @@ export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcemen
 export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_view.dart';
 export 'package:fl_mhis_hr/pages/splash_screen.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen.dart';
+export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen2.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_form_screen.dart';
-export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_detail_screen.dart';
 export 'package:fl_mhis_hr/pages/request_approval/screen/request_screen.dart';
 export 'package:fl_mhis_hr/pages/request_approval/screen/request_detail_screen.dart';

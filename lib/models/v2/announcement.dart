@@ -1,5 +1,5 @@
-import 'package:fl_mhis_hr/models/job_postion.dart';
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/announcement_category.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 
 class Announcement {
   int? id;

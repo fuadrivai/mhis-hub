@@ -111,4 +111,22 @@ class Person {
     }
     return data;
   }
+
+  List<Map<String, dynamic>> listForm() => [
+        {"title": "Fullname", "value": fullname},
+        {"title": "Email", "value": email},
+        {"title": "Gender", "value": gendre},
+        {"title": "Place Of Birth", "value": birthPlace},
+        {"title": "Birth Date", "value": birthDate},
+        {"title": "Mobile Phone", "value": mobilePhone},
+        {"title": "Phone", "value": phone},
+        {"title": "Marital Status", "value": maritalStatus},
+        {"title": "Religion", "value": religion?.name ?? ""},
+        {"title": "NIK (NPWP 16 Digit)", "value": identityNumber},
+        {"title": "Passport Number", "value": passportNumber},
+        {"title": "Passport Expired Date", "value": expiredDateIdentityId},
+        {"title": "Citizen ID Address", "value": address},
+        {"title": "Residential", "value": currentAddress},
+        {"title": "Blood Type", "value": bloodType}
+      ];
 }

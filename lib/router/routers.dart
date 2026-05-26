@@ -1,6 +1,5 @@
 import 'package:fl_mhis_hr/injector/injector.dart';
-import 'package:fl_mhis_hr/models/model.dart';
-import 'package:fl_mhis_hr/models/v2/timeoff.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:flutter/material.dart';
@@ -156,6 +155,16 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'contact',
+                name: "employee-contact",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: ContactScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'kpi',
                 name: "kpi",
                 pageBuilder: (context, state) {
@@ -220,58 +229,6 @@ class RouteNavigation {
                   );
                 },
               ),
-              // GoRoute(
-              //   parentNavigatorKey: _nav.navKey,
-              //   path: 'location/clockin',
-              //   name: "location-clockin",
-              //   pageBuilder: (context, state) {
-              //     return const NoTransitionPage(
-              //       child: MapScreen(
-              //         type: "checkin",
-              //       ),
-              //     );
-              //   },
-              //   routes: [
-              //     GoRoute(
-              //       parentNavigatorKey: _nav.navKey,
-              //       path: 'attendance',
-              //       name: "clockin",
-              //       pageBuilder: (context, state) {
-              //         return const NoTransitionPage(
-              //           child: ClockinClockoutScreen(
-              //             type: "checkin",
-              //           ),
-              //         );
-              //       },
-              //     ),
-              //   ],
-              // ),
-              // GoRoute(
-              //   parentNavigatorKey: _nav.navKey,
-              //   path: 'location/clockout',
-              //   name: "location-clockout",
-              //   pageBuilder: (context, state) {
-              //     return const NoTransitionPage(
-              //       child: MapScreen(
-              //         type: "checkout",
-              //       ),
-              //     );
-              //   },
-              //   routes: [
-              //     GoRoute(
-              //       parentNavigatorKey: _nav.navKey,
-              //       path: 'attendance',
-              //       name: "clockout",
-              //       pageBuilder: (context, state) {
-              //         return const NoTransitionPage(
-              //           child: ClockinClockoutScreen(
-              //             type: "checkout",
-              //           ),
-              //         );
-              //       },
-              //     ),
-              //   ],
-              // ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
                 path: 'attendance-response',
@@ -357,24 +314,6 @@ class RouteNavigation {
               );
             },
           ),
-          // GoRoute(
-          //   parentNavigatorKey: _dashboardNavigatorKey,
-          //   path: '/attendance',
-          //   pageBuilder: (context, state) {
-          //     return const NoTransitionPage(
-          //       child: AttendanceScreen(),
-          //     );
-          //   },
-          // ),
-          // GoRoute(
-          //   parentNavigatorKey: _dashboardNavigatorKey,
-          //   path: '/talenta',
-          //   pageBuilder: (context, state) {
-          //     return const NoTransitionPage(
-          //       child: TalentaScreen(),
-          //     );
-          //   },
-          // ),
           GoRoute(
             parentNavigatorKey: _dashboardNavigatorKey,
             path: '/timeoff',

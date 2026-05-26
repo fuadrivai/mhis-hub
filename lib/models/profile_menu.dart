@@ -32,36 +32,6 @@ class ParentMenu {
                     extra: {"data": employee.employment});
               },
             ),
-            // ChildMenu(
-            //   name: "Emergency Contact Info",
-            //   iconData: FontAwesomeIcons.flag,
-            //   onTap: () {},
-            // ),
-            // ChildMenu(
-            //   name: "Family Info",
-            //   iconData: FontAwesomeIcons.peopleGroup,
-            //   onTap: () {},
-            // ),
-            // ChildMenu(
-            //   name: "Education and Experience",
-            //   iconData: FontAwesomeIcons.solidBuilding,
-            //   onTap: () {},
-            // ),
-            // ChildMenu(
-            //   name: "Payroll Info",
-            //   iconData: FontAwesomeIcons.sackDollar,
-            //   onTap: () {},
-            // ),
-            // ChildMenu(
-            //   name: "My files",
-            //   iconData: FontAwesomeIcons.folderOpen,
-            //   onTap: () {},
-            // ),
-            // ChildMenu(
-            //   name: "Reprimand",
-            //   iconData: FontAwesomeIcons.triangleExclamation,
-            //   onTap: () {},
-            // ),
           ],
         ),
         ParentMenu(

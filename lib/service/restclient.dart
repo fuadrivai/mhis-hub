@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:fl_mhis_hr/models/job_postion.dart';
 import 'package:fl_mhis_hr/models/model.dart';
-import 'package:fl_mhis_hr/models/v2/approval.dart';
-import 'package:fl_mhis_hr/models/v2/attendance.dart';
-import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
-import 'package:fl_mhis_hr/models/v2/employee.dart';
-import 'package:fl_mhis_hr/models/v2/shift.dart';
-import 'package:fl_mhis_hr/models/v2/timeoff.dart';
-import 'package:fl_mhis_hr/models/v2/approval_request.dart';
+import 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';
+import 'package:fl_mhis_hr/models/serverside/pagination.dart';
+
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'restclient.g.dart';
@@ -48,16 +44,6 @@ abstract class RestClient {
 
   @GET("person")
   Future<ServerSideEmployee> getEmployee();
-
-  @GET("person/{id}")
-  Future<EmployeeOld> getEmployeeById(@Path() int id);
-
-  @GET("attendance/schedule/{userId}")
-  Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(@Path() int userId);
-
-  @GET("attendance/history")
-  Future<List<AttendanceHistory>> getAttendanceHistory(
-      @Body() Map<String, dynamic> map);
 
   @GET("payslip")
   Future<Pagination> getPaySlipData();

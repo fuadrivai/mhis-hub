@@ -38,7 +38,7 @@ class Menu {
     GridMenuItem(
       title: 'Contact',
       icon: FontAwesomeIcons.addressBook,
-      routeCandidates: ['contact'],
+      routeCandidates: ['employee-contact'],
       seed: 707,
     ),
     GridMenuItem(
@@ -89,7 +89,7 @@ class Menu {
     GridMenuItem(
       title: 'Contact',
       icon: FontAwesomeIcons.addressBook,
-      routeCandidates: ['contact'],
+      routeCandidates: ['employee-contact'],
       seed: 707,
     ),
     GridMenuItem(

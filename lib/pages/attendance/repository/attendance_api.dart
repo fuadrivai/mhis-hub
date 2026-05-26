@@ -33,20 +33,6 @@ class AttendanceApi {
     return data;
   }
 
-  static Future<LiveAttendanceSchedule> getLiveAttendanceSchedule(
-      int userId) async {
-    final client = await Api.restClient();
-    var data = client.getLiveAttendanceSchedule(userId);
-    return data;
-  }
-
-  static Future<List<AttendanceHistory>> getAttendanceHistory(
-      Map<String, dynamic> map) async {
-    final client = await Api.restClient();
-    var data = client.getAttendanceHistory(map);
-    return data;
-  }
-
   static Future<List<Attendance>> getAttendaceHistories(
       Map<String, dynamic> map) async {
     final client = await Api.restClient();

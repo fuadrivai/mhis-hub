@@ -1,4 +1,4 @@
-import 'package:fl_mhis_hr/models/model.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
 class LoginApi {

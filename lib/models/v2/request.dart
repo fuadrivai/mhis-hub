@@ -28,8 +28,8 @@ class Request {
 
   factory Request.fromJson(Map<String, dynamic> json) {
     return Request(
-      requesterEmployeeId: json['requester_employee_id'] as int,
-      timeoffId: json['timeoff_id'] as int,
+      requesterEmployeeId: json['requester_employee_id'],
+      timeoffId: json['timeoff_id'],
       note: json['note'] as String?,
       dynamicFields: json['dynamic_fields'] as Map<String, dynamic>?,
       attachments: (json['attachments'] as List?)

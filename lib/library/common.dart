@@ -176,7 +176,7 @@ class Common {
       reverseAnimationCurve: Curves.decelerate,
       forwardAnimationCurve: Curves.elasticOut,
       backgroundColor: AppColors.primary,
-      duration: const Duration(seconds: 7),
+      duration: const Duration(seconds: 1),
       icon: const Icon(Icons.notification_add, color: AppColors.white),
       progressIndicatorBackgroundColor: Colors.blueGrey,
       titleText: Text(

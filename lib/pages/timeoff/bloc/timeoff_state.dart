@@ -6,6 +6,7 @@ final class TimeoffState extends Equatable {
   final String? errorMessage;
   final List<Timeoff>? timeoffs;
   final Employee? employee;
+  final int? requestId;
   const TimeoffState({
     this.isLoading = false,
     this.isFormLoading = false,
@@ -17,6 +18,7 @@ final class TimeoffState extends Equatable {
     this.timeoffs,
     this.employee,
     this.loadMore = false,
+    this.requestId,
   });
   TimeoffState copyWith({
     bool? isLoading,
@@ -29,6 +31,7 @@ final class TimeoffState extends Equatable {
     bool? isFormError,
     Employee? employee,
     bool? isFormSuccess,
+    int? requestId,
   }) {
     return TimeoffState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -41,6 +44,7 @@ final class TimeoffState extends Equatable {
       isFormLoading: isFormLoading ?? this.isFormLoading,
       isFormError: isFormError ?? this.isFormError,
       isFormSuccess: isFormSuccess ?? this.isFormSuccess,
+      requestId: requestId ?? this.requestId,
     );
   }
 
@@ -56,5 +60,6 @@ final class TimeoffState extends Equatable {
         isFormError,
         isFormSuccess,
         employee,
+        requestId,
       ];
 }

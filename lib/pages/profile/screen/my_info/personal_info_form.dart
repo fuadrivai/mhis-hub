@@ -32,7 +32,7 @@ class _PersonalInfoState extends State<PersonalInfo> {
             children: (widget.listForm ?? []).map((val) {
               return textFormFiled(
                 title: val['title'],
-                value: val['value'] == "" ? "--" : val['value'],
+                value: (val['value'] ?? "") == "" ? "--" : val['value'],
               );
             }).toList(),
           ),

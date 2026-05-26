@@ -18,14 +18,9 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
 
   void _onInit(OnInit event, Emitter<EmployeeState> emit) async {
     emit(state.copyWith(isLoading: true));
-    ServerSideEmployee serverside =
-        await EmployeeApi.getEmployee(params: {"limit": 30});
-    List<EmployeeV3>? employees = serverside.employees ?? [];
-    employees.removeWhere(
-        (item) => item.email == "rollando.m@mutiaraharapan.sch.id");
+    ServerSideEmployee serverside = ServerSideEmployee();
     emit(state.copyWith(
       serverside: serverside,
-      employees: employees,
       isLoading: false,
       isError: false,
       isSuccess: true,

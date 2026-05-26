@@ -4,7 +4,6 @@ final class EmployeeState extends Equatable {
   final bool isLoading, isError, isSuccess, loadMore;
   final String? errorMessage;
   final ServerSideEmployee? serverside;
-  final List<EmployeeV3>? employees;
 
   final Pagination? pagination;
   final List<Employee>? employees2;
@@ -15,7 +14,6 @@ final class EmployeeState extends Equatable {
     this.isSuccess = false,
     this.errorMessage,
     this.serverside,
-    this.employees,
     this.loadMore = false,
     this.pagination,
     this.employees2,
@@ -27,7 +25,6 @@ final class EmployeeState extends Equatable {
     bool? loadMore,
     String? errorMessage,
     ServerSideEmployee? serverside,
-    List<EmployeeV3>? employees,
     Pagination? pagination,
     List<Employee>? employees2,
   }) {
@@ -36,7 +33,6 @@ final class EmployeeState extends Equatable {
       isError: isError ?? this.isError,
       isLoading: isLoading ?? this.isLoading,
       isSuccess: isSuccess ?? this.isSuccess,
-      employees: employees ?? this.employees,
       serverside: serverside ?? this.serverside,
       loadMore: loadMore ?? this.loadMore,
       pagination: pagination ?? this.pagination,
@@ -50,7 +46,6 @@ final class EmployeeState extends Equatable {
         isLoading,
         isError,
         isSuccess,
-        employees,
         serverside,
         loadMore,
         pagination,
