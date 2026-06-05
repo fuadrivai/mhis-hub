@@ -1,4 +1,3 @@
-import 'package:fl_mhis_hr/models/v2/announcement_category.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 
 class Announcement {

@@ -4,7 +4,6 @@ import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/main.dart';
-import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';

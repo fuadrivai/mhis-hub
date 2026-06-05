@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:fl_mhis_hr/pages/login/repository/login_api.dart';

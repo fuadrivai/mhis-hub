@@ -44,12 +44,16 @@ class CardClockInOut extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 if (shift != null)
-                  Text(
-                    shift!.fullScheduleTime(),
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
+                  Expanded(
+                    child: Text(
+                      shift!.fullScheduleTime(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
               ],

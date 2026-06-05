@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/models/model.dart';
-import 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';
-import 'package:fl_mhis_hr/models/serverside/pagination.dart';
 
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:retrofit/retrofit.dart';
