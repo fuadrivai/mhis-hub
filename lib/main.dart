@@ -28,7 +28,6 @@ Future<void> _setupFirebaseMessaging() async {
   if (Platform.isIOS || Platform.isMacOS) {
     await messaging.requestPermission();
 
-    // APNS token may not be available immediately (especially on startup/simulator).
     String? apnsToken;
     for (int i = 0; i < 10; i++) {
       apnsToken = await messaging.getAPNSToken();

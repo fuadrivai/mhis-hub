@@ -4,7 +4,7 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/service/restclient.dart';
 
 class Api {
-  // static const String baseUrl = "http://192.168.207.251:3000/api/";
+  // static const String baseUrl = "http://192.168.206.84:3000/api/";
   static const String baseUrl = "https://mhis-hub.mhis.link/api/";
 
   static Future<Dio> dioClient({Map<String, dynamic>? params}) async {
@@ -14,11 +14,8 @@ class Api {
     dio.interceptors.clear();
     dio.interceptors.add(DioInterceptors(dio));
     if (token != null && token.isNotEmpty) {
-      dio.options.headers["Authorization"] = token.toLowerCase().startsWith(
-                "bearer ",
-              )
-          ? token
-          : "Bearer $token";
+      dio.options.headers["Authorization"] =
+          token.toLowerCase().startsWith("bearer ") ? token : "Bearer $token";
     }
     dio.options.headers["Content-Type"] = "application/json";
     dio.options.headers["Accept"] = "application/json";

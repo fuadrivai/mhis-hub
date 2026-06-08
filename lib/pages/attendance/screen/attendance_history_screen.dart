@@ -20,21 +20,14 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   DateTime selectedDate = DateTime.now();
   String? strMonthYear;
   Map<String, dynamic> map = {};
-  String? userId;
   @override
   void initState() {
-    Session.get("userIdTalenta").then((val) {
-      userId = val;
-      strMonthYear =
-          Jiffy.parseFromDateTime(selectedDate).format(pattern: "MMMM yyyy");
-      String year =
-          Jiffy.parseFromDateTime(selectedDate).format(pattern: "yyyy");
-      String month = Jiffy.parseFromDateTime(selectedDate).format(pattern: "M");
-      map = {"user_id": int.parse(userId!), "year": year, "month": month};
-      setState(() {});
-      if (!mounted) return;
-      context.read<AttendanceBloc>().add(OnGetHistory(map));
-    });
+    strMonthYear =
+        Jiffy.parseFromDateTime(selectedDate).format(pattern: "MMMM yyyy");
+    String year = Jiffy.parseFromDateTime(selectedDate).format(pattern: "yyyy");
+    String month = Jiffy.parseFromDateTime(selectedDate).format(pattern: "M");
+    map = {"year": year, "month": month};
+    context.read<AttendanceBloc>().add(OnGetHistory(map));
     super.initState();
   }
 
@@ -96,11 +89,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                               Jiffy.parseFromDateTime(selectedDate).format(
                             pattern: "M",
                           );
-                          map = {
-                            "user_id": int.parse(userId!),
-                            "year": year,
-                            "month": month
-                          };
+                          map = {"year": year, "month": month};
                           setState(() {});
                           context.read<AttendanceBloc>().add(OnGetHistory(map));
                         });

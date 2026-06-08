@@ -408,7 +408,7 @@ class _DetailTab extends StatelessWidget {
                   onPressed: () {
                     final String value = controller.text.trim();
                     Map<String, dynamic> map = {
-                      "requestId": request.id,
+                      "request_id": request.id,
                       "action": action.toLowerCase(),
                       "reason": value,
                     };
