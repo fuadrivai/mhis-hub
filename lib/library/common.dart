@@ -168,7 +168,7 @@ class Common {
       {required String title,
       required String message,
       FlushbarPosition? position}) async {
-    await Flushbar(
+    Flushbar(
       flushbarPosition: position ?? FlushbarPosition.TOP,
       flushbarStyle: FlushbarStyle.FLOATING,
       title: title,

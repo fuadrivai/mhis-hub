@@ -24,13 +24,16 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<HomeBloc>().add(const OnInitAttendance());
     context.read<HomeBloc>().add(const OnInitCalendar());
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (!mounted) return;
-      Common.flushBar(
-        context,
-        title: message.notification?.title ?? "",
-        message: message.notification?.body ?? "",
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Common.flushBar(
+          context,
+          title: message.notification?.title ?? "",
+          message: message.notification?.body ?? "",
+        );
+      });
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
