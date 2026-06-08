@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jiffy/jiffy.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ClockinClockoutScreen extends StatefulWidget {
   final String type;
@@ -27,14 +28,38 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
   bool isLoading = true;
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   bool positionStreamStarted = false;
+  bool _hasCameraPermission = false;
+  List<CameraDescription> _cameras = [];
 
   @override
   void initState() {
     isLoading = true;
     _geolocatorPlatform.getServiceStatusStream();
     WidgetsBinding.instance.addObserver(this);
-    startCamera();
+    _checkPermissionAndStartCamera();
     super.initState();
+  }
+
+  Future<void> _checkPermissionAndStartCamera() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    if (!Platform.isWindows) {
+      _hasCameraPermission = await Common.requestCameraPermission();
+      if (_hasCameraPermission) {
+        _cameras = await availableCameras();
+        await startCamera();
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      _hasCameraPermission = true;
+      _cameras = await availableCameras();
+      await startCamera();
+    }
   }
 
   @override
@@ -46,15 +71,10 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (cameraController == null || cameraController!.value.isInitialized) {
-      return;
-    }
     if (state == AppLifecycleState.inactive) {
       _stopCamera();
-    } else if (state == AppLifecycleState.resumed &&
-        cameraController != null &&
-        cameraController!.value.isInitialized) {
-      startCamera();
+    } else if (state == AppLifecycleState.resumed) {
+      _checkPermissionAndStartCamera();
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -66,7 +86,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         body: LoadingWidget(),
       );
     }
-    if (cameraController != null) {
+    if (_hasCameraPermission && cameraController != null && cameraController!.value.isInitialized) {
       final scale = 0.9 /
           ((cameraController?.value.aspectRatio ?? 0) *
               MediaQuery.of(context).size.aspectRatio);
@@ -98,28 +118,52 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        body: cameraPermission
-            ? Transform.scale(
-                scale: scale,
-                alignment: Alignment.topCenter,
-                child: CameraPreview(
-                  cameraController!,
-                ),
-              )
-            : const Text("Camera Tidak Tersedia"),
+        body: Transform.scale(
+          scale: scale,
+          alignment: Alignment.topCenter,
+          child: CameraPreview(
+            cameraController!,
+          ),
+        ),
       );
     } else {
-      return const Center(
-        child: Text("No Camera Available"),
+      return Scaffold(
+        appBar: CustomAppbar(
+          backgroundColor: AppColors.whiteshade,
+          leading: IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: widget.type.toUpperCase(),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text("Camera Tidak Tersedia"),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  openAppSettings();
+                },
+                child: const Text("Buka Pengaturan"),
+              ),
+            ],
+          ),
+        ),
       );
     }
   }
 
   Future<void> startCamera() async {
-    if (listCamera.isNotEmpty) {
-      final frontCamera = listCamera.firstWhere(
+    if (_cameras.isNotEmpty) {
+      final frontCamera = _cameras.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
-        orElse: () => listCamera.first, // Fallback to any camera
+        orElse: () => _cameras.first, // Fallback to any camera
       );
       cameraController = CameraController(
         frontCamera,
@@ -129,7 +173,10 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
 
       await cameraController?.initialize();
       isLoading = false;
-      setState(() {});
+      if (mounted) setState(() {});
+    } else {
+      isLoading = false;
+      if (mounted) setState(() {});
     }
   }
 
