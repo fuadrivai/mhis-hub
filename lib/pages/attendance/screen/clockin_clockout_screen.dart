@@ -137,22 +137,50 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
           title: widget.type.toUpperCase(),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("Camera Tidak Tersedia"),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.camera_alt_outlined,
+                  size: 64,
+                  color: Colors.grey,
                 ),
-                onPressed: () {
-                  openAppSettings();
-                },
-                child: const Text("Buka Pengaturan"),
-              ),
-            ],
+                const SizedBox(height: 16),
+                const Text(
+                  "Akses Kamera Diperlukan",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Untuk melakukan presensi, aplikasi membutuhkan akses ke kamera Anda. Silakan tekan tombol di bawah untuk membuka Pengaturan, lalu izinkan akses Kamera untuk aplikasi ini.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  ),
+                  onPressed: () {
+                    openAppSettings();
+                  },
+                  child: const Text(
+                    "Buka Pengaturan",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
