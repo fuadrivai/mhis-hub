@@ -217,6 +217,7 @@ class Common {
 
   static Future<bool> requestCameraPermission() async {
     final status = await Permission.camera.request();
+    print("Camera permission status: $status");
     if (status == PermissionStatus.granted) {
       return true;
     } else if (status == PermissionStatus.limited) {

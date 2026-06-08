@@ -14,12 +14,42 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-late List<CameraDescription> listCamera;
-late bool cameraPermission;
+List<CameraDescription> listCamera = <CameraDescription>[];
+bool cameraPermission = false;
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // ignore: avoid_print
   print(
       "Message received in background: ${message.notification?.title}, ${message.notification?.body}");
+}
+
+Future<void> _setupFirebaseMessaging() async {
+  final messaging = FirebaseMessaging.instance;
+
+  if (Platform.isIOS || Platform.isMacOS) {
+    await messaging.requestPermission();
+
+    // APNS token may not be available immediately (especially on startup/simulator).
+    String? apnsToken;
+    for (int i = 0; i < 10; i++) {
+      apnsToken = await messaging.getAPNSToken();
+      if (apnsToken != null && apnsToken.isNotEmpty) {
+        break;
+      }
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
+    if (apnsToken == null || apnsToken.isEmpty) {
+      return;
+    }
+  }
+
+  try {
+    await messaging.subscribeToTopic('all');
+  } on FirebaseException catch (e) {
+    if (e.code != 'apns-token-not-set') {
+      rethrow;
+    }
+  }
 }
 
 void main() async {
@@ -31,7 +61,7 @@ void main() async {
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await FirebaseMessaging.instance.subscribeToTopic('all');
+  await _setupFirebaseMessaging();
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   setPathUrlStrategy();
