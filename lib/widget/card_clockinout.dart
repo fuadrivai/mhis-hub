@@ -8,16 +8,41 @@ class CardClockInOut extends StatelessWidget {
   final Shift? shift;
   const CardClockInOut({super.key, required this.shift});
 
+  String _greetingByTime() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 15) return 'Good Afternoon';
+    if (hour < 18) return 'Good Evening';
+    return 'Good Night';
+  }
+
+  double _greetingFontSize(double width) {
+    if (width < 340) return 15;
+    if (width < 420) return 16;
+    return 14;
+  }
+
+  double _shiftTitleFontSize(double width) {
+    if (width < 340) return 15;
+    if (width < 420) return 16;
+    return 17;
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    final String fullname = shift?.fullname?.trim().isNotEmpty == true
+        ? shift!.fullname!.trim()
+        : 'Employee';
+    final String greeting = '${_greetingByTime()}, $fullname';
+
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: 8.0,
         vertical: 10,
       ),
       child: Container(
-        height: 150,
+        height: 170,
         width: width,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
@@ -28,14 +53,27 @@ class CardClockInOut extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              shift?.name ?? "WS",
-              style: const TextStyle(
-                color: AppColors.grayshade,
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
+              greeting,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: _greetingFontSize(width),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 4),
+            Text(
+              "Schedule: ${shift?.name ?? 'WS'}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppColors.grayshade,
+                fontWeight: FontWeight.w700,
+                fontSize: _shiftTitleFontSize(width),
+              ),
+            ),
+            const SizedBox(height: 4),
             Row(
               children: [
                 const FaIcon(
@@ -58,7 +96,7 @@ class CardClockInOut extends StatelessWidget {
                   ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 4),
             Container(
               height: 50,
               width: width,
