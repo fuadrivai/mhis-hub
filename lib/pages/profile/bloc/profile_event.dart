@@ -29,3 +29,10 @@ class OnChangePassword extends ProfileEvent {
   @override
   List<Object> get props => [];
 }
+
+class OnRegisterFace extends ProfileEvent {
+  final Map<String, dynamic> data;
+  const OnRegisterFace(this.data);
+  @override
+  List<Object> get props => [];
+}

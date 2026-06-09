@@ -1,8 +1,10 @@
+import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:fl_mhis_hr/service/api.dart';
 import 'package:flutter/material.dart';
 
 class ImageDialog extends StatelessWidget {
-  final String imageUrl;
-  const ImageDialog({super.key, required this.imageUrl});
+  final Person person;
+  const ImageDialog({super.key, required this.person});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,15 @@ class ImageDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 10),
-              Center(child: Image.network(imageUrl)),
+              if (person.avatar != null)
+                Center(
+                    child: Image.network("${Api.url}/storage/${person.avatar}"))
+              else
+                Image.asset(
+                  "assets/images/profile.png",
+                  width: 200,
+                ),
+              const Divider(),
             ],
           ),
         ),

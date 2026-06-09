@@ -6,4 +6,10 @@ class ProfileApi {
     var data = client.changePassword(map);
     return data;
   }
+
+  static Future<dynamic> registerFace(Map<String, dynamic> map) async {
+    final client = await Api.restClient();
+    var data = client.registerFace(map);
+    return data;
+  }
 }

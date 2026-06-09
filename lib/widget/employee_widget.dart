@@ -159,7 +159,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                                       await showDialog(
                                         context: context,
                                         builder: (_) => ImageDialog(
-                                          imageUrl: avatar,
+                                          person: employee.personal!,
                                         ),
                                       );
                                     },
