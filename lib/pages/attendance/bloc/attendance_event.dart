@@ -16,3 +16,9 @@ class OnGetHistory extends AttendanceEvent {
   @override
   List<Object?> get props => [];
 }
+
+class OnGetCurrentLog extends AttendanceEvent {
+  const OnGetCurrentLog();
+  @override
+  List<Object?> get props => [];
+}

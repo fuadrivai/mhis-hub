@@ -4,8 +4,10 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/service/restclient.dart';
 
 class Api {
-  static const String baseUrl = "http://192.168.206.84:3000/api/";
-  // static const String baseUrl = "https://mhis-hub.mhis.link/api/";
+  static const String url = "http://192.168.206.84:3000";
+  // static const String url = "https://mhis-hub.mhis.link";
+
+  static const String baseUrl = "$url/api/";
 
   static Future<Dio> dioClient({Map<String, dynamic>? params}) async {
     final dio = Dio();

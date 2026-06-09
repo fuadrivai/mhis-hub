@@ -1,6 +1,7 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
+import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,31 +167,39 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                       itemBuilder: (context, idx) {
                                         AttendanceLog log =
                                             (history.logs ?? [])[idx];
-                                        return Card(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                      log.type == "check_in"
-                                                          ? "Check In"
-                                                          : "Check Out"),
+                                        return InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    AttendanceHistoryDetailScreen(
+                                                  log: log,
                                                 ),
-                                                Expanded(
-                                                  child: Text(log.time ?? '--'),
-                                                ),
-                                                IconButton(
-                                                  icon: Icon(
-                                                      Icons.arrow_forward_ios),
-                                                  onPressed: () {
-                                                    context.pushNamed(
-                                                      'attendance-history-detail',
-                                                      extra: {'log': log},
-                                                    );
-                                                  },
-                                                ),
-                                              ],
+                                              ),
+                                            );
+                                          },
+                                          child: Card(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12.0,
+                                                      vertical: 16),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                        log.type == "check_in"
+                                                            ? "Check In"
+                                                            : "Check Out"),
+                                                  ),
+                                                  Expanded(
+                                                    child:
+                                                        Text(log.time ?? '--'),
+                                                  ),
+                                                  Icon(Icons.arrow_forward_ios)
+                                                ],
+                                              ),
                                             ),
                                           ),
                                         );
@@ -226,6 +235,30 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
+                                    Row(
+                                      children: (history.approvals ?? [])
+                                          .map((approval) {
+                                        return Container(
+                                          margin:
+                                              const EdgeInsets.only(right: 4.0),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 6.0, vertical: 2.0),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.lightblue,
+                                            borderRadius:
+                                                BorderRadius.circular(4.0),
+                                          ),
+                                          child: Text(
+                                            approval['type'] ?? "--",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
                                     Row(
                                       children: [
                                         Expanded(

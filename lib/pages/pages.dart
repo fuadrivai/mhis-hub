@@ -29,3 +29,4 @@ export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen2.dart';
 export 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_form_screen.dart';
 export 'package:fl_mhis_hr/pages/request_approval/screen/request_screen.dart';
 export 'package:fl_mhis_hr/pages/request_approval/screen/request_detail_screen.dart';
+export 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_detail_screen.dart';

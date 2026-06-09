@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
-import 'package:fl_mhis_hr/main.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
@@ -86,7 +85,9 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         body: LoadingWidget(),
       );
     }
-    if (_hasCameraPermission && cameraController != null && cameraController!.value.isInitialized) {
+    if (_hasCameraPermission &&
+        cameraController != null &&
+        cameraController!.value.isInitialized) {
       final scale = 0.9 /
           ((cameraController?.value.aspectRatio ?? 0) *
               MediaQuery.of(context).size.aspectRatio);
@@ -149,7 +150,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  "Akses Kamera Diperlukan",
+                  "Camera Access Required",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -157,7 +158,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  "Untuk melakukan presensi, aplikasi membutuhkan akses ke kamera Anda. Silakan tekan tombol di bawah untuk membuka Pengaturan, lalu izinkan akses Kamera untuk aplikasi ini.",
+                  "To check in or check out, the app needs access to your camera. Please tap the button below to open Settings, then allow Camera access for this app.",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -169,13 +170,14 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
                   ),
                   onPressed: () {
                     openAppSettings();
                   },
                   child: const Text(
-                    "Buka Pengaturan",
+                    "Open Settings",
                     style: TextStyle(fontSize: 16),
                   ),
                 ),

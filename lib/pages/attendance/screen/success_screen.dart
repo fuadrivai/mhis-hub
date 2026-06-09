@@ -1,5 +1,5 @@
 import 'package:fl_mhis_hr/models/v2/models.dart';
-import 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_screen.dart';
+import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
@@ -142,11 +142,11 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
 
   Widget _buildAttendanceHistoryButton() {
     return SizedBox(
-      width: 155,
+      width: 170,
       child: ElevatedButton.icon(
         onPressed: _goToAttendanceHistory,
         icon: const Icon(Icons.history),
-        label: const Text('Attendance History'),
+        label: Center(child: const Text('Attendance History')),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
         ),

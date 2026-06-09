@@ -117,4 +117,7 @@ abstract class RestClient {
   @POST("time/request/cancel/{id}")
   Future<ApprovalRequest> postCancelRequest(
       @Path() int id, @Body() Map<String, dynamic> post);
+
+  @GET("attendance/history/current")
+  Future<List<AttendanceLog>> getCurrentAttendance();
 }

@@ -24,7 +24,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   void initState() {
     context.read<AttendanceBloc>().add(const OnInit());
-    _loadHistoryPreview();
     _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (!mounted) return;
       setState(() => _now = DateTime.now());
@@ -36,18 +35,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   void dispose() {
     _clockTimer.cancel();
     super.dispose();
-  }
-
-  Future<void> _loadHistoryPreview() async {
-    final userId = await Session.get("userIdTalenta");
-    if (!mounted || userId == null) return;
-    final now = DateTime.now();
-    final map = {
-      "user_id": int.parse(userId),
-      "year": Jiffy.parseFromDateTime(now).format(pattern: "yyyy"),
-      "month": Jiffy.parseFromDateTime(now).format(pattern: "M"),
-    };
-    context.read<AttendanceBloc>().add(OnGetHistory(map));
   }
 
   @override
@@ -74,14 +61,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           context.read<AttendanceBloc>().add(const OnInit());
-          await _loadHistoryPreview();
         },
         child: BlocBuilder<AttendanceBloc, AttendanceState>(
           builder: (context, state) {
             if (state.isLoading) {
               return const LoadingWidget();
             }
-            final latestLog = _findLatestLog(state.histories);
+            final logs = _findLatestLogs(state.logs);
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
@@ -89,7 +75,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                   _buildHeroSection(state.shift),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    child: _buildLogSection(context, latestLog),
+                    child: _buildLogSection(context, logs),
                   ),
                 ],
               ),
@@ -276,7 +262,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  Widget _buildLogSection(BuildContext context, AttendanceLog? latestLog) {
+  Widget _buildLogSection(
+      BuildContext context, List<AttendanceLog>? latestLogs) {
     return Column(
       children: [
         Row(
@@ -308,94 +295,103 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           ],
         ),
         const SizedBox(height: 8),
-        if (latestLog != null)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 84,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        latestLog.time ?? "--:--",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF222222),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _logDateLabel(latestLog),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                    ],
+        latestLogs == null || latestLogs.isEmpty
+            ? Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Text(
+                  "No attendance log available for this month yet.",
+                  style: TextStyle(
+                    color: Color(0xFF6B7280),
+                    fontSize: 15,
                   ),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Text(
-                    latestLog.type == "check_out" ? "Clock Out" : "Clock In",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF222222),
+              )
+            : ListView.builder(
+                itemCount: latestLogs.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  final log = latestLogs[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 84,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  log.time ?? "--:--",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Color(0xFF222222),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _logDateLabel(log),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Text(
+                              log.type == "check_out"
+                                  ? "Clock Out"
+                                  : "Clock In",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF222222),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        AttendanceHistoryDetailScreen(
+                                            log: log))),
+                            icon: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 18,
+                              color: Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              const AttendanceHistoryScreen())),
-                  icon: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 18,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Text(
-              "No attendance log available for this month yet.",
-              style: TextStyle(
-                color: Color(0xFF6B7280),
-                fontSize: 15,
-              ),
-            ),
-          ),
+                  );
+                }),
       ],
     );
   }
 
-  AttendanceLog? _findLatestLog(List<Attendance>? histories) {
-    final logs = <AttendanceLog>[];
-    for (final history in histories ?? <Attendance>[]) {
-      logs.addAll(history.logs ?? const <AttendanceLog>[]);
-    }
-    if (logs.isEmpty) return null;
+  List<AttendanceLog>? _findLatestLogs(List<AttendanceLog>? logs) {
+    if (logs == null || logs.isEmpty) return null;
     logs.sort((a, b) => _logDateTime(b).compareTo(_logDateTime(a)));
-    return logs.first;
+    return logs;
   }
 
   DateTime _logDateTime(AttendanceLog log) {

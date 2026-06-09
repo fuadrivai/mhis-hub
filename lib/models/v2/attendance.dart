@@ -23,6 +23,7 @@ class Attendance {
   double? checkOutRadius;
   Employee? employee;
   List<AttendanceLog>? logs;
+  List<Map<String, dynamic>>? approvals;
 
   Attendance({
     this.id,
@@ -47,6 +48,7 @@ class Attendance {
     this.checkOutRadius,
     this.employee,
     this.logs,
+    this.approvals,
   });
 
   Attendance.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,11 @@ class Attendance {
         json['employee'] != null ? Employee.fromJson(json['employee']) : null;
     logs = json['logs'] != null
         ? (json['logs'] as List).map((e) => AttendanceLog.fromJson(e)).toList()
+        : null;
+    approvals = json['approvals'] != null
+        ? (json['approvals'] as List)
+            .map((e) => e as Map<String, dynamic>)
+            .toList()
         : null;
   }
 
@@ -104,6 +111,9 @@ class Attendance {
     }
     if (logs != null) {
       data['logs'] = logs!.map((e) => e.toJson()).toList();
+    }
+    if (approvals != null) {
+      data['approvals'] = approvals!;
     }
     return data;
   }

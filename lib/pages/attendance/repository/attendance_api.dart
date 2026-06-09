@@ -45,4 +45,10 @@ class AttendanceApi {
     var data = client.getActiveShift();
     return data;
   }
+
+  static Future<List<AttendanceLog>> getCurrentAttendance() async {
+    final client = await Api.restClient();
+    var data = client.getCurrentAttendance();
+    return data;
+  }
 }
