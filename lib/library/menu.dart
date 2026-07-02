@@ -98,12 +98,12 @@ class Menu {
       routeCandidates: ['announcement', 'general-announcement'],
       seed: 808,
     ),
-    GridMenuItem(
-      title: 'Ashars',
-      icon: FontAwesomeIcons.mosque,
-      routeCandidates: ['live-attendance', 'live-ashar'],
-      seed: 150,
-    ),
+    // GridMenuItem(
+    //   title: 'Ashars',
+    //   icon: FontAwesomeIcons.mosque,
+    //   routeCandidates: ['live-attendance', 'live-ashar'],
+    //   seed: 150,
+    // ),
     GridMenuItem(
       title: 'Calendar',
       icon: FontAwesomeIcons.calendarDays,

@@ -12,6 +12,7 @@ class Shift {
   String? breakEnd;
   bool? isOvernight;
   bool? showInRequest;
+  String? fullname;
 
   Shift({
     this.id,
@@ -25,6 +26,7 @@ class Shift {
     this.breakEnd,
     this.isOvernight,
     this.showInRequest,
+    this.fullname,
   });
 
   Shift.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class Shift {
     breakEnd = json['break_end'];
     isOvernight = json['is_overnight'];
     showInRequest = json['show_in_request'];
+    fullname = json['fullname'];
   }
 
   Map<String, dynamic> toJson() {
@@ -54,6 +57,7 @@ class Shift {
     data['break_end'] = breakEnd;
     data['is_overnight'] = isOvernight;
     data['show_in_request'] = showInRequest;
+    data['fullname'] = fullname;
     return data;
   }
 

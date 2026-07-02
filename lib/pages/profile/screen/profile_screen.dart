@@ -1,13 +1,17 @@
 import 'package:another_flushbar/flushbar.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/profile_menu.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/profile/bloc/profile_bloc.dart';
+import 'package:fl_mhis_hr/service/api.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -18,9 +22,10 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late int userIdTalenta;
   bool isBiometric = false;
   bool obscureText = false;
+  Uint8List? _avatarPreviewBytes;
+  final ImagePicker _imagePicker = ImagePicker();
   final TextEditingController _passwordController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   final LocalAuthentication auth = LocalAuthentication();
@@ -88,33 +93,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           final avatarUrl =
                               state.employee?.personal?.avatar ?? "";
                           final hasAvatar = avatarUrl.isNotEmpty;
+                          final ImageProvider? avatarProvider =
+                              _avatarPreviewBytes != null
+                                  ? MemoryImage(_avatarPreviewBytes!)
+                                  : (hasAvatar
+                                      ? NetworkImage(
+                                          "${Api.url}/storage/$avatarUrl")
+                                      : null);
                           return InkWell(
                             borderRadius: BorderRadius.circular(52),
-                            onTap: hasAvatar
-                                ? () async {
-                                    await showDialog(
-                                      context: context,
-                                      builder: (_) =>
-                                          ImageDialog(imageUrl: avatarUrl),
-                                    );
-                                  }
-                                : null,
-                            child: CircleAvatar(
-                              radius: 52,
-                              backgroundColor: Colors.white24,
-                              child: CircleAvatar(
-                                radius: 48,
-                                backgroundColor: Colors.white,
-                                backgroundImage:
-                                    hasAvatar ? NetworkImage(avatarUrl) : null,
-                                child: hasAvatar
-                                    ? null
-                                    : const Icon(
-                                        Icons.person,
-                                        size: 40,
-                                        color: AppColors.primary,
-                                      ),
-                              ),
+                            onTap: () async {
+                              await _showAvatarPreviewDialog(
+                                avatarUrl: avatarUrl,
+                              );
+                            },
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircleAvatar(
+                                  radius: 52,
+                                  backgroundColor: Colors.white24,
+                                  child: CircleAvatar(
+                                    radius: 48,
+                                    backgroundColor: Colors.white,
+                                    backgroundImage: avatarProvider,
+                                    child: avatarProvider != null
+                                        ? null
+                                        : const Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: AppColors.primary,
+                                          ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 6,
+                                  bottom: 3,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.grey,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.edit,
+                                      size: 17,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         }),
@@ -250,6 +278,162 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showAvatarPreviewDialog({required String avatarUrl}) async {
+    if (!mounted) return;
+
+    final hasNetworkAvatar = avatarUrl.trim().isNotEmpty;
+    final ImageProvider? avatarProvider = _avatarPreviewBytes != null
+        ? MemoryImage(_avatarPreviewBytes!)
+        : (hasNetworkAvatar
+            ? NetworkImage("${Api.url}/storage/$avatarUrl")
+            : null);
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Profile Picture",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.pop(dialogContext),
+                      child: const Icon(Icons.close),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    width: double.infinity,
+                    color: AppColors.whiteshade,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: avatarProvider != null
+                        ? Image(
+                            image: avatarProvider,
+                            fit: BoxFit.contain,
+                            height: 260,
+                          )
+                        : const Icon(
+                            Icons.person,
+                            size: 90,
+                            color: AppColors.primary,
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: AuthButton(
+                    text: "Edit Picture",
+                    height: 42,
+                    onTap: () async {
+                      Navigator.pop(dialogContext);
+                      await _showImageSourceBottomSheet();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showImageSourceBottomSheet() async {
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              const Text(
+                "Choose Picture Source",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text("Take Picture"),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _pickAvatarImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text("Get From Gallery"),
+                onTap: () async {
+                  Navigator.pop(sheetContext);
+                  await _pickAvatarImage(ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAvatarImage(ImageSource source) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
+      if (image == null) return;
+
+      final bytes = await image.readAsBytes();
+      if (!mounted) return;
+
+      final employeeId = context.read<ProfileBloc>().state.employee?.id;
+      if (employeeId == null) {
+        Common.flushBar(
+          context,
+          title: "error",
+          message: "Employee ID not found",
+        );
+        return;
+      }
+
+      final body = {
+        "employee_id": employeeId,
+        "image": base64Encode(bytes),
+      };
+      context.read<ProfileBloc>().add(OnRegisterFace(body));
+    } catch (e) {
+      if (!mounted) return;
+      Common.flushBar(
+        context,
+        title: "error",
+        message: "Failed to load picture",
+      );
+    }
   }
 
   Future<void> _showPasswordDialog() async {

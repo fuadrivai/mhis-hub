@@ -22,6 +22,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<OnGetUserById>(_onGetUserById);
     on<OnChangePassword>(_onChangePassword);
     on<OnResetAuthenticationBiometrics>(_onResetAuthenticationBiometrics);
+    on<OnRegisterFace>(_onRegisterFace);
   }
 
   void _onLogout(OnLogout event, Emitter<ProfileState> emit) async {
@@ -86,6 +87,20 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         packageInfo: state.packageInfo,
         canAuthenticateWithBiometrics: state.canAuthenticateWithBiometrics,
         isBiometric: state.isBiometric,
+      ));
+    }
+  }
+
+  void _onRegisterFace(OnRegisterFace event, Emitter<ProfileState> emit) async {
+    try {
+      emit(state.copyWith(isLoading: true));
+      Map<String, dynamic> data = event.data;
+      await ProfileApi.registerFace(data);
+      emit(state.copyWith(isLoading: false));
+    } catch (e) {
+      emit(state.copyWith(
+        loadingFormPassword: false,
+        errorMessage: e.toString(),
       ));
     }
   }
