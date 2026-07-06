@@ -43,7 +43,7 @@
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>The app needs permission to save photos to your library.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open.</string>
+	<string>This app uses your location only when you clock in or clock out to verify that your attendance is recorded from your designated work location.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This application requires the user's location for attendance tracking and facial recognition</string>
 	<key>NSMicrophoneUsageDescription</key>

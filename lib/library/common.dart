@@ -230,23 +230,136 @@ class Common {
     }
   }
 
-  static Future<Position> determinePosition() async {
+  static Future<Position> determinePosition({BuildContext? context}) async {
     LocationPermission permission;
+
+    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      if (context != null) {
+        if (!context.mounted) {
+          return Future.error('Location services are disabled');
+        }
+        await _showLocationSettingsDialog(
+          context,
+          title: 'Turn on location',
+          message:
+              'Location service is turned off. Enable location services in settings to continue.',
+        );
+      }
+      return Future.error('Location services are disabled');
+    }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        Geolocator.openLocationSettings();
+        if (context != null) {
+          if (!context.mounted) {
+            return Future.error('Location permissions are denied');
+          }
+          await _showLocationSettingsDialog(
+            context,
+            title: 'Location permission required',
+            message:
+                'This feature needs location access. Open settings and allow location permission to continue.',
+          );
+        }
+        return Future.error('Location permissions are denied');
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      Geolocator.openLocationSettings();
+      if (context != null) {
+        if (!context.mounted) {
+          return Future.error('Location permissions are denied forever');
+        }
+        await _showLocationSettingsDialog(
+          context,
+          title: 'Location permission required',
+          message:
+              'Location permission is permanently denied. Open settings and allow location permission to continue.',
+        );
+      }
+      return Future.error('Location permissions are denied forever');
     }
     return await Geolocator.getCurrentPosition(
       locationSettings: LocationSettings(),
       // ignore: deprecated_member_use
       forceAndroidLocationManager: true,
+    );
+  }
+
+  static Future<void> _showLocationSettingsDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+  }) async {
+    if (!context.mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black54,
+              height: 1.4,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Not now'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await Geolocator.openLocationSettings();
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+              ),
+              child: const Text('Open Settings'),
+            ),
+          ],
+        );
+      },
     );
   }
 

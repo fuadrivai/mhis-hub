@@ -128,63 +128,11 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         ),
       );
     } else {
-      return Scaffold(
-        appBar: CustomAppbar(
-          backgroundColor: AppColors.whiteshade,
-          leading: IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back),
-          ),
-          title: widget.type.toUpperCase(),
-        ),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.camera_alt_outlined,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "Camera Access Required",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "To check in or check out, the app needs access to your camera. Please tap the button below to open Settings, then allow Camera access for this app.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 12),
-                  ),
-                  onPressed: () {
-                    openAppSettings();
-                  },
-                  child: const Text(
-                    "Open Settings",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      return CheckPermissionScreen(
+        title: "Camera Permission",
+        text: "Camera permission is required to use this feature.",
+        message:
+            "Please grant camera permission in your device settings to continue.",
       );
     }
   }
@@ -231,7 +179,8 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
       final bytes = await file.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      Position position = await Common.determinePosition();
+      if (!mounted) return;
+      Position position = await Common.determinePosition(context: context);
       String? userId = await Session.get("userId");
 
       if (userId == null) throw Exception("User belum login");
@@ -271,5 +220,78 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
       isLoading = false;
       if (mounted) setState(() {});
     }
+  }
+}
+
+class CheckPermissionScreen extends StatelessWidget {
+  final String title;
+  final String text;
+  final String message;
+  const CheckPermissionScreen(
+      {super.key,
+      required this.title,
+      required this.text,
+      required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppbar(
+        backgroundColor: AppColors.whiteshade,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        title: title,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.camera_alt_outlined,
+                size: 64,
+                color: Colors.grey,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Camera Access Required",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                "To check in or check out, the app needs access to your camera. Please tap the button below to open Settings, then allow Camera access for this app.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+                onPressed: () async {
+                  await openAppSettings();
+                },
+                child: const Text(
+                  "Open Settings",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
