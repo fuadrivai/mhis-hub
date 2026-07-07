@@ -261,7 +261,7 @@ class Common {
             context,
             title: 'Location permission required',
             message:
-                'This feature needs location access. Open settings and allow location permission to continue.',
+                'This app uses your location only when you clock in or clock out to verify that your attendance is recorded from your designated work location.',
           );
         }
         return Future.error('Location permissions are denied');
@@ -276,7 +276,7 @@ class Common {
           context,
           title: 'Location permission required',
           message:
-              'Location permission is permanently denied. Open settings and allow location permission to continue.',
+              "This application requires the user's location for attendance tracking and facial recognition",
         );
       }
       return Future.error('Location permissions are denied forever');
