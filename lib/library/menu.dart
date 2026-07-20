@@ -44,7 +44,7 @@ class Menu {
     GridMenuItem(
       title: 'Newsletter',
       icon: FontAwesomeIcons.newspaper,
-      routeCandidates: ['announcement', 'general-announcement'],
+      routeCandidates: ['announcement'],
       seed: 808,
     ),
     GridMenuItem(
@@ -95,15 +95,15 @@ class Menu {
     GridMenuItem(
       title: 'Newsletter',
       icon: FontAwesomeIcons.newspaper,
-      routeCandidates: ['announcement', 'general-announcement'],
+      routeCandidates: ['announcement'],
       seed: 808,
     ),
-    // GridMenuItem(
-    //   title: 'Ashars',
-    //   icon: FontAwesomeIcons.mosque,
-    //   routeCandidates: ['live-attendance', 'live-ashar'],
-    //   seed: 150,
-    // ),
+    GridMenuItem(
+      title: 'General Newsletter',
+      icon: FontAwesomeIcons.newspaper,
+      routeCandidates: ['general-announcement'],
+      seed: 150,
+    ),
     GridMenuItem(
       title: 'Calendar',
       icon: FontAwesomeIcons.calendarDays,
