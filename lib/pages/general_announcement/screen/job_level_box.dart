@@ -24,7 +24,7 @@ class _JobLevelBoxState extends State<JobLevelBox> {
       textForm: TextFormField(
         controller: TextEditingController(
             text:
-                "Filter (${(widget.announcement.levels ?? []).length.toString()})"),
+                "Filter (${(widget.announcement.jobLevels ?? []).length.toString()})"),
         onTap: () {
           showMaterialModalBottomSheet(
             context: context,
@@ -51,7 +51,7 @@ class _JobLevelBoxState extends State<JobLevelBox> {
                             JobLevel val = widget.levels[index];
                             return CheckboxListTile(
                               title: Text(val.name ?? "--"),
-                              value: (widget.announcement.levels ?? [])
+                              value: (widget.announcement.jobLevels ?? [])
                                   .contains(val),
                               onChanged: (value) {
                                 context

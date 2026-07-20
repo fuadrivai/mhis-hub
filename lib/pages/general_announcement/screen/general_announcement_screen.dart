@@ -66,8 +66,8 @@ class _GeneralAnnouncementScreenState extends State<GeneralAnnouncementScreen> {
                           child: ListTile(
                             leading:
                                 const FaIcon(FontAwesomeIcons.bellConcierge),
-                            title: Text(ann.subject ?? ""),
-                            subtitle: Text(Jiffy.parse(ann.date!)
+                            title: Text(ann.title ?? ""),
+                            subtitle: Text(Jiffy.parse(ann.publishAt!)
                                 .format(pattern: "dd MMMM yyyy")),
                             onTap: () {
                               context.goNamed("general-announcement-view",

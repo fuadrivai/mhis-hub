@@ -12,7 +12,7 @@ class InformationHomeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
+      padding: const EdgeInsets.only(bottom: 15),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         color: AppColors.white,

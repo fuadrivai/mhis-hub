@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
+import 'package:fl_mhis_hr/pages/home/screen/announcement_card.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _calendarController.selectedDate = DateTime(now.year, now.month, now.day);
     context.read<HomeBloc>().add(const OnInitAttendance());
     context.read<HomeBloc>().add(const OnInitCalendar());
+    context.read<HomeBloc>().add(const OnInitAnnouncement());
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (!mounted) return;
@@ -64,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onRefresh: () async {
         context.read<HomeBloc>().add(const OnInitAttendance());
         context.read<HomeBloc>().add(const OnInitCalendar());
+        context.read<HomeBloc>().add(const OnInitAnnouncement());
       },
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -85,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const ClockInOutHome(),
               const InformationHomeWidget(),
+              const AnnouncementCard(),
               const CalendarCard(),
               const SizedBox(height: 10),
             ],

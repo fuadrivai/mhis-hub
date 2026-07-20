@@ -27,3 +27,9 @@ class OnGetPayslip extends HomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class OnInitAnnouncement extends HomeEvent {
+  const OnInitAnnouncement();
+  @override
+  List<Object?> get props => [];
+}

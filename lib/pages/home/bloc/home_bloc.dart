@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
+import 'package:fl_mhis_hr/pages/general_announcement/data/general_announcement_api.dart';
 import 'package:fl_mhis_hr/pages/home/repository/home_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,6 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<OnInitCalendar>(_onInitCalendar);
     on<OnInitAttendance>(_onInitAttendance);
     on<OnGetNewsletter>(_onGetNewsletter);
+    on<OnInitAnnouncement>(_onInitAnnouncement);
   }
 
   void _onInitCalendar(OnInitCalendar event, Emitter<HomeState> emit) async {
@@ -68,5 +70,28 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(newsletterLoading: true));
     List<Newsletter> newsletters = await HomeApi.getNewsletter();
     emit(state.copyWith(newsletters: newsletters, newsletterLoading: false));
+  }
+
+  void _onInitAnnouncement(
+      OnInitAnnouncement event, Emitter<HomeState> emit) async {
+    try {
+      emit(state.copyWith(announcementLoading: true));
+      List<Announcement> announcements =
+          await GeneralAnnouncementApi.getAnnouncement();
+      emit(state.copyWith(
+          announcements: announcements, announcementLoading: false));
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e.runtimeType == DioException) {
+        DioException err = e as DioException;
+        errorMessage = err.response?.data?["message"] ?? err.message;
+      }
+      emit(state.copyWith(
+        announcementLoading: false,
+        announcementErrorMessage: errorMessage,
+        announcementError: true,
+        announcements: state.announcements,
+      ));
+    }
   }
 }

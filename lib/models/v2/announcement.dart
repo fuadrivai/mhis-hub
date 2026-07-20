@@ -2,53 +2,63 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 
 class Announcement {
   int? id;
-  String? subject;
+  String? title;
   String? content;
   String? link;
-  AnnouncementCategory? category;
-  User? user;
-  String? date;
+  String? attachment;
+  String? publishAt;
   bool? allEmployees;
+  bool? sendEmail;
+  bool? sendPushNotification;
+  String? status;
   List<Branch>? branches;
-  List<JobLevel>? levels;
+  List<JobLevel>? jobLevels;
   List<Organization>? organizations;
   List<JobPosition>? positions;
+  AnnouncementCategory? category;
+  Employee? creator;
+  Employee? updater;
 
-  Announcement({
-    this.id,
-    this.subject,
-    this.content,
-    this.link,
-    this.category,
-    this.date,
-    this.allEmployees = true,
-    this.branches,
-    this.levels,
-    this.organizations,
-    this.positions,
-  });
+  Announcement(
+      {this.id,
+      this.title,
+      this.content,
+      this.link,
+      this.attachment,
+      this.publishAt,
+      this.allEmployees,
+      this.sendEmail,
+      this.sendPushNotification,
+      this.status,
+      this.branches,
+      this.jobLevels,
+      this.organizations,
+      this.positions,
+      this.category,
+      this.creator,
+      this.updater});
 
   Announcement.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    subject = json['subject'];
-    link = json['link'];
+    title = json['title'];
     content = json['content'];
-    category = json['category'] != null
-        ? AnnouncementCategory.fromJson(json['category'])
-        : null;
-    user = json['user'] != null ? User.fromJson(json['user']) : null;
-    date = json['date'];
+    link = json['link'];
+    attachment = json['attachment'];
+    publishAt = json['publish_at'];
     allEmployees = json['all_employees'];
+    sendEmail = json['send_email'];
+    sendPushNotification = json['send_push_notification'];
+    status = json['status'];
     if (json['branches'] != null) {
       branches = <Branch>[];
       json['branches'].forEach((v) {
         branches!.add(Branch.fromJson(v));
       });
     }
-    if (json['levels'] != null) {
-      levels = <JobLevel>[];
-      json['levels'].forEach((v) {
-        levels!.add(JobLevel.fromJson(v));
+    if (json['job_levels'] != null) {
+      jobLevels = <JobLevel>[];
+      json['job_levels'].forEach((v) {
+        jobLevels!.add(JobLevel.fromJson(v));
       });
     }
     if (json['organizations'] != null) {
@@ -63,54 +73,47 @@ class Announcement {
         positions!.add(JobPosition.fromJson(v));
       });
     }
+    category = json['category'] != null
+        ? AnnouncementCategory.fromJson(json['category'])
+        : null;
+    creator =
+        json['creator'] != null ? Employee.fromJson(json['creator']) : null;
+    updater =
+        json['updater'] != null ? Employee.fromJson(json['updater']) : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['id'] = id;
-    data['subject'] = subject;
+    data['title'] = title;
     data['content'] = content;
     data['link'] = link;
+    data['attachment'] = attachment;
+    data['publish_at'] = publishAt;
+    data['all_employees'] = allEmployees;
+    data['send_email'] = sendEmail;
+    data['send_push_notification'] = sendPushNotification;
+    data['status'] = status;
+    if (branches != null) {
+      data['branches'] = branches!.map((v) => v.toJson()).toList();
+    }
+    if (jobLevels != null) {
+      data['job_levels'] = jobLevels!.map((v) => v.toJson()).toList();
+    }
+    if (organizations != null) {
+      data['organizations'] = organizations!.map((v) => v.toJson()).toList();
+    }
+    if (positions != null) {
+      data['positions'] = positions!.map((v) => v.toJson()).toList();
+    }
     if (category != null) {
       data['category'] = category!.toJson();
     }
-    data['date'] = date;
-    data['all_employees'] = allEmployees;
-    if (branches != null) {
-      List<int> listBranch = [];
-      for (Branch e in branches!) {
-        listBranch.add(e.id!);
-      }
-      data['branches'] = listBranch;
-    } else {
-      data['branches'] = [];
+    if (creator != null) {
+      data['creator'] = creator!.toJson();
     }
-    if (levels != null) {
-      List<int> listLevel = [];
-      for (JobLevel e in levels!) {
-        listLevel.add(e.id!);
-      }
-      data['levels'] = listLevel;
-    } else {
-      data['levels'] = [];
-    }
-    if (organizations != null) {
-      List<int> listOrganization = [];
-      for (Organization e in organizations!) {
-        listOrganization.add(e.id!);
-      }
-      data['organizations'] = listOrganization;
-    } else {
-      data['organizations'] = [];
-    }
-    if (positions != null) {
-      List<int> listposition = [];
-      for (JobPosition e in positions!) {
-        listposition.add(e.id!);
-      }
-      data['positions'] = listposition;
-    } else {
-      data['positions'] = [];
+    if (updater != null) {
+      data['updater'] = updater!.toJson();
     }
     return data;
   }

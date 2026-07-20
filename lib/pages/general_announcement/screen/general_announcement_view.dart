@@ -33,7 +33,7 @@ class _GeneralAnnouncementViewState extends State<GeneralAnnouncementView> {
       for (var val in ann.positions ?? []) {
         toName.add(val.name ?? "--");
       }
-      for (var val in ann.levels ?? []) {
+      for (var val in ann.jobLevels ?? []) {
         toName.add(val.name ?? "--");
       }
     }
@@ -58,7 +58,7 @@ class _GeneralAnnouncementViewState extends State<GeneralAnnouncementView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text("From ${ann.user?.name ?? '--'}"),
+              Text("From ${ann.creator?.personal?.fullname ?? '--'}"),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -88,7 +88,7 @@ class _GeneralAnnouncementViewState extends State<GeneralAnnouncementView> {
                 ],
               ),
               Text(
-                  "Post on : ${Jiffy.parse(ann.date!, pattern: "yyyy-MM-dd").format(pattern: "dd MMM yyyy")}"),
+                  "Post on : ${Jiffy.parse(ann.publishAt!, pattern: "yyyy-MM-dd").format(pattern: "dd MMM yyyy")}"),
               Container(
                 padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
@@ -98,7 +98,7 @@ class _GeneralAnnouncementViewState extends State<GeneralAnnouncementView> {
               ),
               const SizedBox(height: 30),
               Text(
-                ann.subject ?? "",
+                ann.title ?? "",
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
               ),

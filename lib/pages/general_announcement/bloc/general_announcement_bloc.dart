@@ -28,13 +28,13 @@ class GeneralAnnouncementBloc
   void _onChangeLevel(
       OnChangeLevel event, Emitter<GeneralAnnouncementState> emit) {
     Announcement announcement = state.announcement ?? Announcement();
-    List<JobLevel> levels = announcement.levels ?? [];
+    List<JobLevel> levels = announcement.jobLevels ?? [];
     if (event.value) {
       levels.add(event.val);
     } else {
       levels.removeWhere((data) => data.id == event.val.id);
     }
-    announcement.levels = levels;
+    announcement.jobLevels = levels;
     emit(state.copyWith(announcement: announcement));
   }
 
@@ -99,7 +99,7 @@ class GeneralAnnouncementBloc
   void _onChangedSubject(
       OnChangedSubject event, Emitter<GeneralAnnouncementState> emit) {
     Announcement announcement = state.announcement ?? Announcement();
-    announcement.subject = event.val;
+    announcement.title = event.val;
     emit(state.copyWith(announcement: announcement));
   }
 
@@ -147,7 +147,7 @@ class GeneralAnnouncementBloc
         announcement.allEmployees = event.val;
         announcement.branches = [];
         announcement.organizations = [];
-        announcement.levels = [];
+        announcement.jobLevels = [];
         announcement.positions = [];
         emit(state.copyWith(
           announcement: announcement,
@@ -176,7 +176,7 @@ class GeneralAnnouncementBloc
     emit(state.copyWith(loadingButton: true));
     try {
       Announcement announcement = state.announcement ?? Announcement();
-      announcement.date = Jiffy.now().format(pattern: "yyyy-MM-dd");
+      announcement.publishAt = Jiffy.now().format(pattern: "yyyy-MM-dd");
       await GeneralAnnouncementApi.post(announcement);
       emit(state.copyWith(
         loadingButton: false,
