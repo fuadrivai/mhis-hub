@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:another_flushbar/flushbar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Common {
   Common._();
@@ -384,6 +385,12 @@ class Common {
       newWord.add(str);
     }
     return data = newWord.join(" ");
+  }
+
+  static Future<void> launchExternalUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    await launchUrl(uri);
   }
 }
 

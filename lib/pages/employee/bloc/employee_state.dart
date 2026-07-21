@@ -7,6 +7,10 @@ final class EmployeeState extends Equatable {
 
   final Pagination? pagination;
   final List<Employee>? employees2;
+  final List<Branch> branches;
+  final List<Organization> organizations;
+  final List<JobLevel> jobLevels;
+  final List<JobPosition> jobPositions;
 
   const EmployeeState({
     this.isLoading = false,
@@ -17,6 +21,10 @@ final class EmployeeState extends Equatable {
     this.loadMore = false,
     this.pagination,
     this.employees2,
+    this.branches = const [],
+    this.organizations = const [],
+    this.jobLevels = const [],
+    this.jobPositions = const [],
   });
   EmployeeState copyWith({
     bool? isLoading,
@@ -27,6 +35,10 @@ final class EmployeeState extends Equatable {
     ServerSideEmployee? serverside,
     Pagination? pagination,
     List<Employee>? employees2,
+    List<Branch>? branches,
+    List<Organization>? organizations,
+    List<JobLevel>? jobLevels,
+    List<JobPosition>? jobPositions,
   }) {
     return EmployeeState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -37,6 +49,10 @@ final class EmployeeState extends Equatable {
       loadMore: loadMore ?? this.loadMore,
       pagination: pagination ?? this.pagination,
       employees2: employees2 ?? this.employees2,
+      branches: branches ?? this.branches,
+      organizations: organizations ?? this.organizations,
+      jobLevels: jobLevels ?? this.jobLevels,
+      jobPositions: jobPositions ?? this.jobPositions,
     );
   }
 
@@ -50,5 +66,9 @@ final class EmployeeState extends Equatable {
         loadMore,
         pagination,
         employees2,
+        branches,
+        organizations,
+        jobLevels,
+        jobPositions,
       ];
 }

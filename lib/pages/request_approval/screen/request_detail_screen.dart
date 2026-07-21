@@ -700,12 +700,17 @@ class _AttachmentRow extends StatelessWidget {
           const Icon(Icons.attach_file, size: 16, color: AppColors.blackshade),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              attachment.fileName,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.secondary,
-                decoration: TextDecoration.underline,
+            child: GestureDetector(
+              onTap: () {
+                Common.launchExternalUrl(attachment.link);
+              },
+              child: Text(
+                attachment.fileName,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.secondary,
+                  decoration: TextDecoration.underline,
+                ),
               ),
             ),
           ),

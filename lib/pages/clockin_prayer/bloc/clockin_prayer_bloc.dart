@@ -131,8 +131,9 @@ class ClockinPrayerBloc extends Bloc<ClockinPrayerEvent, ClockinPrayerState> {
       GetLocationName event, Emitter<ClockinPrayerState> emit) async {
     try {
       Position position = await Common.determinePosition();
-      List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
+      Geocoding geocoding = Geocoding();
+      List<Placemark> placemarks = await geocoding.placemarkFromCoordinates(
+          position.latitude, position.longitude);
       emit(state.copyWith(placemarks: placemarks));
     } catch (e) {
       String errorMessage = e.toString();

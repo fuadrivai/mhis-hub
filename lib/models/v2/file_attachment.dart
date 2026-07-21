@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:fl_mhis_hr/service/api.dart';
+
 class FileAttachment {
   final int? id;
   final String fileName;
@@ -52,6 +54,8 @@ class FileAttachment {
   @override
   String toString() =>
       'FileAttachment(id: $id, fileName: $fileName, fileSize: $fileSize)';
+
+  String get link => "${Api.url}/storage/$filePath";
 }
 
 String? _getMimeType(String filePath) {

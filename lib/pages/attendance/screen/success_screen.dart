@@ -1,4 +1,6 @@
+import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,10 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
     return Scaffold(
       appBar: CustomAppbar(
         title: isCheckIn ? "Check-In" : "Check-Out",
+        leading: IconButton(
+          onPressed: () => _goHome(),
+          icon: const Icon(Icons.arrow_back, color: AppColors.dark),
+        ),
         backgroundColor: Colors.white,
       ),
       backgroundColor: Colors.grey[50],
@@ -99,6 +105,14 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
         ),
       ],
     );
+  }
+
+  void _goHome() {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const BottomMenu(child: HomeScreen())),
+        (route) => false);
   }
 
   void _goToAttendanceHistory() {

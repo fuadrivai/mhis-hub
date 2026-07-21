@@ -1,4 +1,5 @@
 import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:fl_mhis_hr/service/api.dart';
 
 class Announcement {
   int? id;
@@ -116,5 +117,10 @@ class Announcement {
       data['updater'] = updater!.toJson();
     }
     return data;
+  }
+
+  String attachmentLink() {
+    if (attachment == null) return "";
+    return "${Api.url}/storage/$attachment";
   }
 }

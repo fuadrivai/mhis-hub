@@ -5,7 +5,6 @@ import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
-import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -195,13 +194,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
 
       AttendanceLog data = await AttendanceApi.postAttendance(liveAttendance);
       if (!mounted) return;
-      // context.goNamed('attendance-response', extra: {'data': data});
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) {
-          return AttendanceResponseScreen(attendance: data);
-        }),
-      );
+      context.goNamed('attendance-response', extra: {'data': data});
     } catch (e) {
       if (!mounted) return;
       isLoading = false;

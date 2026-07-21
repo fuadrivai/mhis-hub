@@ -18,6 +18,10 @@ class EmployeeWidget extends StatefulWidget {
 class _EmployeeWidgetState extends State<EmployeeWidget> {
   final ScrollController _controller = ScrollController();
   String _search = '';
+  Branch? _selectedBranch;
+  Organization? _selectedOrganization;
+  JobLevel? _selectedJobLevel;
+  JobPosition? _selectedJobPosition;
 
   @override
   void initState() {
@@ -57,16 +61,42 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                child: TextFormField(
-                  validator: ValidForm.emptyValue,
-                  decoration: TextFormDecoration.box(
-                    hintText: 'Search by Employee Email...',
-                  ),
-                  onChanged: (str) {
-                    setState(() {
-                      _search = str.trim().toLowerCase();
-                    });
-                  },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        validator: ValidForm.emptyValue,
+                        decoration: TextFormDecoration.box(
+                          hintText: 'Search by Employee name or email...',
+                        ),
+                        onChanged: (str) {
+                          setState(() {
+                            _search = str.trim().toLowerCase();
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      height: 46,
+                      width: 46,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.blue),
+                      ),
+                      child: IconButton(
+                        tooltip: 'Filter',
+                        icon: Icon(Icons.filter_list, color: AppColors.blue),
+                        onPressed: () {
+                          final List<Employee> source =
+                              context.read<EmployeeBloc>().state.employees2 ??
+                                  [];
+                          _showFilterDialog(source);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
               BlocBuilder<EmployeeBloc, EmployeeState>(
@@ -107,7 +137,8 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                     itemCount: employees.length,
                     itemBuilder: (context, index) {
                       final Employee employee = employees[index];
-                      final String avatar = employee.personal?.avatar ?? '';
+                      final String avatar = employee.personal?.avatarLink ??
+                          "https://ui-avatars.com/api/?name=${employee.personal?.fullname ?? '--'}&background=0D8ABC&color=fff";
                       final String fullname =
                           employee.personal?.fullname ?? '-';
                       final String email = employee.personal?.email ??
@@ -302,6 +333,153 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
         ),
       ),
     );
+  }
+
+  Future<void> _showFilterDialog(List<Employee> source) async {
+    Map<String, dynamic>? selected = {};
+    await showDialog<Map<String, DynamicSchemeVariant>>(
+      context: context,
+      builder: (context) {
+        Branch? branch = _selectedBranch;
+        Organization? organization = _selectedOrganization;
+        JobLevel? jobLevel = _selectedJobLevel;
+        JobPosition? jobPosition = _selectedJobPosition;
+
+        return AlertDialog(
+          title: const Text('Filter Employees'),
+          content: StatefulBuilder(
+            builder: (context, setDialogState) {
+              return SingleChildScrollView(
+                child: BlocBuilder<EmployeeBloc, EmployeeState>(
+                  builder: (context, state) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        DropdownButtonFormField<Branch>(
+                          initialValue: branch,
+                          isExpanded: true,
+                          decoration:
+                              const InputDecoration(labelText: 'Branch'),
+                          items: state.branches
+                              .map(
+                                (value) => DropdownMenuItem<Branch>(
+                                  value: value,
+                                  child: Text(value.name ?? '--'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              branch = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<Organization>(
+                          initialValue: organization,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Organization',
+                          ),
+                          items: state.organizations
+                              .map(
+                                (value) => DropdownMenuItem<Organization>(
+                                  value: value,
+                                  child: Text(value.name ?? '--'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              organization = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<JobLevel>(
+                          initialValue: jobLevel,
+                          isExpanded: true,
+                          decoration:
+                              const InputDecoration(labelText: 'Job Level'),
+                          items: state.jobLevels
+                              .map(
+                                (value) => DropdownMenuItem<JobLevel>(
+                                  value: value,
+                                  child: Text(value.name ?? '--'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              jobLevel = value;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<JobPosition>(
+                          initialValue: jobPosition,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Job Position',
+                          ),
+                          items: state.jobPositions
+                              .map(
+                                (value) => DropdownMenuItem<JobPosition>(
+                                  value: value,
+                                  child: Text(value.name ?? '--'),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              jobPosition = value;
+                            });
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {},
+              child: const Text('Clear'),
+            ),
+            TextButton(
+              onPressed: () {},
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                selected = {
+                  'branch': branch,
+                  'organization': organization,
+                  'jobLevel': jobLevel,
+                  'jobPosition': jobPosition,
+                };
+                setState(() {});
+                Navigator.pop(context, selected);
+              },
+              child: const Text('Apply'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selected == null) {
+      return;
+    }
+
+    setState(() {
+      _selectedBranch = selected?['branch'];
+      _selectedOrganization = selected?['organization'];
+      _selectedJobLevel = selected?['jobLevel'];
+      _selectedJobPosition = selected?['jobPosition'];
+    });
   }
 
   Widget _infoBadge(String label, String value) {

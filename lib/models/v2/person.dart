@@ -1,4 +1,5 @@
 import 'package:fl_mhis_hr/models/v2/religion.dart';
+import 'package:fl_mhis_hr/service/api.dart';
 
 class Person {
   int? id;
@@ -129,4 +130,8 @@ class Person {
         {"title": "Residential", "value": currentAddress},
         {"title": "Blood Type", "value": bloodType}
       ];
+
+  String get avatarLink => avatar != null && avatar!.isNotEmpty
+      ? "${Api.url}/storage/$avatar"
+      : "https://ui-avatars.com/api/?name=$fullname&background=0D8ABC&color=fff";
 }

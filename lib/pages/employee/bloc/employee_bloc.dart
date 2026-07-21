@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/models/model.dart';
-import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
+import 'package:fl_mhis_hr/pages/general_announcement/data/general_announcement_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'employee_event.dart';
@@ -73,6 +74,12 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
     emit(state.copyWith(isLoading: true));
     Pagination pagination = await EmployeeApi.getEmployees(
         params: {"perpage": perpage, "is_active": 1});
+    List<Branch> branches = await GeneralAnnouncementApi.getBranch();
+    List<Organization> organizations =
+        await GeneralAnnouncementApi.getOrganization();
+    List<JobLevel> jobLevels = await GeneralAnnouncementApi.getJobLevel();
+    List<JobPosition> jobPositions =
+        await GeneralAnnouncementApi.getJobPosition();
     List<Employee>? employees =
         (pagination.data ?? []).map((e) => Employee.fromJson(e)).toList();
     emit(state.copyWith(
@@ -81,6 +88,10 @@ class EmployeeBloc extends Bloc<EmployeeEvent, EmployeeState> {
       isLoading: false,
       isError: false,
       isSuccess: true,
+      branches: branches,
+      organizations: organizations,
+      jobLevels: jobLevels,
+      jobPositions: jobPositions,
     ));
   }
 }

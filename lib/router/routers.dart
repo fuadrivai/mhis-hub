@@ -12,14 +12,6 @@ final GlobalKey<NavigatorState> _dashboardNavigatorKey =
 class RouteNavigation {
   static final GoRouter router = GoRouter(
     navigatorKey: _nav.navKey,
-    // redirect: (context, state) async {
-    //   String? token = await Session.get("token");
-    //   if (token == null || token == "" || token.isEmpty) {
-    //     return '/auth';
-    //   } else {
-    //     return null;
-    //   }
-    // },
     initialLocation: '/splash',
     routes: [
       GoRoute(
