@@ -25,7 +25,7 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
         title: isCheckIn ? "Check-In" : "Check-Out",
         leading: IconButton(
           onPressed: () => _goHome(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.dark),
+          icon: const Icon(Icons.close, color: AppColors.dark),
         ),
         backgroundColor: Colors.white,
       ),
@@ -162,7 +162,7 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
         icon: const Icon(Icons.history),
         label: Center(child: const Text('Attendance History')),
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
         ),
       ),
     );

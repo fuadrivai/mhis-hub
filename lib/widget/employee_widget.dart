@@ -17,18 +17,19 @@ class EmployeeWidget extends StatefulWidget {
 
 class _EmployeeWidgetState extends State<EmployeeWidget> {
   final ScrollController _controller = ScrollController();
-  String _search = '';
+  String _search = "";
   Branch? _selectedBranch;
   Organization? _selectedOrganization;
   JobLevel? _selectedJobLevel;
   JobPosition? _selectedJobPosition;
+  Map<String, dynamic> _selectedFilters = {};
 
   @override
   void initState() {
-    context.read<EmployeeBloc>().add(const OnInitV2());
+    context.read<EmployeeBloc>().add(OnInitV2(_selectedFilters));
     _controller.addListener(() {
       if (_controller.position.maxScrollExtent == _controller.offset) {
-        context.read<EmployeeBloc>().add(const OnLoadMore());
+        context.read<EmployeeBloc>().add(OnLoadMore(_selectedFilters));
       }
     });
     super.initState();
@@ -44,7 +45,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
   Widget build(BuildContext context) {
     return RefreshIndicator(
       onRefresh: () async {
-        context.read<EmployeeBloc>().add(const OnInitV2());
+        context.read<EmployeeBloc>().add(OnInitV2(_selectedFilters));
       },
       child: Container(
         decoration: BoxDecoration(
@@ -71,7 +72,17 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                         ),
                         onChanged: (str) {
                           setState(() {
-                            _search = str.trim().toLowerCase();
+                            _selectedFilters = {
+                              "search": str,
+                              "branch": _selectedBranch?.id ?? '',
+                              "organization": _selectedOrganization?.id ?? '',
+                              "level": _selectedJobLevel?.id ?? '',
+                              "position": _selectedJobPosition?.id ?? '',
+                            };
+                            context
+                                .read<EmployeeBloc>()
+                                .add(OnSearchChanged(_selectedFilters));
+                            _search = str;
                           });
                         },
                       ),
@@ -105,24 +116,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                     return const LoadingWidget();
                   }
 
-                  final List<Employee> source = state.employees2 ?? [];
-                  final List<Employee> employees = _search.isEmpty
-                      ? source
-                      : source
-                          .where(
-                            (employee) =>
-                                (employee.personal?.email ?? '')
-                                    .toLowerCase()
-                                    .contains(_search) ||
-                                (employee.user?.email ?? '')
-                                    .toLowerCase()
-                                    .contains(_search) ||
-                                (employee.personal?.fullname ?? '')
-                                    .toLowerCase()
-                                    .contains(_search),
-                          )
-                          .toList();
-
+                  final List<Employee> employees = state.employees2 ?? [];
                   if (employees.isEmpty) {
                     return const Padding(
                       padding: EdgeInsets.only(top: 60),
@@ -130,12 +124,18 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                     );
                   }
 
+                  final bool isLoadMore = state.loadMore;
+
                   return ListView.separated(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                    itemCount: employees.length,
+                    itemCount: employees.length + (isLoadMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      if (index >= employees.length) {
+                        return const LoadingBottom();
+                      }
+
                       final Employee employee = employees[index];
                       final String avatar = employee.personal?.avatarLink ??
                           "https://ui-avatars.com/api/?name=${employee.personal?.fullname ?? '--'}&background=0D8ABC&color=fff";
@@ -147,20 +147,13 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                       final String mobilePhone =
                           employee.personal?.mobilePhone ?? '-';
                       final String organization =
-                          employee.employment?.organization?.name ??
-                              employee.employment?.organizationName ??
-                              '-';
+                          employee.employment?.organization?.name ?? '-';
                       final String position =
-                          employee.employment?.jobPosition?.name ??
-                              employee.employment?.jobPositionName ??
-                              '-';
+                          employee.employment?.jobPosition?.name ?? '-';
                       final String level =
-                          employee.employment?.jobLevel?.name ??
-                              employee.employment?.jobLevelName ??
-                              '-';
-                      final String branch = employee.employment?.branch?.name ??
-                          employee.employment?.branchName ??
-                          '-';
+                          employee.employment?.jobLevel?.name ?? '-';
+                      final String branch =
+                          employee.employment?.branch?.name ?? '-';
 
                       return Container(
                         decoration: BoxDecoration(
@@ -336,8 +329,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
   }
 
   Future<void> _showFilterDialog(List<Employee> source) async {
-    Map<String, dynamic>? selected = {};
-    await showDialog<Map<String, DynamicSchemeVariant>>(
+    showDialog<Map<String, DynamicSchemeVariant>>(
       context: context,
       builder: (context) {
         Branch? branch = _selectedBranch;
@@ -352,15 +344,25 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
               return SingleChildScrollView(
                 child: BlocBuilder<EmployeeBloc, EmployeeState>(
                   builder: (context, state) {
+                    final List<Branch> branchItems =
+                        _uniqueBranchItems(state.branches);
+                    final List<Organization> organizationItems =
+                        _uniqueOrganizationItems(state.organizations);
+                    final List<JobLevel> jobLevelItems =
+                        _uniqueJobLevelItems(state.jobLevels);
+                    final List<JobPosition> jobPositionItems =
+                        _uniqueJobPositionItems(state.jobPositions);
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         DropdownButtonFormField<Branch>(
-                          initialValue: branch,
+                          initialValue:
+                              _findBranchById(branchItems, branch?.id),
                           isExpanded: true,
                           decoration:
                               const InputDecoration(labelText: 'Branch'),
-                          items: state.branches
+                          items: branchItems
                               .map(
                                 (value) => DropdownMenuItem<Branch>(
                                   value: value,
@@ -376,12 +378,15 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                         ),
                         const SizedBox(height: 10),
                         DropdownButtonFormField<Organization>(
-                          initialValue: organization,
+                          initialValue: _findOrganizationById(
+                            organizationItems,
+                            organization?.id,
+                          ),
                           isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Organization',
                           ),
-                          items: state.organizations
+                          items: organizationItems
                               .map(
                                 (value) => DropdownMenuItem<Organization>(
                                   value: value,
@@ -397,11 +402,12 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                         ),
                         const SizedBox(height: 10),
                         DropdownButtonFormField<JobLevel>(
-                          initialValue: jobLevel,
+                          initialValue:
+                              _findJobLevelById(jobLevelItems, jobLevel?.id),
                           isExpanded: true,
                           decoration:
                               const InputDecoration(labelText: 'Job Level'),
-                          items: state.jobLevels
+                          items: jobLevelItems
                               .map(
                                 (value) => DropdownMenuItem<JobLevel>(
                                   value: value,
@@ -417,12 +423,15 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                         ),
                         const SizedBox(height: 10),
                         DropdownButtonFormField<JobPosition>(
-                          initialValue: jobPosition,
+                          initialValue: _findJobPositionById(
+                            jobPositionItems,
+                            jobPosition?.id,
+                          ),
                           isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Job Position',
                           ),
-                          items: state.jobPositions
+                          items: jobPositionItems
                               .map(
                                 (value) => DropdownMenuItem<JobPosition>(
                                   value: value,
@@ -445,23 +454,47 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
           ),
           actions: [
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+                  branch = null;
+                  organization = null;
+                  jobLevel = null;
+                  jobPosition = null;
+                });
+              },
               child: const Text('Clear'),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                setState(() {
+                  branch = _selectedBranch;
+                  organization = _selectedOrganization;
+                  jobLevel = _selectedJobLevel;
+                  jobPosition = _selectedJobPosition;
+                });
+                Navigator.of(context).pop();
+              },
               child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () {
-                selected = {
-                  'branch': branch,
-                  'organization': organization,
-                  'jobLevel': jobLevel,
-                  'jobPosition': jobPosition,
-                };
-                setState(() {});
-                Navigator.pop(context, selected);
+                setState(() {
+                  _selectedBranch = branch;
+                  _selectedOrganization = organization;
+                  _selectedJobLevel = jobLevel;
+                  _selectedJobPosition = jobPosition;
+                  _selectedFilters = {
+                    "search": _search,
+                    "branch": _selectedBranch?.id ?? '',
+                    "organization": _selectedOrganization?.id ?? '',
+                    "level": _selectedJobLevel?.id ?? '',
+                    "position": _selectedJobPosition?.id ?? '',
+                  };
+                  context
+                      .read<EmployeeBloc>()
+                      .add(OnSearchChanged(_selectedFilters));
+                });
+                Navigator.pop(context);
               },
               child: const Text('Apply'),
             ),
@@ -469,17 +502,6 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
         );
       },
     );
-
-    if (selected == null) {
-      return;
-    }
-
-    setState(() {
-      _selectedBranch = selected?['branch'];
-      _selectedOrganization = selected?['organization'];
-      _selectedJobLevel = selected?['jobLevel'];
-      _selectedJobPosition = selected?['jobPosition'];
-    });
   }
 
   Widget _infoBadge(String label, String value) {
@@ -571,5 +593,104 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
       return str;
     }
     return replacement + str.substring(1);
+  }
+
+  List<Branch> _uniqueBranchItems(List<Branch> items) {
+    final Set<String> seen = <String>{};
+    final List<Branch> result = <Branch>[];
+    for (final Branch item in items) {
+      final String id = item.id?.toString() ?? '';
+      if (id.isEmpty || seen.add(id)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  List<Organization> _uniqueOrganizationItems(List<Organization> items) {
+    final Set<String> seen = <String>{};
+    final List<Organization> result = <Organization>[];
+    for (final Organization item in items) {
+      final String id = item.id?.toString() ?? '';
+      if (id.isEmpty || seen.add(id)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  List<JobLevel> _uniqueJobLevelItems(List<JobLevel> items) {
+    final Set<String> seen = <String>{};
+    final List<JobLevel> result = <JobLevel>[];
+    for (final JobLevel item in items) {
+      final String id = item.id?.toString() ?? '';
+      if (id.isEmpty || seen.add(id)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  List<JobPosition> _uniqueJobPositionItems(List<JobPosition> items) {
+    final Set<String> seen = <String>{};
+    final List<JobPosition> result = <JobPosition>[];
+    for (final JobPosition item in items) {
+      final String id = item.id?.toString() ?? '';
+      if (id.isEmpty || seen.add(id)) {
+        result.add(item);
+      }
+    }
+    return result;
+  }
+
+  Branch? _findBranchById(List<Branch> items, Object? id) {
+    if (id == null) {
+      return null;
+    }
+    for (final Branch item in items) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  Organization? _findOrganizationById(
+    List<Organization> items,
+    Object? id,
+  ) {
+    if (id == null) {
+      return null;
+    }
+    for (final Organization item in items) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  JobLevel? _findJobLevelById(List<JobLevel> items, Object? id) {
+    if (id == null) {
+      return null;
+    }
+    for (final JobLevel item in items) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  JobPosition? _findJobPositionById(List<JobPosition> items, Object? id) {
+    if (id == null) {
+      return null;
+    }
+    for (final JobPosition item in items) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
   }
 }
