@@ -15,6 +15,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
     on<OnInit>(_onInit);
     on<OnGetHistory>(_onGetHistory);
     on<OnGetCurrentLog>(_onGetCurrentLog);
+    on<OnGetAll>(_onGetAll);
+    on<OnLoadMore>(_onLoadMore);
   }
 
   void _onInit(OnInit event, Emitter<AttendanceState> emit) async {
@@ -102,6 +104,85 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         isSuccess: false,
         logs: state.logs,
         errorMessage: errorMessage,
+      ));
+    }
+  }
+
+  void _onGetAll(OnGetAll event, Emitter<AttendanceState> emit) async {
+    emit(state.copyWith(
+      historyLoading: true,
+      isError: false,
+      isSuccess: false,
+      histories: [],
+    ));
+    try {
+      Pagination serverside = await AttendanceApi.getAll(params: event.map);
+      final histories = (serverside.data ?? [])
+          .map((item) => Attendance.fromJson(item as Map<String, dynamic>))
+          .toList();
+      emit(state.copyWith(
+        historyLoading: false,
+        isError: false,
+        isSuccess: true,
+        histories: histories,
+        serverside: serverside,
+      ));
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e.runtimeType == DioException) {
+        DioException err = e as DioException;
+        errorMessage = err.response?.data?["message"] ?? err.message;
+      }
+      emit(state.copyWith(
+        historyLoading: false,
+        isError: true,
+        isSuccess: false,
+        histories: state.histories,
+        errorMessage: errorMessage,
+      ));
+    }
+  }
+
+  void _onLoadMore(OnLoadMore event, Emitter<AttendanceState> emit) async {
+    if (state.loadMore) {
+      return;
+    }
+
+    final String? nextPageUrl = state.serverside?.nextPageUrl;
+    if (nextPageUrl == null || nextPageUrl.isEmpty) {
+      return;
+    }
+
+    emit(state.copyWith(loadMore: true));
+
+    try {
+      final Uri? url = Uri.tryParse(nextPageUrl);
+      if (url == null) {
+        emit(state.copyWith(loadMore: false));
+        return;
+      }
+
+      final Pagination serverside =
+          await AttendanceApi.getAll(params: event.map);
+      final List<Attendance> currentHistories =
+          List<Attendance>.from(state.histories ?? const <Attendance>[]);
+      final List<Attendance> nextHistories = (serverside.data ?? [])
+          .map((item) => Attendance.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      emit(state.copyWith(
+        serverside: serverside,
+        histories: currentHistories + nextHistories,
+        loadMore: false,
+        isLoading: false,
+        isError: false,
+        isSuccess: true,
+      ));
+    } catch (_) {
+      emit(state.copyWith(
+        loadMore: false,
+        isError: true,
+        isSuccess: false,
       ));
     }
   }

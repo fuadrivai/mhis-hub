@@ -1,10 +1,11 @@
 part of 'attendance_bloc.dart';
 
 final class AttendanceState extends Equatable {
-  final bool isLoading, isError, isSuccess, historyLoading;
+  final bool isLoading, isError, isSuccess, historyLoading, loadMore;
   final String? errorMessage;
   final Shift? shift;
   final Position? position;
+  final Pagination? serverside;
   final List<Attendance>? histories;
   final List<AttendanceLog>? logs;
   const AttendanceState({
@@ -15,8 +16,10 @@ final class AttendanceState extends Equatable {
     this.errorMessage,
     this.shift,
     this.position,
+    this.serverside,
     this.histories,
     this.logs,
+    this.loadMore = false,
   });
   AttendanceState copyWith({
     bool? isLoading,
@@ -29,6 +32,8 @@ final class AttendanceState extends Equatable {
     List<Attendance>? histories,
     List<AttendanceLog>? logs,
     Shift? shift,
+    Pagination? serverside,
+    bool? loadMore,
   }) {
     return AttendanceState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -40,6 +45,8 @@ final class AttendanceState extends Equatable {
       historyLoading: historyLoading ?? this.historyLoading,
       logs: logs ?? this.logs,
       shift: shift ?? this.shift,
+      serverside: serverside ?? this.serverside,
+      loadMore: loadMore ?? this.loadMore,
     );
   }
 
@@ -54,5 +61,7 @@ final class AttendanceState extends Equatable {
         historyLoading,
         logs,
         shift,
+        serverside,
+        loadMore,
       ];
 }

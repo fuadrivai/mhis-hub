@@ -11,3 +11,4 @@ export 'package:fl_mhis_hr/models/schedule_solat.dart';
 export 'package:fl_mhis_hr/models/kpi.dart';
 export 'package:fl_mhis_hr/models/serverside/pagination.dart';
 export 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';
+export 'package:fl_mhis_hr/models/serverside/attendance_serverside.dart';

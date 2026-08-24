@@ -110,5 +110,17 @@ class Menu {
       routeCandidates: ["school-calendar"],
       seed: 909,
     ),
+    GridMenuItem(
+      title: 'All Attendance',
+      icon: FontAwesomeIcons.clipboardList,
+      routeCandidates: ["attendance-all"],
+      seed: 202,
+    ),
+    GridMenuItem(
+      title: 'Time Off Requests',
+      icon: FontAwesomeIcons.suitcase,
+      routeCandidates: ["timeoff-requests"],
+      seed: 303,
+    ),
   ];
 }

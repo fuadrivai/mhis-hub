@@ -51,4 +51,10 @@ class AttendanceApi {
     var data = client.getCurrentAttendance();
     return data;
   }
+
+  static Future<Pagination> getAll({Map<String, dynamic>? params}) async {
+    final client = await Api.restClient(params: params);
+    var data = client.all();
+    return data;
+  }
 }

@@ -22,3 +22,17 @@ class OnGetCurrentLog extends AttendanceEvent {
   @override
   List<Object?> get props => [];
 }
+
+class OnGetAll extends AttendanceEvent {
+  final Map<String, dynamic> map;
+  const OnGetAll(this.map);
+  @override
+  List<Object?> get props => [];
+}
+
+class OnLoadMore extends AttendanceEvent {
+  final Map<String, dynamic> map;
+  const OnLoadMore(this.map);
+  @override
+  List<Object?> get props => [];
+}

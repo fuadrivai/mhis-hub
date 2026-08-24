@@ -123,4 +123,7 @@ abstract class RestClient {
 
   @GET("attendance/history/current")
   Future<List<AttendanceLog>> getCurrentAttendance();
+
+  @GET("attendance/all")
+  Future<Pagination> all();
 }

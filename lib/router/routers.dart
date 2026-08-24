@@ -209,6 +209,16 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'attendance-all',
+                name: "attendance-all",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: AllAttendanceScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'attendance/clockin',
                 name: "clockin",
                 pageBuilder: (context, state) {
