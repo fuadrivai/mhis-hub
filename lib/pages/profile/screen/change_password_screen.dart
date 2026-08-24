@@ -21,89 +21,94 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.whiteshade,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: CustomAppbar(
+          backgroundColor: AppColors.whiteshade,
+          leading: IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: "Change Password",
         ),
-        title: "Change Password",
-      ),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state.loadingFormPassword) {
-            return const LoadingWidget();
-          }
-          return SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
-              color: AppColors.white,
-              child: Form(
-                key: formKey,
-                child: Column(
-                  children: [
-                    DefaultFormField(
-                      title: "Current Password",
-                      textForm: TextFormField(
-                        obscureText: !obsecureText,
-                        controller: currentPasswordController,
-                        validator: ValidForm.emptyValue,
-                        decoration: TextFormDecoration.box(),
+        body: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            if (state.loadingFormPassword) {
+              return const LoadingWidget();
+            }
+            return SingleChildScrollView(
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+                color: AppColors.white,
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      DefaultFormField(
+                        title: "Current Password",
+                        textForm: TextFormField(
+                          obscureText: !obsecureText,
+                          controller: currentPasswordController,
+                          validator: ValidForm.emptyValue,
+                          decoration: TextFormDecoration.box(),
+                        ),
                       ),
-                    ),
-                    DefaultFormField(
-                      title: "New Password",
-                      textForm: TextFormField(
-                        obscureText: !obsecureText,
-                        controller: newPasswordController,
-                        validator: (value) => ValidForm.matchValue(
-                            value,
-                            confirmPasswordController.text,
-                            "Password not match"),
-                        decoration: TextFormDecoration.box(),
+                      DefaultFormField(
+                        title: "New Password",
+                        textForm: TextFormField(
+                          obscureText: !obsecureText,
+                          controller: newPasswordController,
+                          validator: (value) => ValidForm.matchValue(
+                              value,
+                              confirmPasswordController.text,
+                              "Password not match"),
+                          decoration: TextFormDecoration.box(),
+                        ),
                       ),
-                    ),
-                    DefaultFormField(
-                      title: "Confirm New Password",
-                      textForm: TextFormField(
-                        obscureText: !obsecureText,
-                        controller: confirmPasswordController,
-                        validator: (value) => ValidForm.matchValue(value,
-                            newPasswordController.text, "Password not match"),
-                        decoration: TextFormDecoration.box(),
+                      DefaultFormField(
+                        title: "Confirm New Password",
+                        textForm: TextFormField(
+                          obscureText: !obsecureText,
+                          controller: confirmPasswordController,
+                          validator: (value) => ValidForm.matchValue(value,
+                              newPasswordController.text, "Password not match"),
+                          decoration: TextFormDecoration.box(),
+                        ),
                       ),
-                    ),
-                    CheckboxListTile(
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: const Text("Show Password"),
-                      value: obsecureText,
-                      onChanged: (val) {
-                        setState(() {
-                          obsecureText = val!;
-                        });
-                      },
-                    ),
-                    AuthButton(
-                      onTap: () {
-                        if (formKey.currentState!.validate()) {
-                          Map<String, dynamic> data = {
-                            "oldPassword": currentPasswordController.text,
-                            "newPassword": newPasswordController.text
-                          };
-                          context
-                              .read<ProfileBloc>()
-                              .add(OnChangePassword(data));
-                        }
-                      },
-                      text: "Submit",
-                    ),
-                  ],
+                      CheckboxListTile(
+                        controlAffinity: ListTileControlAffinity.leading,
+                        title: const Text("Show Password"),
+                        value: obsecureText,
+                        onChanged: (val) {
+                          setState(() {
+                            obsecureText = val!;
+                          });
+                        },
+                      ),
+                      AuthButton(
+                        onTap: () {
+                          if (formKey.currentState!.validate()) {
+                            Map<String, dynamic> data = {
+                              "oldPassword": currentPasswordController.text,
+                              "newPassword": newPasswordController.text
+                            };
+                            context
+                                .read<ProfileBloc>()
+                                .add(OnChangePassword(data));
+                          }
+                        },
+                        text: "Submit",
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

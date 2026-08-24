@@ -1,6 +1,7 @@
 export 'package:fl_mhis_hr/pages/home/screen/home_screen.dart';
 export 'package:fl_mhis_hr/pages/home/screen/clockinout_home.dart';
 export 'package:fl_mhis_hr/pages/home/screen/calendar_card.dart';
+export 'package:fl_mhis_hr/pages/home/screen/calendar_screen.dart';
 export 'package:fl_mhis_hr/pages/home/screen/newsletter_screen.dart';
 export 'package:fl_mhis_hr/pages/home/screen/contact_screen.dart';
 export 'package:fl_mhis_hr/pages/payslip/screen/paymentslip_screen.dart';

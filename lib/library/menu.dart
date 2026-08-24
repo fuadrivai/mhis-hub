@@ -107,7 +107,7 @@ class Menu {
     GridMenuItem(
       title: 'Calendar',
       icon: FontAwesomeIcons.calendarDays,
-      routeCandidates: [],
+      routeCandidates: ["school-calendar"],
       seed: 909,
     ),
   ];

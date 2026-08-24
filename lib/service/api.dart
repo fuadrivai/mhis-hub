@@ -4,8 +4,8 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/service/restclient.dart';
 
 class Api {
-  static const String url = "http://192.168.206.62:3000";
-  // static const String url = "https://mhis-hub.mhis.link";
+  // static const String url = "http://192.168.206.62:3000";
+  static const String url = "https://mhis-hub.mhis.link";
 
   static const String baseUrl = "$url/api/";
 

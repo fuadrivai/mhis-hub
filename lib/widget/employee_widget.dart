@@ -57,6 +57,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
         ),
         child: SingleChildScrollView(
           controller: _controller,
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [

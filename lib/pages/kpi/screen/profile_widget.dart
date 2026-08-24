@@ -71,7 +71,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       backgroundImage: state.employee?.personal?.avatar == ""
                           ? AssetImage(Common.imageProfile)
                           : NetworkImage(
-                              state.employee?.personal?.avatar ?? ""),
+                              state.employee?.personal?.avatarLink ?? ""),
                     ),
                   ),
                 ),

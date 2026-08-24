@@ -67,6 +67,16 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'school-calendar',
+                name: "school-calendar",
+                pageBuilder: (context, state) {
+                  return const NoTransitionPage(
+                    child: CalendarScreen(),
+                  );
+                },
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'general-announcement',
                 name: "general-announcement",
                 pageBuilder: (context, state) {

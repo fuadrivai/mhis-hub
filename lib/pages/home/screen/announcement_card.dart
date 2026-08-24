@@ -1,6 +1,7 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/announcement.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
+import 'package:fl_mhis_hr/service/api.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -168,8 +169,19 @@ class _AnnouncementTile extends StatelessWidget {
     return initials.isEmpty ? 'A' : initials.toUpperCase();
   }
 
+  String? _avatarUrl() {
+    final avatar = announcement.creator?.personal?.avatar?.trim();
+    if (avatar == null || avatar.isEmpty) return null;
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+      return avatar;
+    }
+    return '${Api.url}/storage/$avatar';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = _avatarUrl();
+
     return GestureDetector(
       onTap: () => context.goNamed(
         'general-announcement-view',
@@ -178,21 +190,35 @@ class _AnnouncementTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primary2.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _initials(),
-              style: const TextStyle(
-                color: AppColors.primary2,
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.primary2.withValues(alpha: 0.12),
+            child: ClipOval(
+              child: avatarUrl == null
+                  ? Text(
+                      _initials(),
+                      style: const TextStyle(
+                        color: AppColors.primary2,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                      ),
+                    )
+                  : Image.network(
+                      avatarUrl,
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Text(
+                          _initials(),
+                          style: const TextStyle(
+                            color: AppColors.primary2,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                          ),
+                        );
+                      },
+                    ),
             ),
           ),
           const SizedBox(width: 12),

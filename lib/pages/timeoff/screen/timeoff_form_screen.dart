@@ -640,197 +640,46 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
     final size = MediaQuery.of(context).size;
     final schema = widget.timeoff.schema ?? <TimeoffSchema>[];
 
-    return Scaffold(
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.whiteshade,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: CustomAppbar(
+          backgroundColor: AppColors.whiteshade,
+          leading: IconButton(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back),
+          ),
+          title: widget.timeoff.name ?? "Request Timeoff",
         ),
-        title: widget.timeoff.name ?? "Request Timeoff",
-      ),
-      resizeToAvoidBottomInset: false,
-      body: BlocListener<TimeoffBloc, TimeoffState>(
-        listenWhen: (previous, current) {
-          final successTriggered = !previous.isSuccess && current.isSuccess;
-          final errorTriggered = !previous.isFormError && current.isFormError;
-          return successTriggered || errorTriggered;
-        },
-        listener: (context, state) {
-          _handleFormSubmissionState(state);
-        },
-        child: BlocBuilder<TimeoffBloc, TimeoffState>(
-          builder: (context, state) {
-            if (state.isFormLoading) {
-              return const LoadingWidget();
-            }
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: size.width > 720 ? 20 : 10,
-                vertical: 10,
-              ),
-              child: Form(
-                key: _getFormKey(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.grayshade),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.dark.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.2),
-                                    width: 2,
-                                  ),
-                                  color:
-                                      AppColors.primary.withValues(alpha: 0.1),
-                                ),
-                                child: state.employee?.personal?.avatar != null
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          state.employee?.personal!.avatar ??
-                                              "",
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) {
-                                            return const Center(
-                                              child: Icon(
-                                                Icons.person_rounded,
-                                                color: AppColors.primary,
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : const Center(
-                                        child: Icon(
-                                          Icons.person_rounded,
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      state.employee?.personal?.fullname ??
-                                          'Employee',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.dark,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      state.employee?.employment?.jobPosition
-                                              ?.name ??
-                                          '-',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.grey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            height: 1,
-                            color: AppColors.grayshade,
-                          ),
-                          const SizedBox(height: 12),
-                          // Employee Details
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Division',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.grey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      state.employee?.employment?.organization
-                                              ?.name ??
-                                          '-',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.dark,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Email',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: AppColors.grey,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      state.employee?.personal?.email ?? '-',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: AppColors.secondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (schema.isNotEmpty)
+        resizeToAvoidBottomInset: false,
+        body: BlocListener<TimeoffBloc, TimeoffState>(
+          listenWhen: (previous, current) {
+            final successTriggered = !previous.isSuccess && current.isSuccess;
+            final errorTriggered = !previous.isFormError && current.isFormError;
+            return successTriggered || errorTriggered;
+          },
+          listener: (context, state) {
+            _handleFormSubmissionState(state);
+          },
+          child: BlocBuilder<TimeoffBloc, TimeoffState>(
+            builder: (context, state) {
+              if (state.isFormLoading) {
+                return const LoadingWidget();
+              }
+              return SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(
+                  horizontal: size.width > 720 ? 20 : 10,
+                  vertical: 10,
+                ),
+                child: Form(
+                  key: _getFormKey(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(16),
@@ -847,284 +696,454 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                           ],
                         ),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ...schema.asMap().entries.map(
-                                  (entry) => _buildFormField(
-                                      context, entry.value, entry.key),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.2),
+                                      width: 2,
+                                    ),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.1),
+                                  ),
+                                  child: state.employee?.personal?.avatar !=
+                                          null
+                                      ? ClipOval(
+                                          child: Image.network(
+                                            state.employee?.personal!
+                                                    .avatarLink ??
+                                                "",
+                                            fit: BoxFit.cover,
+                                            errorBuilder:
+                                                (context, error, stackTrace) {
+                                              return const Center(
+                                                child: Icon(
+                                                  Icons.person_rounded,
+                                                  color: AppColors.primary,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Icon(
+                                            Icons.person_rounded,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
                                 ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        state.employee?.personal?.fullname ??
+                                            'Employee',
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.dark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        state.employee?.employment?.jobPosition
+                                                ?.name ??
+                                            '-',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              height: 1,
+                              color: AppColors.grayshade,
+                            ),
+                            const SizedBox(height: 12),
+                            // Employee Details
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Division',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        state.employee?.employment?.organization
+                                                ?.name ??
+                                            '-',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.dark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Email',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: AppColors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        state.employee?.personal?.email ?? '-',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.secondary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
-                      )
-                    else
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 24),
-                          child: Text(
-                            'No fields required for this timeoff type',
-                            style: TextStyle(
-                              color: AppColors.grey,
-                              fontSize: 14,
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (schema.isNotEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.grayshade),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.dark.withValues(alpha: 0.04),
+                                blurRadius: 14,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              ...schema.asMap().entries.map(
+                                    (entry) => _buildFormField(
+                                        context, entry.value, entry.key),
+                                  ),
+                            ],
+                          ),
+                        )
+                      else
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 24),
+                            child: Text(
+                              'No fields required for this timeoff type',
+                              style: TextStyle(
+                                color: AppColors.grey,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    const SizedBox(height: 10),
+                      const SizedBox(height: 10),
 
-                    // Additional fields
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.grayshade),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.dark.withValues(alpha: 0.04),
-                            blurRadius: 14,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Attachment',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color.fromARGB(255, 22, 21, 21),
+                      // Additional fields
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.grayshade),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.dark.withValues(alpha: 0.04),
+                              blurRadius: 14,
+                              offset: const Offset(0, 8),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: _pickAttachment,
-                              icon: const Icon(Icons.attach_file_rounded),
-                              label: Text(
-                                _attachmentFile == null
-                                    ? 'Add Attachment'
-                                    : 'Attachment Selected',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side:
-                                    const BorderSide(color: AppColors.primary),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Attachment',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromARGB(255, 22, 21, 21),
                               ),
                             ),
-                          ),
-                          if (_attachmentFile != null) ...[
-                            const SizedBox(height: 8),
-                            if (_isImageAttachment(_attachmentFile!) &&
-                                _attachmentFile!.bytes != null) ...[
-                              Container(
-                                width: double.infinity,
-                                height: 180,
-                                margin: const EdgeInsets.only(bottom: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  border:
-                                      Border.all(color: AppColors.grayshade),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _pickAttachment,
+                                icon: const Icon(Icons.attach_file_rounded),
+                                label: Text(
+                                  _attachmentFile == null
+                                      ? 'Add Attachment'
+                                      : 'Attachment Selected',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Image.memory(
-                                  _attachmentFile!.bytes!,
-                                  fit: BoxFit.cover,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.primary,
+                                  side: const BorderSide(
+                                      color: AppColors.primary),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                 ),
                               ),
-                            ],
-                            if (_isPdfAttachment(_attachmentFile!)) ...[
+                            ),
+                            if (_attachmentFile != null) ...[
+                              const SizedBox(height: 8),
+                              if (_isImageAttachment(_attachmentFile!) &&
+                                  _attachmentFile!.bytes != null) ...[
+                                Container(
+                                  width: double.infinity,
+                                  height: 180,
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border:
+                                        Border.all(color: AppColors.grayshade),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Image.memory(
+                                    _attachmentFile!.bytes!,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ],
+                              if (_isPdfAttachment(_attachmentFile!)) ...[
+                                Container(
+                                  width: double.infinity,
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.06),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.red.withValues(alpha: 0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.picture_as_pdf_rounded,
+                                        color: Colors.red.shade600,
+                                        size: 28,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'PDF Document',
+                                        style: TextStyle(
+                                          color: Colors.red.shade700,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                               Container(
                                 width: double.infinity,
-                                margin: const EdgeInsets.only(bottom: 8),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 10,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.red.withValues(alpha: 0.06),
+                                  color: AppColors.white,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.withValues(alpha: 0.2),
-                                  ),
+                                  border:
+                                      Border.all(color: AppColors.grayshade),
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      Icons.picture_as_pdf_rounded,
-                                      color: Colors.red.shade600,
-                                      size: 28,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'PDF Document',
-                                      style: TextStyle(
-                                        color: Colors.red.shade700,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color:
+                                            _isPdfAttachment(_attachmentFile!)
+                                                ? Colors.red
+                                                    .withValues(alpha: 0.1)
+                                                : AppColors.secondary
+                                                    .withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
+                                      child: Icon(
+                                        _isPdfAttachment(_attachmentFile!)
+                                            ? Icons.picture_as_pdf_rounded
+                                            : _isImageAttachment(
+                                                    _attachmentFile!)
+                                                ? Icons.image_rounded
+                                                : Icons
+                                                    .insert_drive_file_rounded,
+                                        size: 20,
+                                        color:
+                                            _isPdfAttachment(_attachmentFile!)
+                                                ? Colors.red.shade600
+                                                : _isImageAttachment(
+                                                        _attachmentFile!)
+                                                    ? Colors.blue.shade600
+                                                    : AppColors.secondary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _attachmentFile!.name,
+                                            style: const TextStyle(
+                                              color: AppColors.dark,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${(_attachmentFile!.size / 1024).toStringAsFixed(2)} KB',
+                                            style: TextStyle(
+                                              color: AppColors.grey,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() => _attachmentFile = null);
+                                      },
+                                      icon: const Icon(
+                                        Icons.close_rounded,
+                                        color: AppColors.danger,
+                                        size: 20,
+                                      ),
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.all(4),
+                                      tooltip: 'Delete attachment',
                                     ),
                                   ],
                                 ),
                               ),
                             ],
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
+                            const SizedBox(height: 10),
+                            const Text(
+                              'Notes',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Color.fromARGB(255, 22, 21, 21),
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppColors.grayshade),
+                            ),
+                            const SizedBox(height: 10),
+                            TextFormField(
+                              controller: _noteController,
+                              maxLines: 4,
+                              decoration: TextFormDecoration.box(
+                                hintText: 'Type note',
                               ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      color: _isPdfAttachment(_attachmentFile!)
-                                          ? Colors.red.withValues(alpha: 0.1)
-                                          : AppColors.secondary
-                                              .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      _isPdfAttachment(_attachmentFile!)
-                                          ? Icons.picture_as_pdf_rounded
-                                          : _isImageAttachment(_attachmentFile!)
-                                              ? Icons.image_rounded
-                                              : Icons.insert_drive_file_rounded,
-                                      size: 20,
-                                      color: _isPdfAttachment(_attachmentFile!)
-                                          ? Colors.red.shade600
-                                          : _isImageAttachment(_attachmentFile!)
-                                              ? Colors.blue.shade600
-                                              : AppColors.secondary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _attachmentFile!.name,
-                                          style: const TextStyle(
-                                            color: AppColors.dark,
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          '${(_attachmentFile!.size / 1024).toStringAsFixed(2)} KB',
-                                          style: TextStyle(
-                                            color: AppColors.grey,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: () {
-                                      setState(() => _attachmentFile = null);
-                                    },
-                                    icon: const Icon(
-                                      Icons.close_rounded,
-                                      color: AppColors.danger,
-                                      size: 20,
-                                    ),
-                                    constraints: const BoxConstraints(),
-                                    padding: const EdgeInsets.all(4),
-                                    tooltip: 'Delete attachment',
-                                  ),
-                                ],
-                              ),
+                              textInputAction: TextInputAction.done,
                             ),
                           ],
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Notes',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color.fromARGB(255, 22, 21, 21),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextFormField(
-                            controller: _noteController,
-                            maxLines: 4,
-                            decoration: TextFormDecoration.box(
-                              hintText: 'Type note',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Submit button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: state.isFormLoading ? null : _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.white,
-                          disabledBackgroundColor:
-                              AppColors.primary.withValues(alpha: 0.6),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
                         ),
-                        icon: state.isFormLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.white,
+                      ),
+                      const SizedBox(height: 24),
+                      // Submit button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: state.isFormLoading ? null : _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
+                            disabledBackgroundColor:
+                                AppColors.primary.withValues(alpha: 0.6),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          icon: state.isFormLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.white,
+                                    ),
                                   ),
-                                ),
-                              )
-                            : const Icon(Icons.send_rounded),
-                        label: Text(
-                          state.isFormLoading
-                              ? 'Submitting...'
-                              : 'Submit Request',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
+                                )
+                              : const Icon(Icons.send_rounded),
+                          label: Text(
+                            state.isFormLoading
+                                ? 'Submitting...'
+                                : 'Submit Request',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
     DateTime now = DateTime.now();
     _calendarController.selectedDate = DateTime(now.year, now.month, now.day);
     context.read<HomeBloc>().add(const OnInitAttendance());
-    context.read<HomeBloc>().add(const OnInitCalendar());
+    // context.read<HomeBloc>().add(const OnInitCalendar());
     context.read<HomeBloc>().add(const OnInitAnnouncement());
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return RefreshIndicator(
       onRefresh: () async {
         context.read<HomeBloc>().add(const OnInitAttendance());
-        context.read<HomeBloc>().add(const OnInitCalendar());
+        // context.read<HomeBloc>().add(const OnInitCalendar());
         context.read<HomeBloc>().add(const OnInitAnnouncement());
       },
       child: Scaffold(
@@ -89,8 +89,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const ClockInOutHome(),
               const InformationHomeWidget(),
               const AnnouncementCard(),
-              const CalendarCard(),
-              const SizedBox(height: 10),
+              // const CalendarCard(),
+              const SizedBox(height: 5),
             ],
           ),
         ),

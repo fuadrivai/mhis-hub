@@ -37,52 +37,52 @@ PODS:
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
-  - Firebase/Auth (12.14.0):
+  - Firebase/Auth (12.15.0):
     - Firebase/CoreOnly
-    - FirebaseAuth (~> 12.14.0)
-  - Firebase/CoreOnly (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-  - Firebase/Messaging (12.14.0):
+    - FirebaseAuth (~> 12.15.0)
+  - Firebase/CoreOnly (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+  - Firebase/Messaging (12.15.0):
     - Firebase/CoreOnly
-    - FirebaseMessaging (~> 12.14.0)
-  - firebase_auth (6.5.2):
-    - Firebase/Auth (= 12.14.0)
+    - FirebaseMessaging (~> 12.15.0)
+  - firebase_auth (6.5.6):
+    - Firebase/Auth (= 12.15.0)
     - firebase_core
     - Flutter
-  - firebase_core (4.10.0):
-    - Firebase/CoreOnly (= 12.14.0)
+  - firebase_core (4.12.1):
+    - Firebase/CoreOnly (= 12.15.0)
     - Flutter
-  - firebase_messaging (16.3.0):
-    - Firebase/Messaging (= 12.14.0)
+  - firebase_messaging (16.4.3):
+    - Firebase/Messaging (= 12.15.0)
     - firebase_core
     - Flutter
-  - FirebaseAppCheckInterop (12.14.0)
-  - FirebaseAuth (12.14.0):
-    - FirebaseAppCheckInterop (~> 12.14.0)
-    - FirebaseAuthInterop (~> 12.14.0)
-    - FirebaseCore (~> 12.14.0)
-    - FirebaseCoreExtension (~> 12.14.0)
+  - FirebaseAppCheckInterop (12.15.0)
+  - FirebaseAuth (12.15.0):
+    - FirebaseAppCheckInterop (~> 12.15.0)
+    - FirebaseAuthInterop (~> 12.15.0)
+    - FirebaseCore (~> 12.15.0)
+    - FirebaseCoreExtension (~> 12.15.0)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
     - GTMSessionFetcher/Core (< 6.0, >= 3.4)
     - RecaptchaInterop (~> 101.0)
-  - FirebaseAuthInterop (12.14.0)
-  - FirebaseCore (12.14.0):
-    - FirebaseCoreInternal (~> 12.14.0)
+  - FirebaseAuthInterop (12.15.0)
+  - FirebaseCore (12.15.0):
+    - FirebaseCoreInternal (~> 12.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
-  - FirebaseCoreExtension (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-  - FirebaseCoreInternal (12.14.0):
+  - FirebaseCoreExtension (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+  - FirebaseCoreInternal (12.15.0):
     - "GoogleUtilities/NSData+zlib (~> 8.1)"
-  - FirebaseInstallations (12.14.0):
-    - FirebaseCore (~> 12.14.0)
+  - FirebaseInstallations (12.15.0):
+    - FirebaseCore (~> 12.15.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
-  - FirebaseMessaging (12.14.0):
-    - FirebaseCore (~> 12.14.0)
-    - FirebaseInstallations (~> 12.14.0)
+  - FirebaseMessaging (12.15.0):
+    - FirebaseCore (~> 12.15.0)
+    - FirebaseInstallations (~> 12.15.0)
     - GoogleDataTransport (~> 10.1)
     - GoogleUtilities/AppDelegateSwizzler (~> 8.1)
     - GoogleUtilities/Environment (~> 8.1)
@@ -90,8 +90,9 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - nanopb (~> 3.30910.0)
   - Flutter (1.0.0)
-  - geocoding_ios (1.0.5):
+  - geocoding_darwin (0.0.1):
     - Flutter
+    - FlutterMacOS
   - geolocator_apple (1.2.0):
     - Flutter
     - FlutterMacOS
@@ -101,7 +102,7 @@ PODS:
     - Flutter
     - Google-Maps-iOS-Utils (< 7.0, >= 5.0)
     - GoogleMaps (< 11.0, >= 8.4)
-  - GoogleDataTransport (10.1.0):
+  - GoogleDataTransport (10.1.1):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
   - GoogleMaps (9.4.0):
@@ -131,7 +132,7 @@ PODS:
   - GoogleUtilities/UserDefaults (8.1.2):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
-  - GTMSessionFetcher/Core (5.3.0)
+  - GTMSessionFetcher/Core (5.3.1)
   - image_picker_ios (0.0.1):
     - Flutter
   - local_auth_darwin (0.0.1):
@@ -169,7 +170,7 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
-  - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
+  - geocoding_darwin (from `.symlinks/plugins/geocoding_darwin/darwin`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
@@ -219,8 +220,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
-  geocoding_ios:
-    :path: ".symlinks/plugins/geocoding_ios/ios"
+  geocoding_darwin:
+    :path: ".symlinks/plugins/geocoding_darwin/darwin"
   geolocator_apple:
     :path: ".symlinks/plugins/geolocator_apple/darwin"
   google_maps_flutter_ios:
@@ -246,27 +247,27 @@ SPEC CHECKSUMS:
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   external_app_launcher: ad55ac844aa21f2d2197d7cec58ff0d0dc40bbc0
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
-  Firebase: 7cc10425300768ec86292688af5cb228f0604bde
-  firebase_auth: 08d9e2155c59dee7b84db916334a017a1c22633f
-  firebase_core: 059f6939d27b5644ea96ad8ad71a9a6e17db74f1
-  firebase_messaging: 1f7160e8953184618d25f45ae0d7131cdab97965
-  FirebaseAppCheckInterop: f123c0261a7b46f060e98fc2961651f1ac68f384
-  FirebaseAuth: 01a77d472aec77ec008141e7d859d1b9cb8dc2cf
-  FirebaseAuthInterop: 63056ef7f9602e79a8f8d756d4cb35f38e2927c3
-  FirebaseCore: 4939b340b9c598dc1f965d68f8fe57e630b65407
-  FirebaseCoreExtension: ee3e3697acea1062288b1900bcdcab4d59ab93b4
-  FirebaseCoreInternal: 090369a5fffd7423cf88006ab4d2ccc2173a8db9
-  FirebaseInstallations: 7cdc919e29dc54306edeffdbdc1eed1a40d7d1e7
-  FirebaseMessaging: 4803888ce3002188f24e19faa8d2326261538426
-  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  geocoding_ios: eafacae6ad11a1eb56681f7d11df602a5fd49416
+  Firebase: a8539b633d474fbeb654c7043f9c1649e274045b
+  firebase_auth: 92f24182be81073cb370710ad6f754932415a99b
+  firebase_core: ee2e6c050e05882c2453c21efd082627351c9d38
+  firebase_messaging: 98a853b361e297a7825720ea9ab3e98a9cb55536
+  FirebaseAppCheckInterop: 5083c9acf65f206832fe659e1c676b7bc3d55e8a
+  FirebaseAuth: 6d1d4e5875d93f82e669bee6b05a70a642025b58
+  FirebaseAuthInterop: 0778f5f24d6cccd6d67ef45832fe9c67a0b944ea
+  FirebaseCore: 2e86a4ea1684d4381707069e4a6d89ac808e901e
+  FirebaseCoreExtension: 10d2a627977b39418759ad88ada80fbbd34f1c4f
+  FirebaseCoreInternal: 6ab6a02c94446c026d2cf35cf5383842ebaa4992
+  FirebaseInstallations: eb29ccbf64eaedf86fd5b2ccc7fabde567660b52
+  FirebaseMessaging: 40017d7bc8457ee295b0f41d480a80fdabc9994e
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
+  geocoding_darwin: 6b25f60c5c0855c2061f097ca17c937a827b8a76
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   Google-Maps-iOS-Utils: 0a484b05ed21d88c9f9ebbacb007956edd508a96
   google_maps_flutter_ios: 5f2ee3f5cc4fc2398574367f893e3f97bbbcea39
-  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleDataTransport: a24e58982ab3ba2f64d79613e027fe7f57e88539
   GoogleMaps: 0608099d4870cac8754bdba9b6953db543432438
   GoogleUtilities: 766ace00c6b10d8148408f329d10c4f051931850
-  GTMSessionFetcher: 127211aeec0b1e904fc49f4f6f895dcc535b0ecf
+  GTMSessionFetcher: a6d2b2aa203485893d4511ff64642dc811f7c09f
   image_picker_ios: 4f2f91b01abdb52842a8e277617df877e40f905b
   local_auth_darwin: 63c73d6d28cc3e239be2b6aa460ea6e317cd5100
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275

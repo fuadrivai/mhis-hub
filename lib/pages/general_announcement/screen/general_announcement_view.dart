@@ -50,7 +50,7 @@ class _GeneralAnnouncementViewState extends State<GeneralAnnouncementView> {
           onPressed: () => context.pop(),
           icon: const Icon(Icons.arrow_back),
         ),
-        title: ann.title ?? "Announcement",
+        title: "Announcement",
       ),
       body: SingleChildScrollView(
         child: Padding(
