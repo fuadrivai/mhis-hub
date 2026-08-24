@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
@@ -21,6 +23,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
   final ScrollController _scrollController = ScrollController();
   DateTime _selectedDate = DateTime.now();
   String _searchQuery = '';
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -28,8 +31,10 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
     context.read<AttendanceBloc>().add(OnGetAll(_requestParams()));
     _scrollController.addListener(_onScroll);
     _searchController.addListener(() {
-      setState(
-          () => _searchQuery = _searchController.text.trim().toLowerCase());
+      final query = _searchController.text.trim().toLowerCase();
+      setState(() => _searchQuery = query);
+      _searchDebounce?.cancel();
+      _searchDebounce = Timer(const Duration(milliseconds: 400), _reload);
     });
   }
 
@@ -37,6 +42,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -210,6 +216,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
   Map<String, dynamic> _requestParams({int? page}) {
     return {
       'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
+      if (_searchQuery.isNotEmpty) 'search': _searchQuery,
       if (page != null) 'page': page,
     };
   }
