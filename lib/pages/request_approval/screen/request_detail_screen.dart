@@ -693,32 +693,119 @@ class _AttachmentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isImage = _isImageFile;
+    final isPdf = _extension == 'pdf';
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.attach_file, size: 16, color: AppColors.blackshade),
-          const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Common.launchExternalUrl(attachment.link);
-              },
-              child: Text(
-                attachment.fileName,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.secondary,
-                  decoration: TextDecoration.underline,
+          if (isImage)
+            GestureDetector(
+              onTap: () => _showFullScreenImage(context),
+              child: Container(
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Image.network(
+                  attachment.link,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.blackshade,
+                    size: 32,
+                  ),
                 ),
               ),
             ),
-          ),
-          Text(
-            _formatSize(attachment.fileSize),
-            style: const TextStyle(fontSize: 12, color: AppColors.blackshade),
+          if (isImage) const SizedBox(height: 8),
+          InkWell(
+            onTap: () => Common.launchExternalUrl(attachment.link),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Icon(
+                    isPdf
+                        ? Icons.picture_as_pdf_rounded
+                        : isImage
+                            ? Icons.image_rounded
+                            : Icons.attach_file,
+                    size: 20,
+                    color: isPdf ? Colors.red.shade600 : AppColors.blackshade,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      attachment.fileName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.secondary,
+                        decoration: TextDecoration.underline,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Text(
+                    _formatSize(attachment.fileSize),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.blackshade,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  String get _extension {
+    final name = attachment.fileName.split('?').first;
+    final dot = name.lastIndexOf('.');
+    return dot == -1 ? '' : name.substring(dot + 1).toLowerCase();
+  }
+
+  bool get _isImageFile =>
+      _extension == 'jpg' || _extension == 'jpeg' || _extension == 'png';
+
+  void _showFullScreenImage(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black,
+      builder: (dialogContext) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            icon: const Icon(Icons.close),
+          ),
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            child: Image.network(
+              attachment.link,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => const Icon(
+                Icons.broken_image_outlined,
+                color: Colors.white,
+                size: 48,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

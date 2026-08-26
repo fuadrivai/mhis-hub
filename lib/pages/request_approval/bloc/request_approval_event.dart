@@ -18,6 +18,13 @@ class OnInitApproval extends RequestApprovalEvent {
   List<Object?> get props => [map];
 }
 
+class OnInitAllTimeoff extends RequestApprovalEvent {
+  final Map<String, dynamic> map;
+  const OnInitAllTimeoff(this.map);
+  @override
+  List<Object?> get props => [map];
+}
+
 class OnInitDetail extends RequestApprovalEvent {
   final int id;
   const OnInitDetail(this.id);
@@ -38,4 +45,10 @@ class PostCancelRequest extends RequestApprovalEvent {
   const PostCancelRequest(this.id, this.map);
   @override
   List<Object?> get props => [id, map];
+}
+
+class OnGetBalance extends RequestApprovalEvent {
+  const OnGetBalance();
+  @override
+  List<Object?> get props => [];
 }

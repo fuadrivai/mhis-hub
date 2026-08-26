@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+import 'package:fl_mhis_hr/library/constant.dart';
+import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/request_approval/repository/request_approval_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,8 +12,10 @@ part 'request_approval_state.dart';
 class RequestApprovalBloc
     extends Bloc<RequestApprovalEvent, RequestApprovalState> {
   RequestApprovalBloc() : super(const RequestApprovalState()) {
+    on<OnGetBalance>(_onGetBalance);
     on<OnInitRequest>(_onInitRequest);
     on<OnInitApproval>(_onInitApproval);
+    on<OnInitAllTimeoff>(_onInitAllTimeoff);
     on<OnInitDetail>(_onInitDetail);
     on<PostAction>(_onPostAction);
     on<PostCancelRequest>(_onPostCancelRequest);
@@ -88,6 +92,39 @@ class RequestApprovalBloc
         isSuccess: false,
         loadMore: false,
         errorMessage: errorMessage,
+      ));
+    }
+  }
+
+  void _onInitAllTimeoff(
+      OnInitAllTimeoff event, Emitter<RequestApprovalState> emit) async {
+    emit(state.copyWith(
+      isLoading: true,
+      isError: false,
+      isSuccess: false,
+      allTimeoffRequests: const [],
+    ));
+
+    try {
+      final Pagination pagination =
+          await RequestApprovalApi.getAllTimeoff(event.map);
+      final requests = (pagination.data ?? [])
+          .map((item) => ApprovalRequest.fromJson(item as Map<String, dynamic>))
+          .toList();
+
+      emit(state.copyWith(
+        isLoading: false,
+        isError: false,
+        isSuccess: true,
+        allTimeoffRequests: requests,
+        allTimeoffPagination: pagination,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        isLoading: false,
+        isError: true,
+        isSuccess: false,
+        errorMessage: _extractErrorMessage(e),
       ));
     }
   }
@@ -169,6 +206,42 @@ class RequestApprovalBloc
         isFormLoading: false,
         isFormError: true,
         isFormSuccess: false,
+        errorMessage: errorMessage,
+      ));
+    }
+  }
+
+  void _onGetBalance(
+      OnGetBalance event, Emitter<RequestApprovalState> emit) async {
+    try {
+      emit(state.copyWith(
+        isBalanceLoading: true,
+        isBalanceError: false,
+        isBalanceSuccess: false,
+        isBalanceEmpty: true,
+      ));
+
+      String? employeeId = await Session.get('employeeId');
+
+      LeaveAllocation? leaveBalance = await RequestApprovalApi.getLeaveBalance(
+          int.parse(employeeId ?? '0'));
+
+      bool isBalanceEmpty =
+          leaveBalance.total == 0 || leaveBalance.total == null;
+
+      emit(state.copyWith(
+        isBalanceLoading: false,
+        isBalanceError: false,
+        isBalanceSuccess: true,
+        isBalanceEmpty: isBalanceEmpty,
+        leaveBalance: leaveBalance,
+      ));
+    } catch (e) {
+      final errorMessage = _extractErrorMessage(e);
+      emit(state.copyWith(
+        isBalanceLoading: false,
+        isBalanceError: true,
+        isBalanceSuccess: false,
         errorMessage: errorMessage,
       ));
     }

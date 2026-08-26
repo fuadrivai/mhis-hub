@@ -1,3 +1,4 @@
+import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
@@ -32,6 +33,18 @@ class RequestApprovalApi {
       int id, Map<String, dynamic> params) async {
     final client = await Api.restClient();
     var data = client.postCancelRequest(id, params);
+    return data;
+  }
+
+  static Future<LeaveAllocation> getLeaveBalance(int id) async {
+    final client = await Api.restClient();
+    var data = client.getLeaveBalance(id);
+    return data;
+  }
+
+  static Future<Pagination> getAllTimeoff(Map<String, dynamic> params) async {
+    final client = await Api.restClient();
+    var data = client.getAllTimeoff(params);
     return data;
   }
 }

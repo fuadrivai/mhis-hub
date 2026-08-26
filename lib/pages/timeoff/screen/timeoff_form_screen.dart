@@ -3,6 +3,7 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/timeoff/bloc/timeoff_bloc.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
   Map<String, TextEditingController>? _controllers;
   final TextEditingController _noteController = TextEditingController();
   PlatformFile? _attachmentFile;
+  Uint8List? _attachmentBytes;
 
   @override
   void initState() {
@@ -149,12 +151,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
 
     try {
       if (choice == _AttachmentSource.file) {
-        final result = await FilePicker.pickFiles(
-          allowMultiple: false,
-          withData: true,
-        );
-        if (result != null && result.files.isNotEmpty && mounted) {
-          setState(() => _attachmentFile = result.files.first);
+        final result = await FilePicker.pickFiles();
+        if (result.isNotEmpty && mounted) {
+          setState(() {
+            _attachmentFile = result.first;
+            _attachmentBytes = null;
+          });
         }
       } else {
         final picker = ImagePicker();
@@ -166,13 +168,9 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         );
         if (image != null && mounted) {
           final bytes = await image.readAsBytes();
+          _attachmentFile = await FilePicker.pickFile();
           setState(() {
-            _attachmentFile = PlatformFile(
-              name: image.name,
-              size: bytes.length,
-              bytes: bytes,
-              path: image.path,
-            );
+            _attachmentBytes = bytes;
           });
         }
       }
@@ -936,7 +934,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                             if (_attachmentFile != null) ...[
                               const SizedBox(height: 8),
                               if (_isImageAttachment(_attachmentFile!) &&
-                                  _attachmentFile!.bytes != null) ...[
+                                  _attachmentBytes != null) ...[
                                 Container(
                                   width: double.infinity,
                                   height: 180,
@@ -948,7 +946,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                   ),
                                   clipBehavior: Clip.antiAlias,
                                   child: Image.memory(
-                                    _attachmentFile!.bytes!,
+                                    _attachmentBytes!,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -1050,7 +1048,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            '${(_attachmentFile!.size / 1024).toStringAsFixed(2)} KB',
+                                            '${((_attachmentBytes?.lengthInBytes ?? 0) / 1024).toStringAsFixed(2)} KB',
                                             style: TextStyle(
                                               color: AppColors.grey,
                                               fontSize: 11,
@@ -1062,7 +1060,10 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                     ),
                                     IconButton(
                                       onPressed: () {
-                                        setState(() => _attachmentFile = null);
+                                        setState(() {
+                                          _attachmentFile = null;
+                                          _attachmentBytes = null;
+                                        });
                                       },
                                       icon: const Icon(
                                         Icons.close_rounded,

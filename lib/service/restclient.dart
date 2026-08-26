@@ -126,4 +126,10 @@ abstract class RestClient {
 
   @GET("attendance/all")
   Future<Pagination> all();
+
+  @GET("time/leave/balance/employee/{id}")
+  Future<LeaveAllocation> getLeaveBalance(@Path() int id);
+
+  @GET("time/request/pagination")
+  Future<Pagination> getAllTimeoff(@Body() Map<String, dynamic> post);
 }

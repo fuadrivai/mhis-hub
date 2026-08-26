@@ -39,9 +39,10 @@ class ApprovalRule {
       position: json['position'] != null
           ? JobPosition.fromJson(json['position'])
           : null,
-      steps: (json['steps'] as List<dynamic>)
-          .map((e) => ApprovalStep.fromJson(e))
-          .toList(),
+      steps: (json['steps'] as List<dynamic>?)
+              ?.map((e) => ApprovalStep.fromJson(e))
+              .toList() ??
+          const [],
     );
   }
 

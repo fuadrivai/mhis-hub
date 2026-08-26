@@ -29,6 +29,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
     String month = Jiffy.parseFromDateTime(selectedDate).format(pattern: "M");
     map = {"month": month, "year": year};
     context.read<RequestApprovalBloc>().add(OnInitRequest(map));
+    context.read<RequestApprovalBloc>().add(OnGetBalance());
   }
 
   @override
@@ -44,7 +45,28 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-              child: BalanceCard(),
+              child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+                builder: (context, state) {
+                  if (state.isBalanceLoading) {
+                    return const LoadingShimmer(height: 150);
+                  }
+                  if (state.isBalanceError) {
+                    return const Text(
+                      "Failed to load balance",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.red,
+                      ),
+                    );
+                  }
+                  if (state.isBalanceEmpty == true) {
+                    return const BalanceCard();
+                  }
+                  LeaveAllocation? leaveBalance = state.leaveBalance;
+                  return BalanceCardWidget(leaveBalance: leaveBalance);
+                },
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -114,7 +136,13 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
               child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
                   builder: (context, state) {
                 if (state.isLoading) {
-                  return LoadingWidget();
+                  return const Column(
+                    children: [
+                      LoadingShimmer(height: 105),
+                      LoadingShimmer(height: 105),
+                      LoadingShimmer(height: 105),
+                    ],
+                  );
                 }
                 if (state.requests.isEmpty) {
                   return Padding(
@@ -239,6 +267,128 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class BalanceCardWidget extends StatelessWidget {
+  final LeaveAllocation? leaveBalance;
+
+  const BalanceCardWidget({super.key, this.leaveBalance});
+
+  @override
+  Widget build(BuildContext context) {
+    final int total = leaveBalance?.total ?? 0;
+    final int used = leaveBalance?.used ?? 0;
+    final int remaining = leaveBalance?.remaining ?? 0;
+    final double progress = total > 0 ? (used / total).clamp(0.0, 1.0) : 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(top: 10, bottom: 1, left: 1, right: 1),
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Text(
+            'My balance',
+            style: TextStyle(
+              color: AppColors.whiteshade,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '$remaining',
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 34,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.only(left: 6, bottom: 5),
+                      child: Text(
+                        'days remaining',
+                        style: TextStyle(color: Colors.black54, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 7,
+                    backgroundColor: AppColors.danger.withValues(alpha: 0.15),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      AppColors.danger,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                        child: _BalanceMetric(label: 'Total', value: total)),
+                    Expanded(child: _BalanceMetric(label: 'Used', value: used)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BalanceMetric extends StatelessWidget {
+  final String label;
+  final int value;
+
+  const _BalanceMetric({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '$value days',
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

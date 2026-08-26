@@ -147,6 +147,14 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'home/timeoff-requests',
+                name: 'timeoff-requests',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: AllTimeoffScreen(),
+                ),
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'payment-slip',
                 name: "paymentsllip",
                 pageBuilder: (context, state) {
