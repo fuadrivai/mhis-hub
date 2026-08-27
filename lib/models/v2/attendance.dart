@@ -64,14 +64,14 @@ class Attendance {
     scheduleOut = json['schedule_out'];
     checkIn = json['check_in'];
     checkInPhoto = json['check_in_photo'];
-    checkInLatitude = json['check_in_latitude'];
-    checkInLongitude = json['check_in_longitude'];
-    checkInRadius = json['check_in_radius'];
+    checkInLatitude = _toDouble(json['check_in_latitude']);
+    checkInLongitude = _toDouble(json['check_in_longitude']);
+    checkInRadius = _toDouble(json['check_in_radius']);
     checkOut = json['check_out'];
     checkOutPhoto = json['check_out_photo'];
-    checkOutLatitude = json['check_out_latitude'];
-    checkOutLongitude = json['check_out_longitude'];
-    checkOutRadius = json['check_out_radius'];
+    checkOutLatitude = _toDouble(json['check_out_latitude']);
+    checkOutLongitude = _toDouble(json['check_out_longitude']);
+    checkOutRadius = _toDouble(json['check_out_radius']);
     employee =
         json['employee'] != null ? Employee.fromJson(json['employee']) : null;
     logs = json['logs'] != null
@@ -116,5 +116,11 @@ class Attendance {
       data['approvals'] = approvals!;
     }
     return data;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }

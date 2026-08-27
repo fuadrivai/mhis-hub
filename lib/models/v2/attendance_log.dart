@@ -36,9 +36,9 @@ class AttendanceLog {
     fullname = json['fullname'];
     shiftName = json['shift_name'];
     photo = json['photo'];
-    latitude = json['latitude'];
-    longitude = json['longitude'];
-    radius = json['radius'];
+    latitude = _toDouble(json['latitude']);
+    longitude = _toDouble(json['longitude']);
+    radius = _toDouble(json['radius']);
     clockDatetime = json['clock_datetime'];
     clockDate = json['clock_date'];
     time = json['time'];
@@ -70,5 +70,11 @@ class AttendanceLog {
       data['employee'] = employee!.toJson();
     }
     return data;
+  }
+
+  static double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString());
   }
 }
