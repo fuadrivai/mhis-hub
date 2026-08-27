@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -17,52 +19,114 @@ import 'package:url_strategy/url_strategy.dart';
 
 List<CameraDescription> listCamera = <CameraDescription>[];
 bool cameraPermission = false;
+
+@pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // ignore: avoid_print
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print(
-      "Message received in background: ${message.notification?.title}, ${message.notification?.body}");
+      'Handling a background message: ${message.notification?.title} ${message.notification?.body}');
 }
 
 Future<void> _setupFirebaseMessaging() async {
   final messaging = FirebaseMessaging.instance;
 
   if (Platform.isIOS || Platform.isMacOS) {
-    await messaging.requestPermission();
+    final settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    print('Notification permission: '
+        '${settings.authorizationStatus}');
+
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      return;
+    }
 
     String? apnsToken;
+
     for (int i = 0; i < 10; i++) {
       apnsToken = await messaging.getAPNSToken();
+      print('Checking APNs Token: $apnsToken');
       if (apnsToken != null && apnsToken.isNotEmpty) {
         break;
       }
+
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
     if (apnsToken == null || apnsToken.isEmpty) {
+      print('APNs Token is not available');
       return;
     }
+    print('APNs Token: $apnsToken');
   }
+
+  final fcmToken = await messaging.getToken();
+  print('FCM Token: $fcmToken');
 
   try {
     await messaging.subscribeToTopic('all');
+    print('Subscribed to topic: all');
   } on FirebaseException catch (e) {
+    print('Firebase Messaging Error: '
+        '${e.code} - ${e.message}');
+
     if (e.code != 'apns-token-not-set') {
       rethrow;
     }
   }
+
+  messaging.onTokenRefresh.listen((token) {
+    print('FCM Token Refreshed: $token');
+  });
 }
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   if (!Platform.isWindows) {
     cameraPermission = await Common.requestCameraPermission();
     listCamera = await availableCameras();
   }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await _setupFirebaseMessaging();
+
+  // Background notification
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Setup permission, APNs, FCM token
+  await _setupFirebaseMessaging();
+
+  // Foreground notification
+  FirebaseMessaging.onMessage.listen(
+    (RemoteMessage message) {
+      print('Foreground notification received');
+      print('Title: ${message.notification?.title}');
+      print('Body: ${message.notification?.body}');
+      print('Data: ${message.data}');
+    },
+  );
+
+  // Notification clicked ketika app background
+  FirebaseMessaging.onMessageOpenedApp.listen(
+    (RemoteMessage message) {
+      print('Notification clicked');
+      print('Data: ${message.data}');
+    },
+  );
+
+  // Notification clicked ketika app terminated
+  final RemoteMessage? initialMessage =
+      await FirebaseMessaging.instance.getInitialMessage();
+
+  if (initialMessage != null) {
+    print('App opened from terminated state');
+    print('Data: ${initialMessage.data}');
+  }
 
   setPathUrlStrategy();
   await initializeDateFormatting('en');

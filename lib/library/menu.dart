@@ -8,7 +8,7 @@ class Menu {
     GridMenuItem(
       title: 'Timeoff',
       icon: FontAwesomeIcons.suitcase,
-      routeCandidates: ['timeoff', 'leave'],
+      routeCandidates: ['timeoff-approval', 'leave'],
       seed: 101,
     ),
     GridMenuItem(
@@ -59,7 +59,7 @@ class Menu {
     GridMenuItem(
       title: 'Timeoff',
       icon: FontAwesomeIcons.suitcase,
-      routeCandidates: ['timeoff'],
+      routeCandidates: ['timeoff-approval'],
       seed: 101,
     ),
     GridMenuItem(

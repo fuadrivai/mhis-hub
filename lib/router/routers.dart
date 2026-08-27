@@ -123,10 +123,10 @@ class RouteNavigation {
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
                 path: 'home/timeoff',
-                name: "timeoff",
+                name: "timeoff-approval",
                 pageBuilder: (context, state) {
                   return const NoTransitionPage(
-                    child: TimeoffScreen(),
+                    child: RequestScreen(),
                   );
                 },
                 routes: [
