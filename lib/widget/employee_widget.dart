@@ -7,6 +7,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'dart:io';
+import 'package:go_router/go_router.dart';
 
 class EmployeeWidget extends StatefulWidget {
   const EmployeeWidget({super.key});
@@ -23,6 +24,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
   JobLevel? _selectedJobLevel;
   JobPosition? _selectedJobPosition;
   Map<String, dynamic> _selectedFilters = {};
+  String roles = "";
 
   @override
   void initState() {
@@ -31,6 +33,11 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
       if (_controller.position.maxScrollExtent == _controller.offset) {
         context.read<EmployeeBloc>().add(OnLoadMore(_selectedFilters));
       }
+    });
+    Session.get("roles").then((value) {
+      setState(() {
+        roles = value ?? "";
+      });
     });
     super.initState();
   }
@@ -155,141 +162,162 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                           employee.employment?.jobLevel?.name ?? '-';
                       final String branch =
                           employee.employment?.branch?.name ?? '-';
+                      final bool isAdmin =
+                          roles.toLowerCase().contains('admin');
 
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: Colors.blueGrey.shade100,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                      return GestureDetector(
+                        onTap: isAdmin
+                            ? () => context.pushNamed(
+                                  'employee-detail',
+                                  extra: {'data': employee},
+                                )
+                            : null,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.blueGrey.shade100,
                             ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  InkWell(
-                                    onTap: () async {
-                                      if (avatar.isEmpty) return;
-                                      await showDialog(
-                                        context: context,
-                                        builder: (_) => ImageDialog(
-                                          person: employee.personal!,
-                                        ),
-                                      );
-                                    },
-                                    child: CircleAvatar(
-                                      radius: 24,
-                                      backgroundImage: avatar.isEmpty
-                                          ? null
-                                          : NetworkImage(avatar),
-                                      child: avatar.isEmpty
-                                          ? const Icon(Icons.person)
-                                          : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    InkWell(
+                                      onTap: () async {
+                                        if (avatar.isEmpty) return;
+                                        await showDialog(
+                                          context: context,
+                                          builder: (_) => ImageDialog(
+                                            person: employee.personal!,
+                                          ),
+                                        );
+                                      },
+                                      child: CircleAvatar(
+                                        radius: 24,
+                                        backgroundImage: avatar.isEmpty
+                                            ? null
+                                            : NetworkImage(avatar),
+                                        child: avatar.isEmpty
+                                            ? const Icon(Icons.person)
+                                            : null,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            fullname,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            email,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade700,
+                                              fontSize: 12.5,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            mobilePhone,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              color: Colors.grey.shade700,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final badges = Wrap(
+                                      spacing: 6,
+                                      runSpacing: 6,
                                       children: [
-                                        Text(
-                                          fullname,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 15,
+                                        _infoBadge('Branch', branch),
+                                        _infoBadge('Level', level),
+                                        _infoBadge(
+                                            'Organization', organization),
+                                        _infoBadge('Position', position),
+                                      ],
+                                    );
+
+                                    final bool hasPhone = mobilePhone != '-' &&
+                                        mobilePhone.isNotEmpty;
+                                    final actions = Row(
+                                      children: [
+                                        Expanded(
+                                          child: _actionButton(
+                                            icon: FontAwesomeIcons.phoneFlip,
+                                            label: 'Phone',
+                                            color: AppColors.danger,
+                                            onTap: hasPhone
+                                                ? () => phoneDial(mobilePhone)
+                                                : null,
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          email,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey.shade700,
-                                            fontSize: 12.5,
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _actionButton(
+                                            icon: FontAwesomeIcons.envelope,
+                                            label: 'Email',
+                                            color: AppColors.blue,
+                                            onTap: () => launchEmail(email),
                                           ),
                                         ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          mobilePhone,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.grey.shade700,
-                                            fontSize: 12,
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: _actionButton(
+                                            icon: FontAwesomeIcons.whatsapp,
+                                            label: 'WhatsApp',
+                                            color: Colors.green,
+                                            onTap: hasPhone
+                                                ? () => whatsapp(mobilePhone)
+                                                : null,
                                           ),
                                         ),
                                       ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final badges = Wrap(
-                                    spacing: 6,
-                                    runSpacing: 6,
-                                    children: [
-                                      _infoBadge('Branch', branch),
-                                      _infoBadge('Level', level),
-                                      _infoBadge('Organization', organization),
-                                      _infoBadge('Position', position),
-                                    ],
-                                  );
+                                    );
 
-                                  final bool hasPhone = mobilePhone != '-' &&
-                                      mobilePhone.isNotEmpty;
-                                  final actions = Row(
-                                    children: [
-                                      Expanded(
-                                        child: _actionButton(
-                                          icon: FontAwesomeIcons.phoneFlip,
-                                          label: 'Phone',
-                                          color: AppColors.danger,
-                                          onTap: hasPhone
-                                              ? () => phoneDial(mobilePhone)
-                                              : null,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: _actionButton(
-                                          icon: FontAwesomeIcons.envelope,
-                                          label: 'Email',
-                                          color: AppColors.blue,
-                                          onTap: () => launchEmail(email),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: _actionButton(
-                                          icon: FontAwesomeIcons.whatsapp,
-                                          label: 'WhatsApp',
-                                          color: Colors.green,
-                                          onTap: hasPhone
-                                              ? () => whatsapp(mobilePhone)
-                                              : null,
-                                        ),
-                                      ),
-                                    ],
-                                  );
+                                    if (constraints.maxWidth < 420) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          badges,
+                                          const SizedBox(height: 10),
+                                          actions,
+                                        ],
+                                      );
+                                    }
 
-                                  if (constraints.maxWidth < 420) {
                                     return Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -299,20 +327,10 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                                         actions,
                                       ],
                                     );
-                                  }
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      badges,
-                                      const SizedBox(height: 10),
-                                      actions,
-                                    ],
-                                  );
-                                },
-                              ),
-                            ],
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );

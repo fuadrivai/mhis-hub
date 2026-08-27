@@ -56,6 +56,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         Session.set("token", resp.authorization?.token ?? ""),
         Session.set("userId", decodedToken["id"].toString()),
         Session.set("employeeId", decodedToken["employee_id"].toString()),
+        Session.set(
+            "roles",
+            (resp.user?.roles?.map((role) => role.name).toList() ?? [])
+                .toString()),
       ]);
       emit(state.copyWith(
         isLoading: false,

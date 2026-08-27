@@ -169,6 +169,8 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
   }
 
   Widget _buildPhotoSection(String? photoUrl) {
+    final int? warningMinutes = lateMinutes ?? earlyClockoutMinutes;
+
     return Column(
       children: [
         ClipRRect(
@@ -190,6 +192,10 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
                 : _buildPhotoPlaceholder(),
           ),
         ),
+        if (warningMinutes != null) ...[
+          const SizedBox(height: 12),
+          _buildAttendanceWarning(warningMinutes),
+        ],
       ],
     );
   }
@@ -247,6 +253,102 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
             label: "Position",
             value:
                 widget.attendance?.employee?.employment?.jobPositionName ?? "-",
+          ),
+        ],
+      ),
+    );
+  }
+
+  int? get lateMinutes {
+    if (widget.attendance?.type != 'check_in') return null;
+
+    final DateTime? clockedAt = _clockedAt;
+    final String? scheduleIn = widget.attendance?.attendance?.scheduleIn;
+    if (clockedAt == null || scheduleIn == null || scheduleIn.isEmpty) {
+      return null;
+    }
+
+    final List<String> parts = scheduleIn.split(':');
+    if (parts.length < 2) return null;
+    final int? hour = int.tryParse(parts[0]);
+    final int? minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+
+    final DateTime scheduledAt = DateTime(
+      clockedAt.year,
+      clockedAt.month,
+      clockedAt.day,
+      hour,
+      minute,
+    );
+    final int difference = clockedAt.difference(scheduledAt).inMinutes;
+    return difference > 0 ? difference : null;
+  }
+
+  int? get earlyClockoutMinutes {
+    if (widget.attendance?.type != 'check_out') return null;
+
+    final DateTime? clockedAt = _clockedAt;
+    final String? scheduleOut = widget.attendance?.attendance?.scheduleOut;
+    if (clockedAt == null || scheduleOut == null || scheduleOut.isEmpty) {
+      return null;
+    }
+
+    final List<String> parts = scheduleOut.split(':');
+    if (parts.length < 2) return null;
+    final int? hour = int.tryParse(parts[0]);
+    final int? minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+
+    final DateTime scheduledAt = DateTime(
+      clockedAt.year,
+      clockedAt.month,
+      clockedAt.day,
+      hour,
+      minute,
+    );
+    final int difference = scheduledAt.difference(clockedAt).inMinutes;
+    return difference > 0 ? difference : null;
+  }
+
+  DateTime? get _clockedAt {
+    final String? clockDatetime = widget.attendance?.clockDatetime;
+    if (clockDatetime != null && clockDatetime.isNotEmpty) {
+      return DateTime.tryParse(clockDatetime);
+    }
+
+    final String? clockDate = widget.attendance?.clockDate;
+    final String? time = widget.attendance?.time;
+    if (clockDate == null || time == null) return null;
+    return DateTime.tryParse('$clockDate ${time.trim()}');
+  }
+
+  Widget _buildAttendanceWarning(int minutes) {
+    final bool isEarlyClockout = earlyClockoutMinutes != null;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.schedule_rounded, color: Colors.orange),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isEarlyClockout
+                  ? 'You clocked out $minutes ${minutes == 1 ? 'minute' : 'minutes'} early'
+                  : 'You arrived $minutes ${minutes == 1 ? 'minute' : 'minutes'} late',
+              style: const TextStyle(
+                color: Color(0xff9a5b00),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
         ],
       ),

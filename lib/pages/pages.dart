@@ -19,6 +19,7 @@ export 'package:fl_mhis_hr/pages/attendance/screen/attendance_history_screen.dar
 export 'package:fl_mhis_hr/pages/attendance/screen/all_attendance_screen.dart';
 export 'package:fl_mhis_hr/pages/attendance/screen/success_screen.dart';
 export 'package:fl_mhis_hr/pages/employee/screen/employee_screen_v2.dart';
+export 'package:fl_mhis_hr/pages/employee/screen/employee_detail_screen.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/clock_in_prayer_screen.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/pray_map_screen.dart';
 export 'package:fl_mhis_hr/pages/kpi/screen/kpi_screen.dart';

@@ -172,6 +172,21 @@ class RouteNavigation {
                     child: ContactScreen(),
                   );
                 },
+                routes: [
+                  GoRoute(
+                    parentNavigatorKey: _nav.navKey,
+                    path: 'detail',
+                    name: 'employee-detail',
+                    pageBuilder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>;
+                      return NoTransitionPage(
+                        child: EmployeeDetailScreen(
+                          employee: extra['data'] as Employee,
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
