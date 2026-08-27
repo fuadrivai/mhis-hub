@@ -17,6 +17,21 @@ class OnGetHistory extends AttendanceEvent {
   List<Object?> get props => [];
 }
 
+class OnGetAttendanceSummary extends AttendanceEvent {
+  final Map<String, dynamic> map;
+  const OnGetAttendanceSummary(this.map);
+
+  @override
+  List<Object?> get props => [map];
+}
+
+class OnGetCutoff extends AttendanceEvent {
+  const OnGetCutoff();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class OnGetCurrentLog extends AttendanceEvent {
   const OnGetCurrentLog();
   @override

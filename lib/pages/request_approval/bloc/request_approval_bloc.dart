@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
+import 'package:fl_mhis_hr/pages/general_announcement/data/general_announcement_api.dart';
 import 'package:fl_mhis_hr/pages/request_approval/repository/request_approval_api.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,6 +17,7 @@ class RequestApprovalBloc
     on<OnInitRequest>(_onInitRequest);
     on<OnInitApproval>(_onInitApproval);
     on<OnInitAllTimeoff>(_onInitAllTimeoff);
+    on<OnInitAllTimeoffFilters>(_onInitAllTimeoffFilters);
     on<OnInitDetail>(_onInitDetail);
     on<PostAction>(_onPostAction);
     on<PostCancelRequest>(_onPostCancelRequest);
@@ -126,6 +128,39 @@ class RequestApprovalBloc
         isSuccess: false,
         errorMessage: _extractErrorMessage(e),
       ));
+    }
+  }
+
+  Future<void> _onInitAllTimeoffFilters(
+      OnInitAllTimeoffFilters event, Emitter<RequestApprovalState> emit) async {
+    if (state.isFilterLoading ||
+        (state.branches.isNotEmpty &&
+            state.organizations.isNotEmpty &&
+            state.jobLevels.isNotEmpty &&
+            state.jobPositions.isNotEmpty)) {
+      return;
+    }
+
+    emit(state.copyWith(isFilterLoading: true, isFilterError: false));
+    try {
+      final catalogs = await Future.wait<dynamic>([
+        GeneralAnnouncementApi.getBranch(),
+        GeneralAnnouncementApi.getOrganization(),
+        GeneralAnnouncementApi.getJobLevel(),
+        GeneralAnnouncementApi.getJobPosition(),
+        RequestApprovalApi.getTimeoffs(),
+      ]);
+      emit(state.copyWith(
+        isFilterLoading: false,
+        isFilterError: false,
+        branches: catalogs[0] as List<Branch>,
+        organizations: catalogs[1] as List<Organization>,
+        jobLevels: catalogs[2] as List<JobLevel>,
+        jobPositions: catalogs[3] as List<JobPosition>,
+        timeoffs: catalogs[4] as List<Timeoff>,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isFilterLoading: false, isFilterError: true));
     }
   }
 

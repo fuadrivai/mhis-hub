@@ -17,3 +17,4 @@ export 'package:fl_mhis_hr/widget/tile_widget.dart';
 export 'package:fl_mhis_hr/widget/timeoff_list_widget.dart';
 export 'package:fl_mhis_hr/widget/employee_widget.dart';
 export 'package:fl_mhis_hr/widget/loading_bottom.dart';
+export 'package:fl_mhis_hr/widget/message_widget.dart';

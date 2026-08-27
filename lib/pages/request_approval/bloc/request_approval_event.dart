@@ -25,6 +25,13 @@ class OnInitAllTimeoff extends RequestApprovalEvent {
   List<Object?> get props => [map];
 }
 
+class OnInitAllTimeoffFilters extends RequestApprovalEvent {
+  const OnInitAllTimeoffFilters();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class OnInitDetail extends RequestApprovalEvent {
   final int id;
   const OnInitDetail(this.id);

@@ -9,6 +9,8 @@ export 'package:fl_mhis_hr/models/attendance_response.dart';
 export 'package:fl_mhis_hr/models/post_prayer.dart';
 export 'package:fl_mhis_hr/models/schedule_solat.dart';
 export 'package:fl_mhis_hr/models/kpi.dart';
+export 'package:fl_mhis_hr/models/cutoff.dart';
+export 'package:fl_mhis_hr/models/attendance_summary.dart';
 export 'package:fl_mhis_hr/models/serverside/pagination.dart';
 export 'package:fl_mhis_hr/models/serverside/employee_serverside.dart';
 export 'package:fl_mhis_hr/models/serverside/attendance_serverside.dart';

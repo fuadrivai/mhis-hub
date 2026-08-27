@@ -57,4 +57,17 @@ class AttendanceApi {
     var data = client.all();
     return data;
   }
+
+  static Future<Cutoff> getCutoff() async {
+    final client = await Api.restClient();
+    var data = client.getCutoff();
+    return data;
+  }
+
+  static Future<AttendanceSummary> getAttendanceSummary(
+      Map<String, dynamic> params) async {
+    final client = await Api.restClient();
+    var data = client.getAttendanceSummary(params);
+    return data;
+  }
 }

@@ -4,6 +4,7 @@ final class RequestApprovalState extends Equatable {
   final bool isLoading, isError, isSuccess, loadMore;
   final bool isFormLoading, isFormError, isFormSuccess;
   final bool isBalanceLoading, isBalanceError, isBalanceSuccess, isBalanceEmpty;
+  final bool isFilterLoading, isFilterError;
   final String? errorMessage;
   final List<ApprovalRequest> requests;
   final List<ApprovalRequest> allTimeoffRequests;
@@ -12,6 +13,11 @@ final class RequestApprovalState extends Equatable {
   final ApprovalRequest? request;
   final Approval? approval;
   final LeaveAllocation? leaveBalance;
+  final List<Branch> branches;
+  final List<Organization> organizations;
+  final List<JobLevel> jobLevels;
+  final List<JobPosition> jobPositions;
+  final List<Timeoff> timeoffs;
   const RequestApprovalState({
     this.isLoading = false,
     this.isFormLoading = false,
@@ -23,6 +29,8 @@ final class RequestApprovalState extends Equatable {
     this.isBalanceError = false,
     this.isBalanceSuccess = false,
     this.isBalanceEmpty = false,
+    this.isFilterLoading = false,
+    this.isFilterError = false,
     this.errorMessage,
     this.loadMore = false,
     this.requests = const [],
@@ -32,6 +40,11 @@ final class RequestApprovalState extends Equatable {
     this.request,
     this.approval,
     this.leaveBalance,
+    this.branches = const [],
+    this.organizations = const [],
+    this.jobLevels = const [],
+    this.jobPositions = const [],
+    this.timeoffs = const [],
   });
   RequestApprovalState copyWith({
     bool? isLoading,
@@ -46,6 +59,8 @@ final class RequestApprovalState extends Equatable {
     bool? isBalanceError,
     bool? isBalanceSuccess,
     bool? isBalanceEmpty,
+    bool? isFilterLoading,
+    bool? isFilterError,
     List<ApprovalRequest>? requests,
     List<Approval>? approvals,
     ApprovalRequest? request,
@@ -53,6 +68,11 @@ final class RequestApprovalState extends Equatable {
     LeaveAllocation? leaveBalance,
     List<ApprovalRequest>? allTimeoffRequests,
     Pagination? allTimeoffPagination,
+    List<Branch>? branches,
+    List<Organization>? organizations,
+    List<JobLevel>? jobLevels,
+    List<JobPosition>? jobPositions,
+    List<Timeoff>? timeoffs,
   }) {
     return RequestApprovalState(
       errorMessage: errorMessage ?? this.errorMessage,
@@ -67,6 +87,8 @@ final class RequestApprovalState extends Equatable {
       isBalanceError: isBalanceError ?? this.isBalanceError,
       isBalanceSuccess: isBalanceSuccess ?? this.isBalanceSuccess,
       isBalanceEmpty: isBalanceEmpty ?? this.isBalanceEmpty,
+      isFilterLoading: isFilterLoading ?? this.isFilterLoading,
+      isFilterError: isFilterError ?? this.isFilterError,
       requests: requests ?? this.requests,
       request: request ?? this.request,
       approvals: approvals ?? this.approvals,
@@ -74,6 +96,11 @@ final class RequestApprovalState extends Equatable {
       leaveBalance: leaveBalance ?? this.leaveBalance,
       allTimeoffRequests: allTimeoffRequests ?? this.allTimeoffRequests,
       allTimeoffPagination: allTimeoffPagination ?? this.allTimeoffPagination,
+      branches: branches ?? this.branches,
+      organizations: organizations ?? this.organizations,
+      jobLevels: jobLevels ?? this.jobLevels,
+      jobPositions: jobPositions ?? this.jobPositions,
+      timeoffs: timeoffs ?? this.timeoffs,
     );
   }
 
@@ -96,7 +123,14 @@ final class RequestApprovalState extends Equatable {
         isBalanceError,
         isBalanceSuccess,
         isBalanceEmpty,
+        isFilterLoading,
+        isFilterError,
         allTimeoffRequests,
         allTimeoffPagination,
+        branches,
+        organizations,
+        jobLevels,
+        jobPositions,
+        timeoffs,
       ];
 }

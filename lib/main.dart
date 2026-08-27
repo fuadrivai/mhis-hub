@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 List<CameraDescription> listCamera = <CameraDescription>[];
@@ -64,6 +65,7 @@ void main() async {
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   setPathUrlStrategy();
+  await initializeDateFormatting('en');
   setupLocator();
   runApp(const MyApp());
 }

@@ -14,6 +14,8 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   AttendanceBloc() : super(const AttendanceState()) {
     on<OnInit>(_onInit);
     on<OnGetHistory>(_onGetHistory);
+    on<OnGetAttendanceSummary>(_onGetAttendanceSummary);
+    on<OnGetCutoff>(_onGetCutoff);
     on<OnGetCurrentLog>(_onGetCurrentLog);
     on<OnGetAll>(_onGetAll);
     on<OnLoadMore>(_onLoadMore);
@@ -73,6 +75,35 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         histories: state.histories,
         errorMessage: errorMessage,
       ));
+    }
+  }
+
+  void _onGetCutoff(OnGetCutoff event, Emitter<AttendanceState> emit) async {
+    emit(state.copyWith(cutoffLoading: true, cutoffError: false));
+    try {
+      final cutoff = await AttendanceApi.getCutoff();
+      emit(state.copyWith(
+        cutoffLoading: false,
+        cutoffError: false,
+        cutoff: cutoff,
+      ));
+    } catch (e) {
+      emit(state.copyWith(cutoffLoading: false, cutoffError: true));
+    }
+  }
+
+  void _onGetAttendanceSummary(
+      OnGetAttendanceSummary event, Emitter<AttendanceState> emit) async {
+    emit(state.copyWith(summaryLoading: true, summaryError: false));
+    try {
+      final summary = await AttendanceApi.getAttendanceSummary(event.map);
+      emit(state.copyWith(
+        summaryLoading: false,
+        summaryError: false,
+        attendanceSummary: summary,
+      ));
+    } catch (_) {
+      emit(state.copyWith(summaryLoading: false, summaryError: true));
     }
   }
 

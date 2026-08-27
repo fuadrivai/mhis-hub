@@ -3,6 +3,11 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
 class RequestApprovalApi {
+  static Future<List<Timeoff>> getTimeoffs() async {
+    final client = await Api.restClient();
+    return client.getTimeoffs();
+  }
+
   static Future<List<ApprovalRequest>> getUserTimeoff(
       Map<String, dynamic> params) async {
     final client = await Api.restClient();

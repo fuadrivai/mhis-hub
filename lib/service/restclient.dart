@@ -132,4 +132,11 @@ abstract class RestClient {
 
   @GET("time/request/pagination")
   Future<Pagination> getAllTimeoff(@Body() Map<String, dynamic> post);
+
+  @GET("attendance/cutoff")
+  Future<Cutoff> getCutoff();
+
+  @GET("attendance/summary/totals")
+  Future<AttendanceSummary> getAttendanceSummary(
+      @Body() Map<String, dynamic> map);
 }
