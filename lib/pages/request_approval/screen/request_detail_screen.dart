@@ -20,6 +20,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   int employeeId = 0;
+  bool isAdmin = false;
 
   @override
   void initState() {
@@ -28,6 +29,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
     context.read<RequestApprovalBloc>().add(OnInitDetail(widget.requestId));
     Session.get('employeeId').then((empId) {
       employeeId = int.tryParse(empId ?? '') ?? 0;
+      if (!mounted) {
+        return;
+      }
+      setState(() {});
+    });
+    Session.get('roles').then((roles) {
+      isAdmin = (roles ?? '').toLowerCase().contains('admin');
       if (!mounted) {
         return;
       }
@@ -109,6 +117,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
             final Approval? approval = request.approvals?.firstWhere(
                 (a) => a.approver?.id == employeeId,
                 orElse: () => Approval());
+            final bool showAction = approval?.showAction == true ||
+                (isAdmin && request.status?.toLowerCase() == 'pending');
             final bool canCancelRequest =
                 request.requester?.id == employeeId && request.showCancel;
 
@@ -122,6 +132,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                       _DetailTab(
                         request: request,
                         approval: approval,
+                        showAction: showAction,
                         canCancelRequest: canCancelRequest,
                       ),
                       _ApprovalTab(request: request),
@@ -273,10 +284,12 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
 class _DetailTab extends StatelessWidget {
   final ApprovalRequest request;
   final Approval? approval;
+  final bool showAction;
   final bool canCancelRequest;
   const _DetailTab({
     required this.request,
     this.approval,
+    this.showAction = false,
     this.canCancelRequest = false,
   });
 
@@ -320,9 +333,9 @@ class _DetailTab extends StatelessWidget {
                 )
               : const _EmptyHint('No attachments available'),
         ),
-        if (approval?.showAction == true || canCancelRequest) ...[
+        if (showAction || canCancelRequest) ...[
           const SizedBox(height: 12),
-          if (approval?.showAction == true)
+          if (showAction)
             Row(
               children: [
                 Expanded(
@@ -374,8 +387,7 @@ class _DetailTab extends StatelessWidget {
                 ),
               ],
             ),
-          if (approval?.showAction == true && canCancelRequest)
-            const SizedBox(height: 10),
+          if (showAction && canCancelRequest) const SizedBox(height: 10),
           if (canCancelRequest)
             SizedBox(
               width: double.infinity,
