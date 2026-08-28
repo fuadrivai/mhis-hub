@@ -37,29 +37,42 @@ Future<void> _setupFirebaseMessaging() async {
       sound: true,
     );
 
-    print('Notification permission: '
-        '${settings.authorizationStatus}');
+    print(
+      'Notification permission: '
+      '${settings.authorizationStatus}',
+    );
 
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
       return;
     }
 
+    await messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     String? apnsToken;
 
     for (int i = 0; i < 10; i++) {
       apnsToken = await messaging.getAPNSToken();
+
       print('Checking APNs Token: $apnsToken');
+
       if (apnsToken != null && apnsToken.isNotEmpty) {
         break;
       }
 
-      await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(
+        const Duration(milliseconds: 500),
+      );
     }
 
     if (apnsToken == null || apnsToken.isEmpty) {
       print('APNs Token is not available');
       return;
     }
+
     print('APNs Token: $apnsToken');
   }
 
@@ -98,9 +111,6 @@ void main() async {
   // Background notification
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // Setup permission, APNs, FCM token
-  await _setupFirebaseMessaging();
-
   // Foreground notification
   FirebaseMessaging.onMessage.listen(
     (RemoteMessage message) {
@@ -118,6 +128,8 @@ void main() async {
       print('Data: ${message.data}');
     },
   );
+  // Setup permission, APNs, FCM token
+  await _setupFirebaseMessaging();
 
   // Notification clicked ketika app terminated
   final RemoteMessage? initialMessage =

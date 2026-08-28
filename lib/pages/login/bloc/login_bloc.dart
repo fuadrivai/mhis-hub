@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
@@ -37,32 +36,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         sound: true,
       );
       FirebaseMessaging messaging = FirebaseMessaging.instance;
-      String? token;
-      if (Platform.isIOS || Platform.isMacOS) {
-        String? apnsToken;
-        for (int i = 0; i < 10; i++) {
-          try {
-            apnsToken = await messaging.getAPNSToken();
-          } on FirebaseException catch (e) {
-            if (e.code != 'apns-token-not-set') {
-              rethrow;
-            }
-          }
-          if (apnsToken != null && apnsToken.isNotEmpty) {
-            break;
-          }
-          await Future.delayed(const Duration(milliseconds: 500));
-        }
-        if (apnsToken != null && apnsToken.isNotEmpty) {
-          token = await messaging.getToken();
-        }
-      } else {
-        token = await messaging.getToken();
-      }
+      String? token = await messaging.getToken();
 
       String device = getDeviceType();
       Map<String, dynamic> map = event.data;
-      map['device_id'] = token ?? '${device.toLowerCase()}-device';
+      map['device_id'] = token;
       map['device'] = device;
 
       String password = map["password"];
