@@ -76,53 +76,91 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
           ],
         ),
       ),
-      body: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-        builder: (context, state) {
-          if (state.isFormLoading) {
-            return const LoadingWidget();
-          }
-
-          if (state.isFormError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(state.errorMessage ?? 'An error occurred'),
-              ),
-            );
-          }
-
-          if (state.request == null) {
-            return const Center(child: Text('Request detail not found'));
-          }
-
-          final ApprovalRequest request = state.request!;
-          final Approval? approval = request.approvals?.firstWhere(
-              (a) => a.approver?.id == employeeId,
-              orElse: () => Approval());
-          final bool canCancelRequest =
-              request.requester?.id == employeeId && request.showCancel;
-
-          return Column(
-            children: [
-              _buildHeader(request),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _DetailTab(
-                      request: request,
-                      approval: approval,
-                      canCancelRequest: canCancelRequest,
-                    ),
-                    _ApprovalTab(request: request),
-                  ],
-                ),
-              ),
-            ],
-          );
+      body: BlocListener<RequestApprovalBloc, RequestApprovalState>(
+        listenWhen: (previous, current) {
+          final successTriggered =
+              !previous.isFormSuccess && current.isFormSuccess;
+          final errorTriggered = !previous.isFormError && current.isFormError;
+          return successTriggered || errorTriggered;
         },
+        listener: (context, state) {
+          _handleFormSubmissionState(state);
+        },
+        child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+          builder: (context, state) {
+            if (state.isFormLoading) {
+              return const LoadingWidget();
+            }
+
+            if (state.isFormError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(state.errorMessage ?? 'An error occurred'),
+                ),
+              );
+            }
+
+            if (state.request == null) {
+              return const Center(child: Text('Request detail not found'));
+            }
+
+            final ApprovalRequest request = state.request!;
+            final Approval? approval = request.approvals?.firstWhere(
+                (a) => a.approver?.id == employeeId,
+                orElse: () => Approval());
+            final bool canCancelRequest =
+                request.requester?.id == employeeId && request.showCancel;
+
+            return Column(
+              children: [
+                _buildHeader(request),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _DetailTab(
+                        request: request,
+                        approval: approval,
+                        canCancelRequest: canCancelRequest,
+                      ),
+                      _ApprovalTab(request: request),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
+  }
+
+  Future<void> _handleFormSubmissionState(RequestApprovalState state) async {
+    if (state.isFormSuccess) {
+      Common.flushBar(
+        context,
+        title: 'Success',
+        message: 'Timeoff request submitted successfully!',
+      ).then((_) {
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) =>
+                RequestDetailScreen(requestId: state.request?.id ?? 0),
+          ),
+        );
+      });
+    } else if (state.isFormError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${state.errorMessage}'),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 
   // ─────────────────────────────────────────────── header ────────────────────

@@ -23,7 +23,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
   GlobalKey<FormState>? _formKey;
   Map<String, TextEditingController>? _controllers;
   final TextEditingController _noteController = TextEditingController();
-  PlatformFile? _attachmentFile;
+  _SelectedAttachment? _attachmentFile;
   Uint8List? _attachmentBytes;
 
   @override
@@ -58,7 +58,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
     return (_controllers?[watchedField]?.text ?? '') == expectedValue;
   }
 
-  bool _isImageAttachment(PlatformFile file) {
+  bool _isImageAttachment(_SelectedAttachment file) {
     final extension = file.extension?.toLowerCase();
     return extension == 'jpg' ||
         extension == 'jpeg' ||
@@ -68,7 +68,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         extension == 'bmp';
   }
 
-  bool _isPdfAttachment(PlatformFile file) {
+  bool _isPdfAttachment(_SelectedAttachment file) {
     return file.extension?.toLowerCase() == 'pdf';
   }
 
@@ -153,8 +153,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       if (choice == _AttachmentSource.file) {
         final result = await FilePicker.pickFiles();
         if (result.isNotEmpty && mounted) {
+          final file = result.first;
           setState(() {
-            _attachmentFile = result.first;
+            _attachmentFile = _SelectedAttachment(
+              name: file.name,
+              path: file.path,
+            );
             _attachmentBytes = null;
           });
         }
@@ -168,8 +172,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         );
         if (image != null && mounted) {
           final bytes = await image.readAsBytes();
-          _attachmentFile = await FilePicker.pickFile();
           setState(() {
+            _attachmentFile = _SelectedAttachment(
+              name: image.name,
+              bytes: bytes,
+              path: image.path,
+            );
             _attachmentBytes = bytes;
           });
         }
@@ -189,26 +197,25 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
 
   Future<void> _selectTime(BuildContext ctx, String fieldName) async {
     if (!mounted) return;
-    final controller = _getControllers()[fieldName];
+    final controllers = _getControllers();
+    final controller = controllers[fieldName];
     if (controller == null) return;
+
+    final hasTimeRange = controllers.containsKey('start_time') &&
+        controllers.containsKey('end_time');
+    final startTime = _parseTime(controllers['start_time']?.text);
+    if (fieldName == 'end_time' && hasTimeRange && startTime == null) return;
 
     FocusManager.instance.primaryFocus?.unfocus();
 
-    TimeOfDay initialTime = TimeOfDay.now();
-    final currentValue = controller.text.trim();
-    if (currentValue.isNotEmpty) {
-      final parts = currentValue.split(':');
-      if (parts.length == 2) {
-        final hour = int.tryParse(parts[0]);
-        final minute = int.tryParse(parts[1]);
-        if (hour != null && minute != null) {
-          initialTime = TimeOfDay(
-            hour: hour.clamp(0, 23),
-            minute: minute.clamp(0, 59),
-          );
-        }
-      }
-    }
+    final minimumTime =
+        fieldName == 'end_time' && hasTimeRange ? startTime! : null;
+    final currentTime = _parseTime(controller.text);
+    final initialTime = currentTime != null &&
+            (minimumTime == null ||
+                _timeMinutes(currentTime) >= _timeMinutes(minimumTime))
+        ? currentTime
+        : minimumTime ?? TimeOfDay.now();
 
     try {
       final picked = await showCupertinoModalPopup<TimeOfDay>(
@@ -267,6 +274,15 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                     child: CupertinoDatePicker(
                       mode: CupertinoDatePickerMode.time,
                       initialDateTime: selectedTime,
+                      minimumDate: minimumTime == null
+                          ? null
+                          : DateTime(
+                              2000,
+                              1,
+                              1,
+                              minimumTime.hour,
+                              minimumTime.minute,
+                            ),
                       use24hFormat: true,
                       onDateTimeChanged: (value) {
                         selectedTime = value;
@@ -284,6 +300,9 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       final h = picked.hour.toString().padLeft(2, '0');
       final m = picked.minute.toString().padLeft(2, '0');
       controller.text = '$h:$m';
+      if (fieldName == 'start_time' && hasTimeRange) {
+        controllers['end_time']?.clear();
+      }
       setState(() {});
     } catch (_) {
       if (!mounted) return;
@@ -298,6 +317,19 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       );
     }
   }
+
+  TimeOfDay? _parseTime(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final parts = value.trim().split(':');
+    if (parts.length != 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null || hour < 0 || hour > 23) return null;
+    if (minute < 0 || minute > 59) return null;
+    return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  int _timeMinutes(TimeOfDay time) => time.hour * 60 + time.minute;
 
   Future<void> _selectDuration(BuildContext ctx, String fieldName) async {
     if (!mounted) return;
@@ -439,10 +471,26 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
   }
 
   Future<void> _selectDate(String fieldName) async {
+    final controllers = _getControllers();
+    final hasDateRange = controllers.containsKey('start_date') &&
+        controllers.containsKey('end_date');
+    final startDate = _parseDate(controllers['start_date']?.text);
+    if (fieldName == 'end_date' && hasDateRange && startDate == null) return;
+
+    final minimumDate =
+        fieldName == 'end_date' && hasDateRange ? startDate! : DateTime(2000);
+    final currentDate = _parseDate(controllers[fieldName]?.text);
+    final initialDate = currentDate != null &&
+            !currentDate.isBefore(minimumDate) &&
+            !currentDate.isAfter(DateTime(2100))
+        ? currentDate
+        : fieldName == 'start_date'
+            ? DateUtils.dateOnly(DateTime.now())
+            : minimumDate;
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      initialDate: initialDate,
+      firstDate: minimumDate,
       lastDate: DateTime(2100),
       builder: (context, child) {
         return Theme(
@@ -459,8 +507,24 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       },
     );
     if (picked != null) {
-      _getControllers()[fieldName]?.text = picked.toString().split(' ')[0];
+      controllers[fieldName]?.text = _formatDate(picked);
+      if (fieldName == 'start_date' && hasDateRange) {
+        controllers['end_date']?.clear();
+      }
+      if (mounted) setState(() {});
     }
+  }
+
+  DateTime? _parseDate(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    final parsed = DateTime.tryParse(value.trim());
+    return parsed == null ? null : DateUtils.dateOnly(parsed);
+  }
+
+  String _formatDate(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
   }
 
   Future<void> _submitForm() async {
@@ -522,6 +586,16 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
     final label = schema.label ?? schema.name ?? 'Field ${index + 1}';
     final isRequired = schema.required ?? false;
     final controller = _getControllers()[fieldName];
+    final hasDateRange = _getControllers().containsKey('start_date') &&
+        _getControllers().containsKey('end_date');
+    final isEndDate = fieldName == 'end_date' && hasDateRange;
+    final startDate = _parseDate(_getControllers()['start_date']?.text);
+    final isEndDateEnabled = !isEndDate || startDate != null;
+    final hasTimeRange = _getControllers().containsKey('start_time') &&
+        _getControllers().containsKey('end_time');
+    final isEndTime = fieldName == 'end_time' && hasTimeRange;
+    final startTime = _parseTime(_getControllers()['start_time']?.text);
+    final isEndTimeEnabled = !isEndTime || startTime != null;
 
     Widget input;
 
@@ -548,9 +622,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       input = TextFormField(
         controller: controller,
         readOnly: true,
+        enabled: fieldName == 'duration' ? true : isEndTimeEnabled,
         onTap: () => fieldName == 'duration'
             ? _selectDuration(ctx, fieldName)
-            : _selectTime(ctx, fieldName),
+            : isEndTimeEnabled
+                ? _selectTime(ctx, fieldName)
+                : null,
         decoration: TextFormDecoration.box(
           hintText: fieldName == 'duration' ? '00 hours : 00 minutes' : label,
           suffixIcon: const Icon(
@@ -562,6 +639,17 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
           if (isRequired && (value == null || value.isEmpty)) {
             return '$label is required';
           }
+          if (isEndTime) {
+            final endTime = _parseTime(value);
+            if (endTime != null && startTime == null) {
+              return 'Please select a start time first.';
+            }
+            if (endTime != null &&
+                startTime != null &&
+                _timeMinutes(endTime) < _timeMinutes(startTime)) {
+              return 'End time cannot be earlier than start time.';
+            }
+          }
           return null;
         },
       );
@@ -569,7 +657,8 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
       input = TextFormField(
         controller: controller,
         readOnly: true,
-        onTap: () => _selectDate(fieldName),
+        enabled: isEndDateEnabled,
+        onTap: isEndDateEnabled ? () => _selectDate(fieldName) : null,
         decoration: TextFormDecoration.box(
           hintText: label,
           suffixIcon: const Icon(
@@ -580,6 +669,17 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         validator: (value) {
           if (isRequired && (value == null || value.isEmpty)) {
             return '$label is required';
+          }
+          if (isEndDate) {
+            final endDate = _parseDate(value);
+            if (endDate != null && startDate == null) {
+              return 'Please select a start date first.';
+            }
+            if (endDate != null &&
+                startDate != null &&
+                endDate.isBefore(startDate)) {
+              return 'End date cannot be earlier than start date.';
+            }
           }
           return null;
         },
@@ -1152,3 +1252,21 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
 }
 
 enum _AttachmentSource { camera, gallery, file }
+
+class _SelectedAttachment {
+  final String name;
+  final String? path;
+  final Uint8List? bytes;
+
+  const _SelectedAttachment({
+    required this.name,
+    this.path,
+    this.bytes,
+  });
+
+  String? get extension {
+    final dotIndex = name.lastIndexOf('.');
+    if (dotIndex <= 0 || dotIndex == name.length - 1) return null;
+    return name.substring(dotIndex + 1);
+  }
+}

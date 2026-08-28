@@ -169,16 +169,12 @@ class RequestApprovalBloc
     try {
       emit(state.copyWith(
         isFormLoading: true,
-        isFormError: false,
-        isFormSuccess: false,
       ));
 
       ApprovalRequest? request =
           await RequestApprovalApi.getTimeoffDetail(event.id);
       emit(state.copyWith(
         isFormLoading: false,
-        isFormError: false,
-        isFormSuccess: true,
         request: request,
       ));
     } catch (e) {

@@ -156,182 +156,190 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
       onRefresh: () async {
         context.read<RequestApprovalBloc>().add(OnInitApproval(map));
       },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-          builder: (context, state) {
-            final List<Approval> approvals = state.approvals;
-            final List<Approval> filteredApprovals =
-                _filteredApprovals(approvals);
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+            builder: (context, state) {
+              final List<Approval> approvals = state.approvals;
+              final List<Approval> filteredApprovals =
+                  _filteredApprovals(approvals);
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  color: AppColors.whiteshade,
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                  child: AppBar(
-                    automaticallyImplyLeading: false,
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    titleSpacing: 0,
-                    toolbarHeight: 52,
-                    title: TextFormField(
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
-                      decoration: TextFormDecoration.box(
-                        hintText: 'Search requester or timeoff name',
-                        prefixIcon: const Icon(Icons.search),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    color: AppColors.whiteshade,
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                    child: AppBar(
+                      automaticallyImplyLeading: false,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      surfaceTintColor: Colors.transparent,
+                      titleSpacing: 0,
+                      toolbarHeight: 52,
+                      title: TextFormField(
+                        onChanged: (value) {
+                          setState(() {
+                            searchQuery = value;
+                          });
+                        },
+                        decoration: TextFormDecoration.box(
+                          hintText: 'Search requester or timeoff name',
+                          prefixIcon: const Icon(Icons.search),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  child: _SummarySection(
-                    pendingCount: _countStatus(approvals, 'pending'),
-                    approvedCount: _countStatus(approvals, 'approved'),
-                    rejectedCount: _countStatus(approvals, 'rejected'),
-                    skippedCount: _countStatus(approvals, 'skipped'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                    child: _SummarySection(
+                      pendingCount: _countStatus(approvals, 'pending'),
+                      approvedCount: _countStatus(approvals, 'approved'),
+                      rejectedCount: _countStatus(approvals, 'rejected'),
+                      skippedCount: _countStatus(approvals, 'skipped'),
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: TextEditingController(text: strMonthYear),
-                          readOnly: true,
-                          onTap: () {
-                            showMonthPicker(
-                              context: context,
-                              initialDate: selectedDate,
-                              monthPickerDialogSettings:
-                                  Common.monthPickerDialog(),
-                            ).then((date) {
-                              if (date == null) {
-                                return;
-                              }
-                              setState(() {
-                                selectedDate = date;
-                                _syncPeriodAndLoad();
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            controller:
+                                TextEditingController(text: strMonthYear),
+                            readOnly: true,
+                            onTap: () {
+                              showMonthPicker(
+                                context: context,
+                                initialDate: selectedDate,
+                                monthPickerDialogSettings:
+                                    Common.monthPickerDialog(),
+                              ).then((date) {
+                                if (date == null) {
+                                  return;
+                                }
+                                setState(() {
+                                  selectedDate = date;
+                                  _syncPeriodAndLoad();
+                                });
                               });
-                            });
-                          },
-                          decoration: TextFormDecoration.box(
-                            prefixIcon: const Icon(Icons.calendar_month),
-                            suffixIcon: const Icon(Icons.arrow_drop_down),
+                            },
+                            decoration: TextFormDecoration.box(
+                              prefixIcon: const Icon(Icons.calendar_month),
+                              suffixIcon: const Icon(Icons.arrow_drop_down),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      FilterIconWidget(onTap: _showStatusFilterDialog),
-                    ],
+                        const SizedBox(width: 10),
+                        FilterIconWidget(onTap: _showStatusFilterDialog),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 14,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade200),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: state.isLoading
+                        ? const LoadingWidget()
+                        : filteredApprovals.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 28,
+                                  horizontal: 12,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Icon(
+                                      Icons.approval_outlined,
+                                      size: 44,
+                                      color: Colors.grey.shade400,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'No approvals found',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _emptyApprovalMessage(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : ListView.separated(
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: filteredApprovals.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 10),
+                                itemBuilder: (context, index) {
+                                  final Approval approval =
+                                      filteredApprovals[index];
+                                  final String status =
+                                      _displayStatus(approval.status);
+                                  return _ApprovalCard(
+                                      title: approval
+                                              .approvalRequest?.type?.name ??
+                                          '--',
+                                      subtitle:
+                                          ApprovalRequestData.formatRequestDate(
+                                              approval.approvalRequest ??
+                                                  ApprovalRequest()),
+                                      requesterName: approval.approvalRequest
+                                              ?.requester?.personal?.fullname ??
+                                          '--',
+                                      note: approval.approvalRequest?.note ??
+                                          '--',
+                                      status: status,
+                                      statusColor:
+                                          Common.statusColor(approval.status),
+                                      onTap: () {
+                                        context.pushNamed(
+                                          "timeoff-detail",
+                                          extra: {
+                                            "requestId":
+                                                approval.approvalRequest?.id,
+                                          },
+                                        ).then((result) {
+                                          _syncPeriodAndLoad();
+                                        });
+                                      });
+                                },
+                              ),
                   ),
-                  child: state.isLoading
-                      ? const LoadingWidget()
-                      : filteredApprovals.isEmpty
-                          ? Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 28,
-                                horizontal: 12,
-                              ),
-                              child: Column(
-                                children: [
-                                  Icon(
-                                    Icons.approval_outlined,
-                                    size: 44,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'No approvals found',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    _emptyApprovalMessage(),
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.separated(
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              itemCount: filteredApprovals.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                final Approval approval =
-                                    filteredApprovals[index];
-                                final String status =
-                                    _displayStatus(approval.status);
-                                return _ApprovalCard(
-                                    title:
-                                        approval
-                                                .approvalRequest?.type?.name ??
-                                            '--',
-                                    subtitle:
-                                        ApprovalRequestData.formatRequestDate(
-                                            approval.approvalRequest ??
-                                                ApprovalRequest()),
-                                    requesterName: approval.approvalRequest
-                                            ?.requester?.personal?.fullname ??
-                                        '--',
-                                    note:
-                                        approval.approvalRequest?.note ?? '--',
-                                    status: status,
-                                    statusColor:
-                                        Common.statusColor(approval.status),
-                                    onTap: () {
-                                      context.pushNamed(
-                                        "timeoff-detail",
-                                        extra: {
-                                          "requestId":
-                                              approval.approvalRequest?.id,
-                                        },
-                                      );
-                                    });
-                              },
-                            ),
-                ),
-                const SizedBox(height: 14),
-              ],
-            );
-          },
+                  const SizedBox(height: 14),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );

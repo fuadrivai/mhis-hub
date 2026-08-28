@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 class Common {
   Common._();
+  static Future<void> _notificationQueue = Future<void>.value();
   static String logoHub = 'assets/images/logo-hub.png';
   static String logoSplash = 'assets/images/splash.png';
   static String imageLogo = 'assets/images/logo.png';
@@ -165,40 +166,42 @@ class Common {
     );
   }
 
-  static Future flushBar(BuildContext context,
+  static Future<void> flushBar(BuildContext context,
+      {required String title,
+      required String message,
+      FlushbarPosition? position}) {
+    final operation = _notificationQueue.then(
+      (_) => _showNotification(
+        // ignore: use_build_context_synchronously
+        context,
+        title: title,
+        message: message,
+        position: position,
+      ),
+    );
+    _notificationQueue = operation.catchError((_) {});
+    return _notificationQueue;
+  }
+
+  static Future<void> _showNotification(BuildContext context,
       {required String title,
       required String message,
       FlushbarPosition? position}) async {
-    Flushbar(
-      flushbarPosition: position ?? FlushbarPosition.TOP,
-      flushbarStyle: FlushbarStyle.FLOATING,
-      title: title,
-      message: message,
-      reverseAnimationCurve: Curves.decelerate,
-      forwardAnimationCurve: Curves.elasticOut,
-      backgroundColor: AppColors.primary,
-      duration: const Duration(seconds: 1),
-      icon: const Icon(Icons.notification_add, color: AppColors.white),
-      progressIndicatorBackgroundColor: Colors.blueGrey,
-      titleText: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 20.0,
-          color: AppColors.white,
-          fontFamily: "ShadowsIntoLightTwo",
-        ),
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    if (!context.mounted) return;
+
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return;
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        content: Text('$title\n$message'),
+        backgroundColor: AppColors.primary,
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
       ),
-      messageText: Text(
-        message,
-        style: const TextStyle(
-          fontSize: 18.0,
-          fontFamily: "ShadowsIntoLightTwo",
-          color: AppColors.white,
-        ),
-      ),
-      // ignore: use_build_context_synchronously
-    ).show(context);
+    );
+    await controller.closed;
   }
 
   static String dateToUTC() {
