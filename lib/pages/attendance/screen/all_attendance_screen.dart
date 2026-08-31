@@ -181,7 +181,7 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
         attendance.employeeId?.toString(),
         employee?.idTalenta,
         employee?.personal?.fullname,
-        employee?.employment?.jobPositionName,
+        employee?.employment?.jobPosition?.name,
       ];
       return values.any(
         (value) => value?.toLowerCase().contains(_searchQuery) ?? false,
@@ -257,7 +257,7 @@ class _AttendanceTileState extends State<_AttendanceTile> {
     final name = attendance.fullname ?? employee?.personal?.fullname ?? '-';
     final employeeId =
         employee?.idTalenta ?? attendance.employeeId?.toString() ?? '-';
-    final position = employee?.employment?.jobPositionName ?? '-';
+    final position = employee?.employment?.jobPosition?.name ?? '-';
     final hasAttendance =
         attendance.checkIn != null || attendance.checkOut != null;
 
@@ -390,23 +390,23 @@ class _AttendanceDetails extends StatelessWidget {
                 ? null
                 : () => _showAttendanceLog(context, 'check_out'),
           ),
-          const SizedBox(height: 4),
-          TextButton(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            child: const Text(
-              'View all attendance data',
-              style: TextStyle(
-                color: AppColors.lightblue,
-                fontSize: 14,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
+          // const SizedBox(height: 4),
+          // TextButton(
+          //   onPressed: () {},
+          //   style: TextButton.styleFrom(
+          //     padding: EdgeInsets.zero,
+          //     minimumSize: Size.zero,
+          //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          //   ),
+          //   child: const Text(
+          //     'View all attendance data',
+          //     style: TextStyle(
+          //       color: AppColors.lightblue,
+          //       fontSize: 14,
+          //       decoration: TextDecoration.underline,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
@@ -638,12 +638,66 @@ class _LogPhoto extends StatelessWidget {
         child: Center(child: Icon(Icons.person_outline, size: 36)),
       );
     }
-    return Image.network(
-      '${Api.url}/storage/$photo',
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => const ColoredBox(
-        color: Color(0xFFEFF2F5),
-        child: Center(child: Icon(Icons.image_not_supported_outlined)),
+
+    final imageUrl = '${Api.url}/storage/$photo';
+
+    return GestureDetector(
+      onTap: () => _openFullScreenPhoto(context, imageUrl),
+      child: Image.network(
+        imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const ColoredBox(
+          color: Color(0xFFEFF2F5),
+          child: Center(child: Icon(Icons.image_not_supported_outlined)),
+        ),
+      ),
+    );
+  }
+
+  void _openFullScreenPhoto(BuildContext context, String imageUrl) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (_, __, ___) => _FullScreenPhotoViewer(imageUrl: imageUrl),
+      ),
+    );
+  }
+}
+
+class _FullScreenPhotoViewer extends StatelessWidget {
+  const _FullScreenPhotoViewer({required this.imageUrl});
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close, color: Colors.white),
+            tooltip: 'Close photo',
+          ),
+        ],
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          minScale: 1,
+          maxScale: 4,
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            errorBuilder: (_, __, ___) => const Center(
+              child:
+                  Icon(Icons.image_not_supported_outlined, color: Colors.white),
+            ),
+          ),
+        ),
       ),
     );
   }

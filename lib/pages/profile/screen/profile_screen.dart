@@ -180,11 +180,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: <Widget>[
                         title(
                           color: Colors.transparent,
-                          position: state.employee?.employment?.organizationName
+                          position: state
+                                      .employee?.employment?.organization?.name
                                       ?.trim()
                                       .isNotEmpty ==
                                   true
-                              ? state.employee?.employment?.organizationName
+                              ? state.employee?.employment?.organization?.name
                               : "-",
                           title: "Division",
                         ),

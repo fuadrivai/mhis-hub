@@ -245,14 +245,15 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
           _buildInfoItem(
             icon: Icons.business_outlined,
             label: "Organization",
-            value: widget.attendance?.employee?.employment?.organizationName ??
-                "-",
+            value:
+                widget.attendance?.employee?.employment?.organization?.name ??
+                    "-",
           ),
           _buildInfoItem(
             icon: Icons.work_outline,
             label: "Position",
-            value:
-                widget.attendance?.employee?.employment?.jobPositionName ?? "-",
+            value: widget.attendance?.employee?.employment?.jobPosition?.name ??
+                "-",
           ),
         ],
       ),

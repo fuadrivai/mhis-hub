@@ -180,9 +180,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
     final String requesterName = request.requester?.personal?.fullname ??
         request.requester?.user?.name ??
         'Unknown';
-    final String position = request.requester?.employment?.jobPositionName ??
-        request.requester?.employment?.jobPosition?.name ??
-        '';
+    final String position =
+        request.requester?.employment?.jobPosition?.name ?? '';
     final String? avatar = request.requester?.personal?.avatar;
     final String timeoffName = request.type?.name ?? '--';
     final String createdAt = Approval.formatDateTime(request.createdAt) ?? '--';
