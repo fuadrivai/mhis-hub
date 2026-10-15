@@ -42,10 +42,10 @@ class Menu {
       seed: 707,
     ),
     GridMenuItem(
-      title: 'Newsletter',
-      icon: FontAwesomeIcons.newspaper,
-      routeCandidates: ['announcement'],
-      seed: 808,
+      title: 'SOP',
+      icon: FontAwesomeIcons.fileLines,
+      routeCandidates: ['sop'],
+      seed: 818,
     ),
     GridMenuItem(
       title: 'All Apps',
@@ -97,6 +97,12 @@ class Menu {
       icon: FontAwesomeIcons.newspaper,
       routeCandidates: ['announcement'],
       seed: 808,
+    ),
+    GridMenuItem(
+      title: 'SOP',
+      icon: FontAwesomeIcons.fileLines,
+      routeCandidates: ['sop'],
+      seed: 818,
     ),
     GridMenuItem(
       title: 'General Newsletter',

@@ -14,6 +14,10 @@ final class HomeState extends Equatable {
     this.newsletterLoading = true,
     this.newsletterError = false,
     this.newsletterErrorMessage,
+    this.sops,
+    this.sopLoading = true,
+    this.sopError = false,
+    this.sopErrorMessage,
     this.announcements,
     this.announcementLoading = true,
     this.announcementError = false,
@@ -35,6 +39,11 @@ final class HomeState extends Equatable {
   final String? newsletterErrorMessage;
   final List<Newsletter>? newsletters;
 
+  final bool sopLoading;
+  final bool sopError;
+  final String? sopErrorMessage;
+  final List<Sop>? sops;
+
   final bool announcementLoading;
   final bool announcementError;
   final String? announcementErrorMessage;
@@ -53,6 +62,10 @@ final class HomeState extends Equatable {
     bool? newsletterError,
     String? newsletterErrorMessage,
     List<Newsletter>? newsletters,
+    bool? sopLoading,
+    bool? sopError,
+    String? sopErrorMessage,
+    List<Sop>? sops,
     bool? announcementLoading,
     bool? announcementError,
     String? announcementErrorMessage,
@@ -73,6 +86,10 @@ final class HomeState extends Equatable {
         newsletterErrorMessage:
             newsletterErrorMessage ?? this.newsletterErrorMessage,
         newsletters: newsletters ?? this.newsletters,
+        sopLoading: sopLoading ?? this.sopLoading,
+        sopError: sopError ?? this.sopError,
+        sopErrorMessage: sopErrorMessage ?? this.sopErrorMessage,
+        sops: sops ?? this.sops,
         announcementLoading: announcementLoading ?? this.announcementLoading,
         announcementError: announcementError ?? this.announcementError,
         announcementErrorMessage:
@@ -94,6 +111,10 @@ final class HomeState extends Equatable {
         newsletterError,
         newsletterErrorMessage,
         newsletters,
+        sopLoading,
+        sopError,
+        sopErrorMessage,
+        sops,
         announcementLoading,
         announcementError,
         announcementErrorMessage,

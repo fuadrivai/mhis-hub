@@ -13,4 +13,9 @@ class HomeApi {
     var data = client.getNewsletter();
     return data;
   }
+
+  static Future<List<Sop>> getSop() async {
+    final client = await Api.restClient();
+    return client.getSop();
+  }
 }

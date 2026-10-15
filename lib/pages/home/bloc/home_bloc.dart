@@ -14,6 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<OnInitCalendar>(_onInitCalendar);
     on<OnInitAttendance>(_onInitAttendance);
     on<OnGetNewsletter>(_onGetNewsletter);
+    on<OnGetSop>(_onGetSop);
     on<OnInitAnnouncement>(_onInitAnnouncement);
   }
 
@@ -70,6 +71,30 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(newsletterLoading: true));
     List<Newsletter> newsletters = await HomeApi.getNewsletter();
     emit(state.copyWith(newsletters: newsletters, newsletterLoading: false));
+  }
+
+  void _onGetSop(OnGetSop event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(sopLoading: true, sopError: false));
+    try {
+      final List<Sop> sops = await HomeApi.getSop();
+      emit(state.copyWith(
+        sops: sops.where((sop) => sop.isActive == true).toList(),
+        sopLoading: false,
+        sopError: false,
+      ));
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is DioException) {
+        errorMessage =
+            e.response?.data?["message"] ?? e.message ?? errorMessage;
+      }
+      emit(state.copyWith(
+        sopLoading: false,
+        sopError: true,
+        sopErrorMessage: errorMessage,
+        sops: state.sops,
+      ));
+    }
   }
 
   void _onInitAnnouncement(

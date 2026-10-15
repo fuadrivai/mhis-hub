@@ -67,6 +67,14 @@ class RouteNavigation {
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,
+                path: 'sop',
+                name: 'sop',
+                pageBuilder: (context, state) => const NoTransitionPage(
+                  child: SopScreen(),
+                ),
+              ),
+              GoRoute(
+                parentNavigatorKey: _nav.navKey,
                 path: 'school-calendar',
                 name: "school-calendar",
                 pageBuilder: (context, state) {

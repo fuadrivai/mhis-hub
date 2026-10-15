@@ -30,3 +30,4 @@ export 'package:fl_mhis_hr/models/v2/live_attendance.dart';
 export 'package:fl_mhis_hr/models/v2/login_response.dart';
 export 'package:fl_mhis_hr/models/v2/academic_year.dart';
 export 'package:fl_mhis_hr/models/v2/leave_allocation.dart';
+export 'package:fl_mhis_hr/models/v2/sop.dart';

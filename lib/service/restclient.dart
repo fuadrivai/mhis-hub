@@ -16,6 +16,9 @@ abstract class RestClient {
   @GET("newsletter")
   Future<List<Newsletter>> getNewsletter();
 
+  @GET("sop")
+  Future<List<Sop>> getSop();
+
   @GET("")
   Future<dynamic> academyLogin();
 

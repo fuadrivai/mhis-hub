@@ -22,6 +22,12 @@ class OnGetNewsletter extends HomeEvent {
   List<Object?> get props => [];
 }
 
+class OnGetSop extends HomeEvent {
+  const OnGetSop();
+  @override
+  List<Object?> get props => [];
+}
+
 class OnGetPayslip extends HomeEvent {
   const OnGetPayslip();
   @override
