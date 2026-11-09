@@ -4,10 +4,11 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
+import 'package:fl_mhis_hr/widget/gradient_button_background.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:jiffy/jiffy.dart';
 
 class AttendanceScreen extends StatefulWidget {
@@ -39,26 +40,11 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.whiteshade,
-      appBar: AppBar(
-        backgroundColor: AppColors.danger,
-        elevation: 0,
-        centerTitle: true,
-        foregroundColor: AppColors.white,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: const Text(
-          "Live Attendance",
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: AppColors.white,
-          ),
-        ),
-      ),
-      body: RefreshIndicator(
+    return ThemedPage(
+      title: 'Live Attendance',
+      subtitle: 'View your schedule and attendance',
+      child: RefreshIndicator(
+        color: AppColors.danger,
         onRefresh: () async {
           context.read<AttendanceBloc>().add(const OnInit());
         },
@@ -67,68 +53,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             if (state.isLoading) {
               return const LoadingWidget();
             }
+            if (state.isError) {
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                children: [
+                  ThemedMessageCard(
+                    message: 'Unable to load attendance',
+                    details: state.errorMessage,
+                    onRetry: () =>
+                        context.read<AttendanceBloc>().add(const OnInit()),
+                  ),
+                ],
+              );
+            }
             final logs = _findLatestLogs(state.logs);
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
               child: Column(
                 children: [
-                  _buildHeroSection(state.shift),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    child: _buildLogSection(context, logs),
-                  ),
+                  _buildScheduleCard(context, state.shift),
+                  const SizedBox(height: 16),
+                  _buildLogSection(context, logs),
                 ],
               ),
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildHeroSection(Shift? shift) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 0, 24, 35),
-      decoration: const BoxDecoration(
-        color: AppColors.danger,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -70,
-            top: 10,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.white.withValues(alpha: 0.1),
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Align(
-                child: Text(
-                  Jiffy.parseFromDateTime(_now).format(pattern: "HH:mm:ss"),
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              _buildScheduleCard(context, shift),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -142,7 +94,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -153,6 +106,16 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       ),
       child: Column(
         children: [
+          Text(
+            Jiffy.parseFromDateTime(_now).format(pattern: "HH:mm:ss"),
+            style: const TextStyle(
+              color: AppColors.danger,
+              fontSize: 32,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             "Schedule: ${_scheduleDateLabel()}",
             style: const TextStyle(
@@ -183,14 +146,14 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFFE7F0FA),
+              color: AppColors.danger.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Row(
               children: [
                 Icon(
                   Icons.info,
-                  color: Color(0xFF6B7280),
+                  color: AppColors.danger,
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -243,21 +206,24 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }) {
     return SizedBox(
       height: 58,
-      child: ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          elevation: 0,
-          backgroundColor: AppColors.blue,
-          foregroundColor: AppColors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      child: GradientButtonBackground(
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            foregroundColor: AppColors.white,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-          textStyle: const TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-          ),
+          child: FittedBox(fit: BoxFit.scaleDown, child: Text(label)),
         ),
-        child: Text(label),
       ),
     );
   }
@@ -286,7 +252,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
               child: const Text(
                 "View Log",
                 style: TextStyle(
-                  color: Color(0xFF7A7A7A),
+                  color: AppColors.danger,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
@@ -302,6 +268,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.1)),
                 ),
                 child: const Text(
                   "No attendance log available for this month yet.",
@@ -326,6 +294,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                            color: AppColors.danger.withValues(alpha: 0.1)),
                       ),
                       child: Row(
                         children: [
@@ -336,6 +306,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               children: [
                                 Text(
                                   log.time ?? "--:--",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -353,7 +325,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 20),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               log.type == "check_out"
@@ -367,6 +339,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             ),
                           ),
                           IconButton(
+                            tooltip: 'View attendance detail',
                             onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -376,7 +349,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                             icon: const Icon(
                               Icons.arrow_forward_ios,
                               size: 18,
-                              color: Color(0xFF9CA3AF),
+                              color: AppColors.danger,
                             ),
                           ),
                         ],
@@ -390,8 +363,8 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   List<AttendanceLog>? _findLatestLogs(List<AttendanceLog>? logs) {
     if (logs == null || logs.isEmpty) return null;
-    logs.sort((a, b) => _logDateTime(b).compareTo(_logDateTime(a)));
-    return logs;
+    return List<AttendanceLog>.of(logs)
+      ..sort((a, b) => _logDateTime(b).compareTo(_logDateTime(a)));
   }
 
   DateTime _logDateTime(AttendanceLog log) {
@@ -408,7 +381,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
 
   String _scheduleDateLabel() {
-    return Jiffy.now().format(pattern: "dd MMM yyyy");
+    return Jiffy.parseFromDateTime(_now).format(pattern: "dd MMM yyyy");
   }
 
   String _scheduleTimeLabel(Shift? shift) {

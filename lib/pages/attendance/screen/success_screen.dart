@@ -2,7 +2,7 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
-import 'package:fl_mhis_hr/widget/widget.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:flutter/material.dart';
 import 'package:jiffy/jiffy.dart';
 
@@ -20,45 +20,39 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
   Widget build(BuildContext context) {
     final isCheckIn = widget.attendance?.type == "check_in";
 
-    return Scaffold(
-      appBar: CustomAppbar(
-        title: isCheckIn ? "Check-In" : "Check-Out",
-        leading: IconButton(
-          onPressed: () => _goHome(),
-          icon: const Icon(Icons.close, color: AppColors.dark),
-        ),
-        backgroundColor: Colors.white,
-      ),
-      backgroundColor: Colors.grey[50],
-      body: SingleChildScrollView(
-        child: SafeArea(
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 1000),
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildHeader(isCheckIn),
-                    const SizedBox(height: 32),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        if (constraints.maxWidth > 700) {
-                          return _buildDesktopLayout(
-                            widget.attendance?.photo,
-                            widget.attendance?.time,
-                          );
-                        } else {
-                          return _buildMobileLayout(
-                            widget.attendance?.photo,
-                            widget.attendance?.time,
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
+    return ThemedPage(
+      title: isCheckIn ? "Check-In" : "Check-Out",
+      subtitle: 'Attendance confirmation',
+      onBack: _goHome,
+      backIcon: Icons.close,
+      backTooltip: 'Close',
+      child: SingleChildScrollView(
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1000),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildHeader(isCheckIn),
+                  const SizedBox(height: 32),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth > 700) {
+                        return _buildDesktopLayout(
+                          widget.attendance?.photo,
+                          widget.attendance?.time,
+                        );
+                      } else {
+                        return _buildMobileLayout(
+                          widget.attendance?.photo,
+                          widget.attendance?.time,
+                        );
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -68,43 +62,61 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
   }
 
   Widget _buildHeader(bool isCheckIn) {
-    return Column(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.check_circle_rounded,
+              size: 48,
+              color: Colors.green,
+            ),
           ),
-          child: Icon(
-            Icons.check_circle_rounded,
-            size: 48,
-            color: Colors.green,
+          const SizedBox(height: 16),
+          Text(
+            "Success",
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Success",
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.green,
+          const SizedBox(height: 8),
+          Text(_dateLabel(),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+          const SizedBox(height: 8),
+          Text(
+            isCheckIn
+                ? "Your attendance has been recorded"
+                : "See you tomorrow!",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          Jiffy.parse(widget.attendance?.clockDatetime ?? "")
-              .format(pattern: "EEEE, dd MMMM yyyy HH:mm"),
-          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          isCheckIn ? "Your attendance has been recorded" : "See you tomorrow!",
-          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  String _dateLabel() {
+    final raw = widget.attendance?.clockDatetime;
+    final date = raw == null ? null : DateTime.tryParse(raw);
+    if (date == null) return raw == null || raw.isEmpty ? '-' : raw;
+    return Jiffy.parseFromDateTime(date)
+        .format(pattern: "EEEE, dd MMMM yyyy HH:mm");
   }
 
   void _goHome() {
@@ -156,12 +168,16 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
 
   Widget _buildAttendanceHistoryButton() {
     return SizedBox(
-      width: 170,
+      width: 220,
       child: ElevatedButton.icon(
         onPressed: _goToAttendanceHistory,
         icon: const Icon(Icons.history),
         label: Center(child: const Text('Attendance History')),
         style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: AppColors.danger,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
         ),
       ),
@@ -221,9 +237,9 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +388,7 @@ class _AttendanceResponseScreenState extends State<AttendanceResponseScreen> {
             child: Icon(
               icon,
               size: 20,
-              color: isHighlighted ? Colors.green : Colors.grey[600],
+              color: isHighlighted ? Colors.green : AppColors.danger,
             ),
           ),
           Expanded(

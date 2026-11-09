@@ -1,4 +1,3 @@
-import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 
@@ -16,15 +15,7 @@ class _ContactScreenState extends State<ContactScreen> {
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        appBar: CustomAppbar(
-          backgroundColor: AppColors.whiteshade,
-          leading: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back),
-          ),
-          title: "Contact",
-        ),
-        body: EmployeeWidget(),
+        body: EmployeeWidget(showBack: true),
       ),
     );
   }

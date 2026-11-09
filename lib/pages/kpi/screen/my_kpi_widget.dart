@@ -1,5 +1,6 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/kpi/bloc/kpi_bloc.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,83 +28,88 @@ class _MyKpiWidgetState extends State<MyKpiWidget> {
           return LoadingWidget();
         }
         if (state.kpiError) {
-          return EmptyWidget(
-            onTap: () => context.read<KpiBloc>().add(const OnGetKpi()),
+          return ThemedMessageCard(
+            message: 'Unable to load KPI',
+            details: state.kpiErrorMessage,
+            onRetry: () => context.read<KpiBloc>().add(const OnGetKpi()),
           );
         }
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Container(
-            color: AppColors.whiteshade,
-            child: Column(
-              children: [
-                _kpiName(
-                  name: "SKL",
-                  value: "${state.kpi?.sKL ?? "-"}",
-                ),
-                _kpiName(
-                  name: "IMTAQ",
-                  value: "${state.kpi?.iMTAQ ?? "-"}",
-                ),
-                _kpiName(
-                  name: "ISI",
-                  value: "${state.kpi?.iSI ?? "-"}",
-                ),
-                _kpiName(
-                  name: "PROCESS",
-                  value: "${state.kpi?.pROCESS ?? "-"}",
-                ),
-                _kpiName(
-                  name: "SPTK",
-                  value: "${state.kpi?.sPTK ?? "-"}",
-                ),
-                _kpiName(
-                  name: "PENILAIAN",
-                  value: "${state.kpi?.pENILAIAN ?? "-"}",
-                ),
-                _kpiName(
-                  name: "TAL",
-                  value: "${state.kpi?.tAL ?? "-"}",
-                ),
-                _kpiName(
-                  name: "PERFORMANCE",
-                  value: "${state.kpi?.teachersPerformance ?? "-"}",
-                ),
-                Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        padding: EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(50)),
-                          color: AppColors.danger,
-                        ),
-                        child: Center(
-                          child: Text(
-                            "${state.kpi?.kPIScoreAutomate ?? "-"}",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 30,
-                              color: AppColors.white,
-                            ),
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            children: [
+              _kpiName(
+                name: "SKL",
+                value: "${state.kpi?.sKL ?? "-"}",
+              ),
+              _kpiName(
+                name: "IMTAQ",
+                value: "${state.kpi?.iMTAQ ?? "-"}",
+              ),
+              _kpiName(
+                name: "ISI",
+                value: "${state.kpi?.iSI ?? "-"}",
+              ),
+              _kpiName(
+                name: "PROCESS",
+                value: "${state.kpi?.pROCESS ?? "-"}",
+              ),
+              _kpiName(
+                name: "SPTK",
+                value: "${state.kpi?.sPTK ?? "-"}",
+              ),
+              _kpiName(
+                name: "PENILAIAN",
+                value: "${state.kpi?.pENILAIAN ?? "-"}",
+              ),
+              _kpiName(
+                name: "TAL",
+                value: "${state.kpi?.tAL ?? "-"}",
+              ),
+              _kpiName(
+                name: "PERFORMANCE",
+                value: "${state.kpi?.teachersPerformance ?? "-"}",
+              ),
+              Padding(
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  children: [
+                    Container(
+                      constraints:
+                          const BoxConstraints(minWidth: 60, minHeight: 60),
+                      padding: EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(16)),
+                        color: AppColors.danger,
+                      ),
+                      child: Center(
+                        widthFactor: 1,
+                        heightFactor: 1,
+                        child: Text(
+                          "${state.kpi?.kPIScoreAutomate ?? "-"}",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 30,
+                            color: AppColors.white,
                           ),
                         ),
                       ),
-                      Text(
-                        "KPI SCORE",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 25,
-                        ),
+                    ),
+                    Text(
+                      "KPI SCORE",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 25,
                       ),
-                    ],
-                  ),
-                )
-              ],
-            ),
+                    ),
+                  ],
+                ),
+              )
+            ],
           ),
         );
       },
@@ -127,7 +133,7 @@ class _MyKpiWidgetState extends State<MyKpiWidget> {
             ),
             leading: FaIcon(
               FontAwesomeIcons.circleDot,
-              color: AppColors.primary,
+              color: AppColors.danger,
               size: 25,
             ),
             trailing: Container(

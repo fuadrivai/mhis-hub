@@ -1,6 +1,7 @@
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/bottom_menu.dart';
+import 'package:fl_mhis_hr/pages/login/screen/forgot_password_screen.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,6 +30,11 @@ class RouteNavigation {
             child: LoginScreen(),
           );
         },
+      ),
+      GoRoute(
+        parentNavigatorKey: _nav.navKey,
+        path: '/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         parentNavigatorKey: _nav.navKey,

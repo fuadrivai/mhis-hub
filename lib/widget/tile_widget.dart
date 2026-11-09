@@ -8,12 +8,14 @@ class TileWidget extends StatelessWidget {
     required this.subtitle,
     required this.onTap,
     required this.icon,
+    this.accentColor = AppColors.secondary,
   });
 
   final String title;
   final String subtitle;
   final GestureTapCallback? onTap;
   final Widget icon;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +46,7 @@ class TileWidget extends StatelessWidget {
                   height: 42,
                   width: 42,
                   decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: .12),
+                    color: accentColor.withValues(alpha: .12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(child: icon),

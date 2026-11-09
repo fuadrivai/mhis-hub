@@ -23,7 +23,7 @@ class GridMenuTile extends StatelessWidget {
         child: Ink(
           decoration: BoxDecoration(
             color: AppColors.white,
-            // borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(12),
             // border: Border.all(color: Colors.black12, width: 0.7),
             boxShadow: const [
               BoxShadow(

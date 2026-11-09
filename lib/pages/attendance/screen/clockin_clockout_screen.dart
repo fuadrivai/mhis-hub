@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
+import 'package:fl_mhis_hr/widget/gradient_button_background.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -121,9 +123,7 @@ class _ClockinClockoutScreenState extends State<ClockinClockoutScreen>
         body: Transform.scale(
           scale: scale,
           alignment: Alignment.topCenter,
-          child: CameraPreview(
-            cameraController!,
-          ),
+          child: CameraPreview(cameraController!),
         ),
       );
     } else {
@@ -228,25 +228,27 @@ class CheckPermissionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.whiteshade,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: title,
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+    return ThemedPage(
+      title: title,
+      subtitle: 'Camera access for attendance',
+      onBack: () => Navigator.of(context).pop(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
                 Icons.camera_alt_outlined,
                 size: 64,
-                color: Colors.grey,
+                color: AppColors.danger,
               ),
               const SizedBox(height: 16),
               const Text(
@@ -266,19 +268,23 @@ class CheckPermissionScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                onPressed: () async {
-                  await openAppSettings();
-                },
-                child: const Text(
-                  "Open Settings",
-                  style: TextStyle(fontSize: 16),
+              GradientButtonBackground(
+                borderRadius: BorderRadius.circular(24),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 12),
+                  ),
+                  onPressed: () async {
+                    await openAppSettings();
+                  },
+                  child: const Text(
+                    "Open Settings",
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ],

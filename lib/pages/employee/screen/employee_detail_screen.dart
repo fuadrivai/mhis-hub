@@ -23,88 +23,116 @@ class _EmployeeDetailScreenState extends State<EmployeeDetailScreen> {
     final String name = _value(person.fullname);
 
     return Scaffold(
-      backgroundColor: AppColors.whiteshade,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.dark,
-        elevation: 0,
-        leading: IconButton(
-          tooltip: 'Back',
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        title: const Text('Employee Details'),
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final Widget personal = _InfoSection(
-            title: 'Personal information',
-            icon: Icons.person_outline_rounded,
-            color: AppColors.danger,
-            fields: person
-                .listForm()
-                .map(
-                  (field) => {
-                    ...field,
-                    'value': _personalValue(
-                      field['title']?.toString(),
-                      field['value']?.toString(),
-                    ),
-                  },
-                )
-                .toList(),
-          );
-          final Widget employmentSection = _InfoSection(
-            title: 'Employment information',
-            icon: Icons.business_center_outlined,
-            color: AppColors.primary,
-            fields: employment
-                .listForm()
-                .map(
-                  (field) => {
-                    ...field,
-                    if (field['title'] == 'Employment Status')
-                      'value': employment.employmentStatus,
-                  },
-                )
-                .toList(),
-          );
+      backgroundColor: const Color(0xFFF8F8FA),
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 220,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: Common.homeHeaderGradient),
+            ),
+          ),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final Widget personal = _InfoSection(
+                  title: 'Personal information',
+                  icon: Icons.person_outline_rounded,
+                  color: AppColors.danger,
+                  fields: person
+                      .listForm()
+                      .map(
+                        (field) => {
+                          ...field,
+                          'value': _personalValue(
+                            field['title']?.toString(),
+                            field['value']?.toString(),
+                          ),
+                        },
+                      )
+                      .toList(),
+                );
+                final Widget employmentSection = _InfoSection(
+                  title: 'Employment information',
+                  icon: Icons.business_center_outlined,
+                  color: AppColors.danger,
+                  fields: employment
+                      .listForm()
+                      .map(
+                        (field) => {
+                          ...field,
+                          if (field['title'] == 'Employment Status')
+                            'value': employment.employmentStatus,
+                        },
+                      )
+                      .toList(),
+                );
 
-          return SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: constraints.maxWidth < 500 ? 16 : 28,
-              vertical: 20,
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: constraints.maxWidth < 500 ? 16 : 28,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1080),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20, bottom: 20),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  tooltip: 'Back',
+                                  onPressed: () => context.pop(),
+                                  color: Colors.white,
+                                  icon: const Icon(Icons.arrow_back_rounded),
+                                ),
+                                const SizedBox(width: 4),
+                                const Expanded(
+                                  child: Text(
+                                    'Employee Details',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          _ProfileHeader(
+                            name: name,
+                            email: _value(person.email),
+                            role: _value(employment.jobPosition?.name),
+                            avatar: person.avatarLink,
+                          ),
+                          const SizedBox(height: 18),
+                          _DetailTabs(
+                            selectedIndex: _selectedTab,
+                            onChanged: (index) => setState(() {
+                              _selectedTab = index;
+                            }),
+                          ),
+                          const SizedBox(height: 14),
+                          IndexedStack(
+                            index: _selectedTab,
+                            children: [personal, employmentSection],
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1080),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _ProfileHeader(
-                      name: name,
-                      email: _value(person.email),
-                      role: _value(employment.jobPosition?.name),
-                      avatar: person.avatarLink,
-                    ),
-                    const SizedBox(height: 18),
-                    _DetailTabs(
-                      selectedIndex: _selectedTab,
-                      onChanged: (index) => setState(() {
-                        _selectedTab = index;
-                      }),
-                    ),
-                    const SizedBox(height: 14),
-                    IndexedStack(
-                      index: _selectedTab,
-                      children: [personal, employmentSection],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -156,7 +184,7 @@ class _DetailTabs extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: const Color(0xffe1e8f0)),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
@@ -233,13 +261,14 @@ class _ProfileHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: Common.redGradient,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.danger.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -247,10 +276,10 @@ class _ProfileHeader extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 38,
-            backgroundColor: Colors.white.withValues(alpha: 0.25),
+            backgroundColor: AppColors.danger.withValues(alpha: 0.12),
             backgroundImage: avatar.isEmpty ? null : NetworkImage(avatar),
             child: avatar.isEmpty
-                ? const Icon(Icons.person, size: 38, color: Colors.white)
+                ? const Icon(Icons.person, size: 38, color: AppColors.danger)
                 : null,
           ),
           const SizedBox(width: 16),
@@ -263,7 +292,7 @@ class _ProfileHeader extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.dark,
                     fontSize: 21,
                     fontWeight: FontWeight.w700,
                   ),
@@ -274,7 +303,7 @@ class _ProfileHeader extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.88),
+                    color: Colors.black54,
                     fontSize: 13,
                   ),
                 ),
@@ -283,7 +312,7 @@ class _ProfileHeader extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
+                    color: AppColors.danger.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -291,7 +320,7 @@ class _ProfileHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.danger,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -326,7 +355,7 @@ class _InfoSection extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xffe1e8f0)),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,13 +486,15 @@ class _StatusBadge extends StatelessWidget {
             color: isPlaceholder ? Colors.blueGrey.shade500 : AppColors.danger,
           ),
           const SizedBox(width: 5),
-          Text(
-            value,
-            style: TextStyle(
-              color:
-                  isPlaceholder ? Colors.blueGrey.shade600 : AppColors.danger,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                color:
+                    isPlaceholder ? Colors.blueGrey.shade600 : AppColors.danger,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],

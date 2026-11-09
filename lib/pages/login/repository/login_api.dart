@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
@@ -6,6 +7,18 @@ class LoginApi {
     final client = await Api.restClient();
     var data = client.onLogin(login);
     return data;
+  }
+
+  static Future<void> forgotPassword(String email) async {
+    final dio = Dio(BaseOptions(
+      baseUrl: Api.baseUrl,
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    ));
+    await dio.post('password/forgot', data: {'email': email});
   }
 
   static Future<dynamic> onLogout() async {

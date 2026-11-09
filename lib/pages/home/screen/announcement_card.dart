@@ -24,11 +24,8 @@ class AnnouncementCard extends StatelessWidget {
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF8FBFF), AppColors.white],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.grey.withValues(alpha: 0.18)),
               boxShadow: const [
                 BoxShadow(
@@ -71,7 +68,7 @@ class AnnouncementCard extends StatelessWidget {
                               Text(
                                 'View All',
                                 style: TextStyle(
-                                  color: AppColors.primary2,
+                                  color: AppColors.danger,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
                                 ),
@@ -80,7 +77,7 @@ class AnnouncementCard extends StatelessWidget {
                               Icon(
                                 Icons.arrow_forward_ios_rounded,
                                 size: 12,
-                                color: AppColors.primary2,
+                                color: AppColors.danger,
                               ),
                             ],
                           ),
@@ -192,13 +189,13 @@ class _AnnouncementTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 20,
-            backgroundColor: AppColors.primary2.withValues(alpha: 0.12),
+            backgroundColor: AppColors.danger.withValues(alpha: 0.12),
             child: ClipOval(
               child: avatarUrl == null
                   ? Text(
                       _initials(),
                       style: const TextStyle(
-                        color: AppColors.primary2,
+                        color: AppColors.danger,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -212,7 +209,7 @@ class _AnnouncementTile extends StatelessWidget {
                         return Text(
                           _initials(),
                           style: const TextStyle(
-                            color: AppColors.primary2,
+                            color: AppColors.danger,
                             fontWeight: FontWeight.w800,
                             fontSize: 15,
                           ),

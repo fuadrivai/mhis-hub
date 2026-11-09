@@ -2,11 +2,10 @@ import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/library/sizes.dart';
 import 'package:fl_mhis_hr/models/v2/attendance_log.dart';
 import 'package:fl_mhis_hr/service/api.dart';
-import 'package:fl_mhis_hr/widget/custom_appbar.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:go_router/go_router.dart';
 
 class AttendanceHistoryDetailScreen extends StatefulWidget {
   final AttendanceLog log;
@@ -25,21 +24,18 @@ class _AttendanceHistoryDetailScreenState
     final hasCoordinate = log.latitude != null && log.longitude != null;
     final latLng = hasCoordinate ? LatLng(log.latitude!, log.longitude!) : null;
 
-    return Scaffold(
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.white,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.dark),
-        ),
-        title: log.type == "check_in" ? "Check-In Detail" : "Check-Out Detail",
-      ),
-      body: SingleChildScrollView(
+    return ThemedPage(
+      title: log.type == "check_in" ? "Check-In Detail" : "Check-Out Detail",
+      subtitle: 'Attendance information',
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(Sizes.dimen_14),
           decoration: BoxDecoration(
             color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x11000000),
@@ -54,7 +50,9 @@ class _AttendanceHistoryDetailScreenState
               Row(
                 children: [
                   Expanded(
-                      child: _buildPhoto("${Api.url}/storage/${log.photo}")),
+                      child: _buildPhoto(log.photo == null || log.photo!.isEmpty
+                          ? null
+                          : "${Api.url}/storage/${log.photo}")),
                   const SizedBox(width: Sizes.dimen_12),
                   Expanded(child: _buildMap(latLng)),
                 ],
@@ -145,8 +143,8 @@ class _AttendanceHistoryDetailScreenState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 130,
+          Expanded(
+            flex: 4,
             child: Text(
               label,
               style: const TextStyle(
@@ -158,6 +156,7 @@ class _AttendanceHistoryDetailScreenState
           ),
           const SizedBox(width: Sizes.dimen_10),
           Expanded(
+            flex: 5,
             child: Text(
               value,
               style: const TextStyle(

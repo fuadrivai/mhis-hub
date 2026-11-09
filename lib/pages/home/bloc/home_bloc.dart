@@ -68,9 +68,26 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   void _onGetNewsletter(OnGetNewsletter event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(newsletterLoading: true));
-    List<Newsletter> newsletters = await HomeApi.getNewsletter();
-    emit(state.copyWith(newsletters: newsletters, newsletterLoading: false));
+    emit(state.copyWith(newsletterLoading: true, newsletterError: false));
+    try {
+      final newsletters = await HomeApi.getNewsletter();
+      emit(state.copyWith(
+        newsletters: newsletters,
+        newsletterLoading: false,
+        newsletterError: false,
+      ));
+    } catch (e) {
+      String errorMessage = e.toString();
+      if (e is DioException) {
+        errorMessage =
+            e.response?.data?["message"] ?? e.message ?? errorMessage;
+      }
+      emit(state.copyWith(
+        newsletterLoading: false,
+        newsletterError: true,
+        newsletterErrorMessage: errorMessage,
+      ));
+    }
   }
 
   void _onGetSop(OnGetSop event, Emitter<HomeState> emit) async {

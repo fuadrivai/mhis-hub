@@ -4,10 +4,10 @@ import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/bloc/attendance_bloc.dart';
 import 'package:fl_mhis_hr/service/api.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 
@@ -34,64 +34,65 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final horizontalPadding = screenWidth < 380 ? 16.0 : 24.0;
-    return Scaffold(
-      backgroundColor: const Color(0xFFF3F0EE),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFF3F0EE),
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back, color: AppColors.lightblue),
-        ),
-        title: InkWell(
-          onTap: _selectDate,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  DateFormat('dd MMM yyyy').format(_selectedDate),
-                  style: TextStyle(
-                    color: Color(0xFF292B30),
-                    fontSize: screenWidth < 600 ? 17 : 19,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Icon(Icons.arrow_drop_down, color: Color(0xFF292B30)),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: Column(
+    return ThemedPage(
+      title: 'All Attendance',
+      subtitle: 'View employee attendance',
+      child: Column(
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(
-                horizontalPadding, 4, horizontalPadding, 18),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: _selectDate,
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                        color: AppColors.danger.withValues(alpha: 0.1)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 20, color: AppColors.danger),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          DateFormat('dd MMM yyyy').format(_selectedDate),
+                          style: const TextStyle(
+                            color: AppColors.dark,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const Icon(Icons.arrow_drop_down,
+                          color: AppColors.danger),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search employee name or ID',
-                hintStyle: TextStyle(
-                  color: Color(0xFF87909D),
-                  fontSize: screenWidth < 600 ? 14 : 16,
-                ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  size: screenWidth < 600 ? 26 : 30,
-                  color: Color(0xFF738091),
-                ),
+                hintStyle:
+                    const TextStyle(color: Color(0xFF87909D), fontSize: 14),
+                prefixIcon: const Icon(Icons.search, color: AppColors.danger),
                 suffixIcon: _searchQuery.isEmpty
                     ? null
                     : IconButton(
@@ -100,22 +101,25 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
                           setState(() => _searchQuery = '');
                           _reload();
                         },
-                        icon: const Icon(Icons.close),
+                        icon: const Icon(Icons.close, color: AppColors.danger),
+                        tooltip: 'Clear search',
                       ),
                 filled: true,
                 fillColor: AppColors.white,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(38),
-                  borderSide: const BorderSide(color: Color(0xFFD5D5D5)),
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                      color: AppColors.danger.withValues(alpha: 0.1)),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(38),
-                  borderSide: const BorderSide(color: Color(0xFFD5D5D5)),
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(
+                      color: AppColors.danger.withValues(alpha: 0.1)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(38),
-                  borderSide: const BorderSide(color: AppColors.lightblue),
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: AppColors.danger),
                 ),
               ),
               onChanged: (value) {
@@ -129,30 +133,42 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
               builder: (context, state) {
                 if (state.historyLoading) return const LoadingWidget();
                 if (state.isError) {
-                  return MessageState(
-                    message: 'Unable to load attendance',
-                    onRetry: _reload,
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    children: [
+                      ThemedMessageCard(
+                        message: 'Unable to load attendance',
+                        details: state.errorMessage,
+                        onRetry: _reload,
+                      ),
+                    ],
                   );
                 }
                 final records = _filteredRecords(
                   state.histories ?? _attendanceRecords(state),
                 );
                 if (records.isEmpty) {
-                  return const MessageState(message: 'No attendance found');
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    children: [
+                      ThemedMessageCard(
+                        message: 'No attendance found',
+                        onRetry: _reload,
+                      ),
+                    ],
+                  );
                 }
                 return RefreshIndicator(
+                  color: AppColors.danger,
                   onRefresh: () async => _reload(),
                   child: ListView.separated(
                     controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     itemCount: records.length + (state.loadMore ? 1 : 0),
-                    separatorBuilder: (_, __) => const Divider(
-                      height: 1,
-                      thickness: 1,
-                      indent: 10,
-                      endIndent: 10,
-                      color: Color(0xFFD0D0D0),
-                    ),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       if (index == records.length) {
                         return const Padding(
@@ -202,6 +218,17 @@ class _AllAttendanceScreenState extends State<AllAttendanceScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime(2100),
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: AppColors.danger,
+            onPrimary: Colors.white,
+            surface: Colors.white,
+            onSurface: AppColors.dark,
+          ),
+        ),
+        child: child!,
+      ),
     );
     if (date == null || !mounted) return;
     setState(() => _selectedDate = date);
@@ -262,7 +289,11 @@ class _AttendanceTileState extends State<_AttendanceTile> {
         attendance.checkIn != null || attendance.checkOut != null;
 
     return Container(
-      color: AppColors.white,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
+      ),
       padding: EdgeInsets.fromLTRB(isCompact ? 12 : 20, isCompact ? 8 : 12,
           isCompact ? 8 : 16, isCompact ? 8 : 12),
       child: Column(
@@ -282,7 +313,10 @@ class _AttendanceTileState extends State<_AttendanceTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                          fontSize: 17, color: Color(0xFF292B30)),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.dark,
+                      ),
                     ),
                     Text(
                       '$employeeId | $position',
@@ -308,7 +342,7 @@ class _AttendanceTileState extends State<_AttendanceTile> {
                               child: _TimeValue(
                                 icon: Icons.access_time,
                                 value: attendance.checkOut,
-                                color: AppColors.lightblue,
+                                color: AppColors.danger,
                                 compact: isCompact,
                               ),
                             ),
@@ -336,7 +370,7 @@ class _AttendanceTileState extends State<_AttendanceTile> {
                       : Icons.add_circle_outline,
                   size: isCompact ? 26 : 30,
                 ),
-                color: const Color(0xFF738091),
+                color: AppColors.danger,
                 tooltip: _isExpanded
                     ? 'Hide attendance details'
                     : 'Show attendance details',
@@ -390,23 +424,6 @@ class _AttendanceDetails extends StatelessWidget {
                 ? null
                 : () => _showAttendanceLog(context, 'check_out'),
           ),
-          // const SizedBox(height: 4),
-          // TextButton(
-          //   onPressed: () {},
-          //   style: TextButton.styleFrom(
-          //     padding: EdgeInsets.zero,
-          //     minimumSize: Size.zero,
-          //     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          //   ),
-          //   child: const Text(
-          //     'View all attendance data',
-          //     style: TextStyle(
-          //       color: AppColors.lightblue,
-          //       fontSize: 14,
-          //       decoration: TextDecoration.underline,
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -460,12 +477,14 @@ class _AttendanceDetailRow extends StatelessWidget {
         child: Row(
           children: [
             const Icon(Icons.location_on_outlined,
-                color: Color(0xFF738091), size: 24),
+                color: AppColors.danger, size: 24),
             const SizedBox(width: 12),
             SizedBox(
               width: 64,
               child: Text(
                 value ?? '-',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 14, color: Color(0xFF454951)),
               ),
             ),
@@ -475,7 +494,7 @@ class _AttendanceDetailRow extends StatelessWidget {
                 style: const TextStyle(fontSize: 14, color: Color(0xFF303238)),
               ),
             ),
-            const Icon(Icons.chevron_right, color: Color(0xFF738091), size: 28),
+            const Icon(Icons.chevron_right, color: AppColors.danger, size: 28),
           ],
         ),
       ),
@@ -523,7 +542,7 @@ class _AttendanceLogSheet extends StatelessWidget {
                   width: 72,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8793A2),
+                    color: AppColors.danger.withValues(alpha: 0.25),
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -540,8 +559,8 @@ class _AttendanceLogSheet extends StatelessWidget {
                     TextButton(
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Close',
-                          style: TextStyle(
-                              color: AppColors.lightblue, fontSize: 16)),
+                          style:
+                              TextStyle(color: AppColors.danger, fontSize: 16)),
                     ),
                   ],
                 ),
@@ -746,13 +765,16 @@ class _TimeValue extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: compact ? 18 : 22),
         SizedBox(width: compact ? 3 : 5),
-        Text(
-          value ?? '-',
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: value == null ? const Color(0xFF737983) : color,
-            fontSize: compact ? 12 : 14,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            value ?? '-',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: value == null ? const Color(0xFF737983) : color,
+              fontSize: compact ? 12 : 14,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],
@@ -772,10 +794,10 @@ class _Avatar extends StatelessWidget {
         url == null || url!.isEmpty ? null : '${Api.url}/storage/$url';
     return CircleAvatar(
       radius: radius,
-      backgroundColor: const Color(0xFFE9E9E9),
+      backgroundColor: AppColors.danger.withValues(alpha: 0.1),
       backgroundImage: imageUrl == null ? null : NetworkImage(imageUrl),
       child: imageUrl == null
-          ? Icon(Icons.person, size: radius, color: const Color(0xFF9AA0A8))
+          ? Icon(Icons.person, size: radius, color: AppColors.danger)
           : null,
     );
   }

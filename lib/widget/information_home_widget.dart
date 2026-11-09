@@ -44,10 +44,8 @@ class HorizontalMenu extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           const spacing = 8.0;
-          final width = constraints.maxWidth;
-          final itemWidth = (width - (spacing * 3)) / 4;
-          final itemHeight = itemWidth * 0.88;
-
+          final itemWidth = (constraints.maxWidth - spacing * 3) / 4;
+          final itemHeight = (itemWidth * 0.88).clamp(88.0, 112.0);
           return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

@@ -19,17 +19,25 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
   DateTime selectedDate = DateTime.now();
   String? strMonthYear;
   Map<String, dynamic> map = {};
+  late final TextEditingController _monthController;
 
   @override
   initState() {
     super.initState();
     strMonthYear =
         Jiffy.parseFromDateTime(selectedDate).format(pattern: "MMMM yyyy");
+    _monthController = TextEditingController(text: strMonthYear);
     String year = Jiffy.parseFromDateTime(selectedDate).format(pattern: "yyyy");
     String month = Jiffy.parseFromDateTime(selectedDate).format(pattern: "M");
     map = {"month": month, "year": year};
     context.read<RequestApprovalBloc>().add(OnInitRequest(map));
     context.read<RequestApprovalBloc>().add(OnGetBalance());
+  }
+
+  @override
+  void dispose() {
+    _monthController.dispose();
+    super.dispose();
   }
 
   @override
@@ -39,6 +47,8 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
         context.read<RequestApprovalBloc>().add(OnInitRequest(map));
       },
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 88),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -74,21 +84,21 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
                 children: [
                   Expanded(
                     child: TextFormField(
-                      controller: TextEditingController(text: strMonthYear),
+                      controller: _monthController,
                       readOnly: true,
-                      // enabled: false,
                       onTap: () {
                         showMonthPicker(
                           context: context,
                           initialDate: selectedDate,
                           monthPickerDialogSettings: Common.monthPickerDialog(),
                         ).then((date) {
-                          if (date != null) {
+                          if (date != null && mounted) {
                             setState(() {
                               selectedDate = date;
                               strMonthYear =
                                   Jiffy.parseFromDateTime(selectedDate)
                                       .format(pattern: "MMMM yyyy");
+                              _monthController.text = strMonthYear!;
                               String year =
                                   Jiffy.parseFromDateTime(selectedDate)
                                       .format(pattern: "yyyy");
@@ -106,9 +116,21 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
                       decoration: TextFormDecoration.box(
                         prefixIcon: const Icon(
                           Icons.calendar_month,
+                          color: AppColors.danger,
                         ),
                         suffixIcon: const Icon(
                           Icons.arrow_drop_down,
+                          color: AppColors.danger,
+                        ),
+                      ).copyWith(
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                              color: AppColors.danger.withValues(alpha: 0.12)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.danger),
                         ),
                       ),
                     ),
@@ -123,7 +145,9 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
               width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                border: Border.all(color: Colors.grey.shade200),
+                borderRadius: BorderRadius.circular(16),
+                border:
+                    Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),

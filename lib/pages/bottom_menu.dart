@@ -15,65 +15,69 @@ class BottomMenu extends StatefulWidget {
 
 class _BottomMenuState extends State<BottomMenu> {
   int _currentIndex = 0;
-  Color bgColor = AppColors.primary;
+  Color bgColor = AppColors.danger;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: widget.child,
-      bottomNavigationBar: CurvedNavigationBar(
-        index: _currentIndex,
-        backgroundColor: bgColor,
-        iconPadding: 10,
-        buttonBackgroundColor: const Color.fromARGB(255, 235, 235, 235),
-        onTap: (i) {
-          _currentIndex = i;
-          callPage(_currentIndex);
-          setState(() {});
-        },
-        items: [
-          CurvedNavigationBarItem(
-            child: FaIcon(
-              FontAwesomeIcons.house,
-              color: bgColor,
+      bottomNavigationBar: Container(
+        decoration:
+            BoxDecoration(color: AppColors.danger.withValues(alpha: 0.12)),
+        child: CurvedNavigationBar(
+          index: _currentIndex,
+          backgroundColor: Colors.transparent,
+          iconPadding: 10,
+          buttonBackgroundColor: AppColors.white,
+          onTap: (i) {
+            _currentIndex = i;
+            callPage(_currentIndex);
+            setState(() {});
+          },
+          items: [
+            CurvedNavigationBarItem(
+              child: FaIcon(
+                FontAwesomeIcons.house,
+                color: bgColor,
+              ),
+              label: 'Home',
             ),
-            label: 'Home',
-          ),
-          CurvedNavigationBarItem(
-            child: FaIcon(
-              FontAwesomeIcons.peopleGroup,
-              color: bgColor,
+            CurvedNavigationBarItem(
+              child: FaIcon(
+                FontAwesomeIcons.peopleGroup,
+                color: bgColor,
+              ),
+              label: 'Contacts',
             ),
-            label: 'Contacts',
-          ),
-          CurvedNavigationBarItem(
-            child: FaIcon(
-              FontAwesomeIcons.clockRotateLeft,
-              color: bgColor,
+            CurvedNavigationBarItem(
+              child: FaIcon(
+                FontAwesomeIcons.clockRotateLeft,
+                color: bgColor,
+              ),
+              label: 'Timeoff',
             ),
-            label: 'Timeoff',
-          ),
-          CurvedNavigationBarItem(
-            child: Container(
-              height: 35,
-              width: 35,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(Common.imageLogo),
-                  scale: 2,
+            CurvedNavigationBarItem(
+              child: Container(
+                height: 35,
+                width: 35,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(Common.imageLogo),
+                    scale: 2,
+                  ),
                 ),
               ),
+              label: 'Academy',
             ),
-            label: 'Academy',
-          ),
-          CurvedNavigationBarItem(
-            child: FaIcon(
-              FontAwesomeIcons.user,
-              color: bgColor,
+            CurvedNavigationBarItem(
+              child: FaIcon(
+                FontAwesomeIcons.user,
+                color: bgColor,
+              ),
+              label: 'Profile',
             ),
-            label: 'Profile',
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

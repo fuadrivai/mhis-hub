@@ -1,6 +1,6 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/login/bloc/login_bloc.dart';
-import 'package:fl_mhis_hr/widget/widget.dart';
+import 'package:fl_mhis_hr/pages/login/screen/auth_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,138 +15,102 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool isVisible = true;
-  IconData iconData = Icons.visibility;
+  bool _obscurePassword = true;
 
-  String get email => _emailController.text.trim();
-  String get password => _passwordController.text.trim();
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _signIn() {
+    context.read<LoginBloc>().add(OnLogin({
+          'email': _emailController.text,
+          'password': _passwordController.text,
+        }));
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) async {
-        String? token = await Session.get("token");
+        final token = await Session.get('token');
         if (!context.mounted) return;
-        if (token != null && token.isNotEmpty) {
-          context.go("/splash");
-        }
+        if (token != null && token.isNotEmpty) context.go('/splash');
       },
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(0),
-          child: Container(
-            color: AppColors.primary,
-          ),
-        ),
-        body: GestureDetector(
-          onTap: () {
-            FocusScope.of(context).unfocus();
-          },
-          behavior: HitTestBehavior.translucent,
-          child: BlocListener<LoginBloc, LoginState>(
-            listener: (context, state) {
-              if (!context.mounted) return;
-              if (state.isError) {
-                Common.modalInfo(
-                  context,
-                  title: "Error",
-                  message: state.errorMessage,
-                  mode: MODE.error,
-                  showAction: state.showAction,
-                );
-              }
-            },
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    color: AppColors.primary,
-                  ),
-                  const CustomHeader(text: 'Log In.'),
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.08,
-                    child: Container(
-                      height: MediaQuery.of(context).size.height * 0.9,
-                      width: MediaQuery.of(context).size.width,
-                      decoration: const BoxDecoration(
-                        color: AppColors.whiteshade,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(40),
-                          topRight: Radius.circular(40),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 5),
-                          Image.asset(
-                            'assets/images/logo-hub.png',
-                            scale: 1,
-                            height: 150,
-                          ),
-                          // Image.asset('assets/images/logo-hub.png'),
-                          const SizedBox(
-                            height: 24,
-                          ),
-                          CustomFormField(
-                            headingText: "Email",
-                            hintText: "Email",
-                            obsecureText: false,
-                            suffixIcon: const SizedBox(),
-                            controller: _emailController,
-                            maxLines: 1,
-                            textInputAction: TextInputAction.done,
-                            textInputType: TextInputType.emailAddress,
-                          ),
-                          const SizedBox(height: 16),
-                          CustomFormField(
-                            headingText: "Password",
-                            maxLines: 1,
-                            textInputAction: TextInputAction.done,
-                            textInputType: TextInputType.text,
-                            hintText: "At least 8 Character",
-                            obsecureText: isVisible,
-                            suffixIcon: IconButton(
-                              icon: Icon(iconData),
-                              onPressed: () {
-                                setState(() {
-                                  isVisible = !isVisible;
-                                  iconData = Icons.visibility_off;
-                                });
-                              },
-                            ),
-                            controller: _passwordController,
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                          ),
-                          BlocBuilder<LoginBloc, LoginState>(
-                            builder: (context, state) {
-                              if (state.isLoading) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
-                              return AuthButton(
-                                onTap: () {
-                                  context.read<LoginBloc>().add(OnLogin({
-                                        "email": _emailController.text,
-                                        "password": _passwordController.text
-                                      }));
-                                },
-                                text: 'Sign In',
-                              );
-                            },
-                          ),
-                        ],
+      child: BlocListener<LoginBloc, LoginState>(
+        listener: (context, state) {
+          if (state.isError) {
+            Common.modalInfo(
+              context,
+              title: 'Error',
+              message: state.errorMessage,
+              mode: MODE.error,
+              showAction: state.showAction,
+            );
+          }
+        },
+        child: AuthLayout(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const AuthTitle('LOGIN'),
+              const SizedBox(height: 32),
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [AutofillHints.username],
+                decoration: authFieldDecoration('Email'),
+              ),
+              const SizedBox(height: 20),
+              BlocBuilder<LoginBloc, LoginState>(
+                builder: (context, state) => TextField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  onSubmitted: (_) {
+                    if (!state.isLoading) _signIn();
+                  },
+                  decoration: authFieldDecoration('Password').copyWith(
+                    suffixIcon: IconButton(
+                      tooltip:
+                          _obscurePassword ? 'Show password' : 'Hide password',
+                      onPressed: () => setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      }),
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        size: 20,
+                        color: AppColors.blackshade,
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 34),
+              BlocBuilder<LoginBloc, LoginState>(
+                builder: (context, state) => AuthAction(
+                  label: 'Sign In',
+                  isLoading: state.isLoading,
+                  onPressed: _signIn,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => context.push('/forgot-password'),
+                  style:
+                      TextButton.styleFrom(foregroundColor: AppColors.danger),
+                  child: const Text('Forgot Password?'),
+                ),
+              ),
+            ],
           ),
         ),
       ),

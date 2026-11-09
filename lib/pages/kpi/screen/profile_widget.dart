@@ -20,7 +20,6 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     return BlocBuilder<KpiBloc, KpiState>(
       builder: (context, state) {
         if (state.empLoading) {
@@ -34,8 +33,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
-                width: size.width * 68 / 100,
+              Expanded(
                 child: Directionality(
                   textDirection: TextDirection.ltr,
                   child: Column(
@@ -58,20 +56,22 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   ),
                 ),
               ),
+              const SizedBox(width: 12),
               SizedBox(
-                width: size.width * 27 / 100,
+                width: 80,
                 child: Directionality(
                   textDirection: TextDirection.ltr,
                   child: CircleAvatar(
                     backgroundColor: const Color.fromARGB(255, 220, 220, 220),
-                    minRadius: 45.0,
+                    radius: 40,
                     child: CircleAvatar(
-                      radius: 40,
+                      radius: 36,
                       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                      backgroundImage: state.employee?.personal?.avatar == ""
-                          ? AssetImage(Common.imageProfile)
-                          : NetworkImage(
-                              state.employee?.personal?.avatarLink ?? ""),
+                      backgroundImage:
+                          (state.employee?.personal?.avatar ?? '').isEmpty
+                              ? AssetImage(Common.imageProfile)
+                              : NetworkImage(
+                                  state.employee?.personal?.avatarLink ?? ""),
                     ),
                   ),
                 ),

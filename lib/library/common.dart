@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:crypto/crypto.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +32,15 @@ class Common {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     stops: [0.3, 0.9],
+  );
+  static Gradient homeHeaderGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      AppColors.danger,
+      const Color(0xFFF73F6D).withValues(alpha: 0.65),
+      const Color(0xFFF8F8FA),
+    ],
   );
   static Gradient shimmerGradient = const LinearGradient(
     colors: [
@@ -137,11 +145,13 @@ class Common {
   }
 
   static MonthPickerDialogSettings monthPickerDialog() {
-    return MonthPickerDialogSettings(
-      headerSettings: const PickerHeaderSettings(
-        headerBackgroundColor: AppColors.primary,
+    return const MonthPickerDialogSettings(
+      headerSettings: PickerHeaderSettings(
+        headerBackgroundColor: AppColors.danger,
+        headerIconsColor: AppColors.white,
+        headerPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         headerCurrentPageTextStyle: TextStyle(
-          fontSize: 25,
+          fontSize: 22,
           color: AppColors.white,
           fontWeight: FontWeight.w700,
         ),
@@ -151,17 +161,22 @@ class Common {
         ),
       ),
       dateButtonsSettings: PickerDateButtonsSettings(
-        selectedMonthBackgroundColor: AppColors.danger.withValues(
-          red: 0.3,
-          blue: 0.3,
-          green: 0.3,
-          colorSpace: ColorSpace.displayP3,
-        ),
+        selectedMonthBackgroundColor: AppColors.danger,
+        selectedMonthTextColor: AppColors.white,
+        unselectedMonthsTextColor: AppColors.dark,
+        currentMonthTextColor: AppColors.danger,
+        monthTextStyle: TextStyle(fontWeight: FontWeight.w600),
       ),
       dialogSettings: PickerDialogSettings(
-        locale: const Locale('en'),
+        locale: Locale('en'),
         dialogRoundedCornersRadius: 20,
-        dialogBackgroundColor: AppColors.whiteshade,
+        dialogBackgroundColor: AppColors.white,
+      ),
+      actionBarSettings: PickerActionBarSettings(
+        cancelWidget: Text('Cancel', style: TextStyle(color: AppColors.danger)),
+        confirmWidget: Text('OK',
+            style: TextStyle(
+                color: AppColors.danger, fontWeight: FontWeight.w700)),
       ),
     );
   }

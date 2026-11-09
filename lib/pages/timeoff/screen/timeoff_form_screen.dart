@@ -2,6 +2,8 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/timeoff/bloc/timeoff_bloc.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
+import 'package:fl_mhis_hr/widget/gradient_button_background.dart';
+import 'package:fl_mhis_hr/widget/themed_page.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
@@ -9,7 +11,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class TimeoffFormScreen extends StatefulWidget {
   final Timeoff timeoff;
@@ -124,20 +125,20 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded,
-                  color: AppColors.primary),
+              leading:
+                  const Icon(Icons.camera_alt_rounded, color: AppColors.danger),
               title: const Text('Camera'),
               onTap: () => Navigator.pop(ctx, _AttachmentSource.camera),
             ),
             ListTile(
               leading: const Icon(Icons.photo_library_rounded,
-                  color: AppColors.primary),
+                  color: AppColors.danger),
               title: const Text('Gallery'),
               onTap: () => Navigator.pop(ctx, _AttachmentSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.insert_drive_file_rounded,
-                  color: AppColors.primary),
+                  color: AppColors.danger),
               title: const Text('File'),
               onTap: () => Navigator.pop(ctx, _AttachmentSource.file),
             ),
@@ -172,6 +173,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         );
         if (image != null && mounted) {
           final bytes = await image.readAsBytes();
+          if (!mounted) return;
           setState(() {
             _attachmentFile = _SelectedAttachment(
               name: image.name,
@@ -496,7 +498,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
+              primary: AppColors.danger,
               onPrimary: AppColors.white,
               surface: AppColors.white,
               onSurface: AppColors.dark,
@@ -506,12 +508,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       controllers[fieldName]?.text = _formatDate(picked);
       if (fieldName == 'start_date' && hasDateRange) {
         controllers['end_date']?.clear();
       }
-      if (mounted) setState(() {});
+      setState(() {});
     }
   }
 
@@ -632,7 +634,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
           hintText: fieldName == 'duration' ? '00 hours : 00 minutes' : label,
           suffixIcon: const Icon(
             Icons.access_time_rounded,
-            color: AppColors.primary,
+            color: AppColors.danger,
           ),
         ),
         validator: (value) {
@@ -663,7 +665,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
           hintText: label,
           suffixIcon: const Icon(
             Icons.calendar_today_rounded,
-            color: AppColors.primary,
+            color: AppColors.danger,
           ),
         ),
         validator: (value) {
@@ -704,12 +706,14 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
           padding: const EdgeInsets.only(bottom: 8),
           child: Row(
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.dark,
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.dark,
+                  ),
                 ),
               ),
               if (isRequired)
@@ -741,17 +745,10 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: CustomAppbar(
-          backgroundColor: AppColors.whiteshade,
-          leading: IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(Icons.arrow_back),
-          ),
-          title: widget.timeoff.name ?? "Request Timeoff",
-        ),
-        resizeToAvoidBottomInset: false,
-        body: BlocListener<TimeoffBloc, TimeoffState>(
+      child: ThemedPage(
+        title: widget.timeoff.name ?? "Request Timeoff",
+        subtitle: 'Complete your timeoff request',
+        child: BlocListener<TimeoffBloc, TimeoffState>(
           listenWhen: (previous, current) {
             final successTriggered = !previous.isSuccess && current.isSuccess;
             final errorTriggered = !previous.isFormError && current.isFormError;
@@ -770,8 +767,8 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                     ScrollViewKeyboardDismissBehavior.onDrag,
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.symmetric(
-                  horizontal: size.width > 720 ? 20 : 10,
-                  vertical: 10,
+                  horizontal: size.width > 720 ? 20 : 16,
+                  vertical: 0,
                 ),
                 child: Form(
                   key: _getFormKey(),
@@ -804,12 +801,12 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: AppColors.primary
+                                      color: AppColors.danger
                                           .withValues(alpha: 0.2),
                                       width: 2,
                                     ),
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.1),
+                                    color:
+                                        AppColors.danger.withValues(alpha: 0.1),
                                   ),
                                   child: state.employee?.personal?.avatar !=
                                           null
@@ -824,7 +821,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                               return const Center(
                                                 child: Icon(
                                                   Icons.person_rounded,
-                                                  color: AppColors.primary,
+                                                  color: AppColors.danger,
                                                 ),
                                               );
                                             },
@@ -833,7 +830,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                       : const Center(
                                           child: Icon(
                                             Icons.person_rounded,
-                                            color: AppColors.primary,
+                                            color: AppColors.danger,
                                           ),
                                         ),
                                 ),
@@ -923,7 +920,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                         style: const TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
-                                          color: AppColors.secondary,
+                                          color: AppColors.danger,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -1020,9 +1017,9 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.primary,
-                                  side: const BorderSide(
-                                      color: AppColors.primary),
+                                  foregroundColor: AppColors.danger,
+                                  side:
+                                      const BorderSide(color: AppColors.danger),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -1108,7 +1105,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                             _isPdfAttachment(_attachmentFile!)
                                                 ? Colors.red
                                                     .withValues(alpha: 0.1)
-                                                : AppColors.secondary
+                                                : AppColors.danger
                                                     .withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -1127,7 +1124,7 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                                                 : _isImageAttachment(
                                                         _attachmentFile!)
                                                     ? Colors.blue.shade600
-                                                    : AppColors.secondary,
+                                                    : AppColors.danger,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -1204,41 +1201,46 @@ class _TimeoffFormScreenState extends State<TimeoffFormScreen> {
                       SizedBox(
                         width: double.infinity,
                         height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: state.isFormLoading ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.white,
-                            disabledBackgroundColor:
-                                AppColors.primary.withValues(alpha: 0.6),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                        child: GradientButtonBackground(
+                          enabled: !state.isFormLoading,
+                          child: ElevatedButton.icon(
+                            onPressed: state.isFormLoading ? null : _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: AppColors.white,
+                              disabledBackgroundColor: Colors.transparent,
+                              disabledForegroundColor: AppColors.white,
+                              shadowColor: Colors.transparent,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          icon: state.isFormLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.white,
+                            icon: state.isFormLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        AppColors.white,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : const Icon(Icons.send_rounded),
-                          label: Text(
-                            state.isFormLoading
-                                ? 'Submitting...'
-                                : 'Submit Request',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
+                                  )
+                                : const Icon(Icons.send_rounded),
+                            label: Text(
+                              state.isFormLoading
+                                  ? 'Submitting...'
+                                  : 'Submit Request',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
                       ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),

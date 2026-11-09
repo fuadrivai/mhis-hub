@@ -10,7 +10,9 @@ import 'dart:io';
 import 'package:go_router/go_router.dart';
 
 class EmployeeWidget extends StatefulWidget {
-  const EmployeeWidget({super.key});
+  const EmployeeWidget({super.key, this.showBack = false});
+
+  final bool showBack;
 
   @override
   State<EmployeeWidget> createState() => _EmployeeWidgetState();
@@ -35,6 +37,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
       }
     });
     Session.get("roles").then((value) {
+      if (!mounted) return;
       setState(() {
         roles = value ?? "";
       });
@@ -54,294 +57,376 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
       onRefresh: () async {
         context.read<EmployeeBloc>().add(OnInitV2(_selectedFilters));
       },
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.blue.shade50.withValues(alpha: 0.45)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          controller: _controller,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        validator: ValidForm.emptyValue,
-                        decoration: TextFormDecoration.box(
-                          hintText: 'Search by Employee name or email...',
-                        ),
-                        onChanged: (str) {
-                          setState(() {
-                            _selectedFilters = {
-                              "search": str,
-                              "branch": _selectedBranch?.id ?? '',
-                              "organization": _selectedOrganization?.id ?? '',
-                              "level": _selectedJobLevel?.id ?? '',
-                              "position": _selectedJobPosition?.id ?? '',
-                            };
-                            context
-                                .read<EmployeeBloc>()
-                                .add(OnSearchChanged(_selectedFilters));
-                            _search = str;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      height: 46,
-                      width: 46,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.blue),
-                      ),
-                      child: IconButton(
-                        tooltip: 'Filter',
-                        icon: Icon(Icons.filter_list, color: AppColors.blue),
-                        onPressed: () {
-                          final List<Employee> source =
-                              context.read<EmployeeBloc>().state.employees2 ??
-                                  [];
-                          _showFilterDialog(source);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+      child: ColoredBox(
+        color: const Color(0xFFF8F8FA),
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: MediaQuery.paddingOf(context).top + 220,
+              child: DecoratedBox(
+                decoration: BoxDecoration(gradient: Common.homeHeaderGradient),
               ),
-              BlocBuilder<EmployeeBloc, EmployeeState>(
-                builder: (context, state) {
-                  if (state.isLoading) {
-                    return const LoadingWidget();
-                  }
-
-                  final List<Employee> employees = state.employees2 ?? [];
-                  if (employees.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.only(top: 60),
-                      child: Text('No Data'),
-                    );
-                  }
-
-                  final bool isLoadMore = state.loadMore;
-
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 24),
-                    itemCount: employees.length + (isLoadMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index >= employees.length) {
-                        return const LoadingBottom();
-                      }
-
-                      final Employee employee = employees[index];
-                      final String avatar = employee.personal?.avatarLink ??
-                          "https://ui-avatars.com/api/?name=${employee.personal?.fullname ?? '--'}&background=0D8ABC&color=fff";
-                      final String fullname =
-                          employee.personal?.fullname ?? '-';
-                      final String email = employee.personal?.email ??
-                          employee.user?.email ??
-                          '-';
-                      final String mobilePhone =
-                          employee.personal?.mobilePhone ?? '-';
-                      final String organization =
-                          employee.employment?.organization?.name ?? '-';
-                      final String position =
-                          employee.employment?.jobPosition?.name ?? '-';
-                      final String level =
-                          employee.employment?.jobLevel?.name ?? '-';
-                      final String branch =
-                          employee.employment?.branch?.name ?? '-';
-                      final bool isAdmin =
-                          roles.toLowerCase().contains('admin');
-
-                      return GestureDetector(
-                        onTap: isAdmin
-                            ? () => context.pushNamed(
-                                  'employee-detail',
-                                  extra: {'data': employee},
-                                )
-                            : null,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: Colors.blueGrey.shade100,
+            ),
+            SafeArea(
+              bottom: false,
+              child: SingleChildScrollView(
+                controller: _controller,
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                      child: Row(
+                        children: [
+                          if (widget.showBack) ...[
+                            IconButton(
+                              onPressed: () => Navigator.of(context).maybePop(),
+                              icon: const Icon(Icons.arrow_back),
+                              color: Colors.white,
+                              tooltip: 'Back',
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
+                            const SizedBox(width: 4),
+                          ],
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    InkWell(
-                                      onTap: () async {
-                                        if (avatar.isEmpty) return;
-                                        await showDialog(
-                                          context: context,
-                                          builder: (_) => ImageDialog(
-                                            person: employee.personal!,
-                                          ),
-                                        );
-                                      },
-                                      child: CircleAvatar(
-                                        radius: 24,
-                                        backgroundImage: avatar.isEmpty
-                                            ? null
-                                            : NetworkImage(avatar),
-                                        child: avatar.isEmpty
-                                            ? const Icon(Icons.person)
-                                            : null,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            fullname,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 15,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            email,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: Colors.grey.shade700,
-                                              fontSize: 12.5,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            mobilePhone,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              color: Colors.grey.shade700,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  'Contact',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                                const SizedBox(height: 10),
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final badges = Wrap(
-                                      spacing: 6,
-                                      runSpacing: 6,
-                                      children: [
-                                        _infoBadge('Branch', branch),
-                                        _infoBadge('Level', level),
-                                        _infoBadge(
-                                            'Organization', organization),
-                                        _infoBadge('Position', position),
-                                      ],
-                                    );
-
-                                    final bool hasPhone = mobilePhone != '-' &&
-                                        mobilePhone.isNotEmpty;
-                                    final actions = Row(
-                                      children: [
-                                        Expanded(
-                                          child: _actionButton(
-                                            icon: FontAwesomeIcons.phoneFlip,
-                                            label: 'Phone',
-                                            color: AppColors.danger,
-                                            onTap: hasPhone
-                                                ? () => phoneDial(mobilePhone)
-                                                : null,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: _actionButton(
-                                            icon: FontAwesomeIcons.envelope,
-                                            label: 'Email',
-                                            color: AppColors.blue,
-                                            onTap: () => launchEmail(email),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: _actionButton(
-                                            icon: FontAwesomeIcons.whatsapp,
-                                            label: 'WhatsApp',
-                                            color: Colors.green,
-                                            onTap: hasPhone
-                                                ? () => whatsapp(mobilePhone)
-                                                : null,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-
-                                    if (constraints.maxWidth < 420) {
-                                      return Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          badges,
-                                          const SizedBox(height: 10),
-                                          actions,
-                                        ],
-                                      );
-                                    }
-
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        badges,
-                                        const SizedBox(height: 10),
-                                        actions,
-                                      ],
-                                    );
-                                  },
+                                SizedBox(height: 4),
+                                Text(
+                                  'Find your colleagues',
+                                  style: TextStyle(color: Colors.white),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                      );
-                    },
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 10),
-                  );
-                },
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              validator: ValidForm.emptyValue,
+                              decoration: TextFormDecoration.box(
+                                hintText: 'Search by Employee name or email...',
+                                prefixIcon: const Icon(Icons.search,
+                                    color: AppColors.danger),
+                              ).copyWith(
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                      color: AppColors.danger
+                                          .withValues(alpha: 0.12)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide:
+                                      const BorderSide(color: AppColors.danger),
+                                ),
+                              ),
+                              onChanged: (str) {
+                                setState(() {
+                                  _selectedFilters = {
+                                    "search": str,
+                                    "branch": _selectedBranch?.id ?? '',
+                                    "organization":
+                                        _selectedOrganization?.id ?? '',
+                                    "level": _selectedJobLevel?.id ?? '',
+                                    "position": _selectedJobPosition?.id ?? '',
+                                  };
+                                  context
+                                      .read<EmployeeBloc>()
+                                      .add(OnSearchChanged(_selectedFilters));
+                                  _search = str;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 46,
+                            width: 46,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                  color:
+                                      AppColors.danger.withValues(alpha: 0.2)),
+                            ),
+                            child: IconButton(
+                              tooltip: 'Filter',
+                              icon: const Icon(Icons.filter_list,
+                                  color: AppColors.danger),
+                              onPressed: () {
+                                final List<Employee> source = context
+                                        .read<EmployeeBloc>()
+                                        .state
+                                        .employees2 ??
+                                    [];
+                                _showFilterDialog(source);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    BlocBuilder<EmployeeBloc, EmployeeState>(
+                      builder: (context, state) {
+                        if (state.isLoading) {
+                          return const LoadingWidget();
+                        }
+
+                        final List<Employee> employees = state.employees2 ?? [];
+                        if (employees.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.only(top: 60),
+                            child: Text('No Data'),
+                          );
+                        }
+
+                        final bool isLoadMore = state.loadMore;
+
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                          itemCount: employees.length + (isLoadMore ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index >= employees.length) {
+                              return const LoadingBottom();
+                            }
+
+                            final Employee employee = employees[index];
+                            final String avatar = employee
+                                    .personal?.avatarLink ??
+                                "https://ui-avatars.com/api/?name=${employee.personal?.fullname ?? '--'}&background=0D8ABC&color=fff";
+                            final String fullname =
+                                employee.personal?.fullname ?? '-';
+                            final String email = employee.personal?.email ??
+                                employee.user?.email ??
+                                '-';
+                            final String mobilePhone =
+                                employee.personal?.mobilePhone ?? '-';
+                            final String organization =
+                                employee.employment?.organization?.name ?? '-';
+                            final String position =
+                                employee.employment?.jobPosition?.name ?? '-';
+                            final String level =
+                                employee.employment?.jobLevel?.name ?? '-';
+                            final String branch =
+                                employee.employment?.branch?.name ?? '-';
+                            final bool isAdmin =
+                                roles.toLowerCase().contains('admin');
+
+                            return GestureDetector(
+                              onTap: isAdmin
+                                  ? () => context.pushNamed(
+                                        'employee-detail',
+                                        extra: {'data': employee},
+                                      )
+                                  : null,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color:
+                                        AppColors.danger.withValues(alpha: 0.1),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          InkWell(
+                                            onTap: () async {
+                                              if (avatar.isEmpty) return;
+                                              await showDialog(
+                                                context: context,
+                                                builder: (_) => ImageDialog(
+                                                  person: employee.personal!,
+                                                ),
+                                              );
+                                            },
+                                            child: CircleAvatar(
+                                              radius: 24,
+                                              backgroundImage: avatar.isEmpty
+                                                  ? null
+                                                  : NetworkImage(avatar),
+                                              child: avatar.isEmpty
+                                                  ? const Icon(Icons.person)
+                                                  : null,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  fullname,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  email,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 12.5,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 2),
+                                                Text(
+                                                  mobilePhone,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final badges = Wrap(
+                                            spacing: 6,
+                                            runSpacing: 6,
+                                            children: [
+                                              _infoBadge('Branch', branch),
+                                              _infoBadge('Level', level),
+                                              _infoBadge(
+                                                  'Organization', organization),
+                                              _infoBadge('Position', position),
+                                            ],
+                                          );
+
+                                          final bool hasPhone =
+                                              mobilePhone != '-' &&
+                                                  mobilePhone.isNotEmpty;
+                                          final actions = Row(
+                                            children: [
+                                              Expanded(
+                                                child: _actionButton(
+                                                  icon: FontAwesomeIcons
+                                                      .phoneFlip,
+                                                  label: 'Phone',
+                                                  color: AppColors.danger,
+                                                  onTap: hasPhone
+                                                      ? () =>
+                                                          phoneDial(mobilePhone)
+                                                      : null,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: _actionButton(
+                                                  icon:
+                                                      FontAwesomeIcons.envelope,
+                                                  label: 'Email',
+                                                  color: AppColors.blue,
+                                                  onTap: () =>
+                                                      launchEmail(email),
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: _actionButton(
+                                                  icon:
+                                                      FontAwesomeIcons.whatsapp,
+                                                  label: 'WhatsApp',
+                                                  color: Colors.green,
+                                                  onTap: hasPhone
+                                                      ? () =>
+                                                          whatsapp(mobilePhone)
+                                                      : null,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+
+                                          if (constraints.maxWidth < 420) {
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                badges,
+                                                const SizedBox(height: 10),
+                                                actions,
+                                              ],
+                                            );
+                                          }
+
+                                          return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              badges,
+                                              const SizedBox(height: 10),
+                                              actions,
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 10),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -527,7 +612,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50,
+        color: AppColors.danger.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
       ),
       constraints: const BoxConstraints(maxWidth: 220),
@@ -536,7 +621,7 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: Colors.blueGrey.shade700,
+          color: AppColors.danger,
           fontSize: 11.5,
           fontWeight: FontWeight.w500,
         ),

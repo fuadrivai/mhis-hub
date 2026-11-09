@@ -8,7 +8,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class MapWidget extends StatefulWidget {
   final String? btnTitle;
   final GestureTapCallback? onTap;
-  const MapWidget({super.key, this.onTap, this.btnTitle});
+  final Color? buttonColor;
+  final bool centerButton;
+  const MapWidget({
+    super.key,
+    this.onTap,
+    this.btnTitle,
+    this.buttonColor,
+    this.centerButton = false,
+  });
 
   @override
   State<MapWidget> createState() => _MapWidgetState();
@@ -17,7 +25,7 @@ class MapWidget extends StatefulWidget {
 class _MapWidgetState extends State<MapWidget> {
   double lat = -6.200000, long = 106.816666, zoom = 0;
   bool isLoading = true;
-  late GoogleMapController _googleMapController;
+  GoogleMapController? _googleMapController;
 
   @override
   void initState() {
@@ -28,7 +36,7 @@ class _MapWidgetState extends State<MapWidget> {
 
   @override
   void dispose() {
-    _googleMapController.dispose();
+    _googleMapController?.dispose();
     super.dispose();
   }
 
@@ -45,6 +53,7 @@ class _MapWidgetState extends State<MapWidget> {
   Future<void> getLocation() async {
     isLoading = true;
     bool isLocationActive = await Geolocator.isLocationServiceEnabled();
+    if (!mounted) return;
     if (isLocationActive) {
       Common.determinePosition().then((val) {
         if (!mounted) return;
@@ -105,14 +114,17 @@ class _MapWidgetState extends State<MapWidget> {
               ),
               Positioned(
                 bottom: 30,
-                right: 100,
-                child: SizedBox(
-                  width: 200,
-                  child: AuthButton(
-                    onTap: widget.onTap,
-                    text: widget.btnTitle ?? "Next",
-                    height: 50,
-                    color: AppColors.blue,
+                left: widget.centerButton ? 0 : null,
+                right: widget.centerButton ? 0 : 100,
+                child: Center(
+                  child: SizedBox(
+                    width: 200,
+                    child: AuthButton(
+                      onTap: widget.onTap,
+                      text: widget.btnTitle ?? "Next",
+                      height: 50,
+                      color: widget.buttonColor ?? AppColors.blue,
+                    ),
                   ),
                 ),
               )

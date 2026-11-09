@@ -119,6 +119,7 @@ class _AllTimeoffScreenState extends State<AllTimeoffScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: status,
                       decoration: const InputDecoration(labelText: 'Status'),
                       items: const [
@@ -164,6 +165,7 @@ class _AllTimeoffScreenState extends State<AllTimeoffScreen> {
                         (item) => item.id,
                         (value) => setDialogState(() => positionIds = value)),
                     DropdownButtonFormField<int?>(
+                      isExpanded: true,
                       initialValue: typeId,
                       decoration:
                           const InputDecoration(labelText: 'Time-off type'),
@@ -195,6 +197,7 @@ class _AllTimeoffScreenState extends State<AllTimeoffScreen> {
                       (date) => setDialogState(() => endDate = date),
                     ),
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: currentStep,
                       decoration:
                           const InputDecoration(labelText: 'Current step'),
@@ -374,151 +377,210 @@ class _AllTimeoffScreenState extends State<AllTimeoffScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteshade,
-      appBar: AppBar(
-        backgroundColor: AppColors.whiteshade,
-        foregroundColor: AppColors.dark,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: const Text(
-          'Time off requests',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-        ),
-      ),
+      backgroundColor: const Color(0xFFF8F8FA),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.pushNamed('timeoff'),
-        backgroundColor: AppColors.dark,
+        onPressed: () => context.push('/timeoff'),
+        backgroundColor: AppColors.danger,
         icon: const FaIcon(FontAwesomeIcons.plus, color: Colors.white),
         label: const Text('Request',
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
-              child: Row(
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 220,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: Common.homeHeaderGradient),
+            ),
+          ),
+          SafeArea(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusScope.of(context).unfocus(),
+              child: Column(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _searchRequests,
-                      decoration: InputDecoration(
-                        hintText: 'Search employee name or ID',
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          tooltip: 'Back',
+                          onPressed: () => context.pop(),
+                          icon: const Icon(Icons.arrow_back),
+                          color: Colors.white,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(28),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        const SizedBox(width: 4),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Time off requests',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'View and manage requests',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                  IconButton(
-                    tooltip: 'Filter',
-                    onPressed: _showFilterDialog,
-                    icon: const Icon(Icons.filter_alt_outlined, size: 28),
-                    color: AppColors.blackshade,
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            onChanged: _searchRequests,
+                            decoration: InputDecoration(
+                              hintText: 'Search employee name or ID',
+                              prefixIcon: const Icon(Icons.search,
+                                  color: AppColors.danger),
+                              filled: true,
+                              fillColor: Colors.white,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: AppColors.danger
+                                        .withValues(alpha: 0.12)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                    color: AppColors.danger
+                                        .withValues(alpha: 0.12)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide:
+                                    const BorderSide(color: AppColors.danger),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: AppColors.danger.withValues(alpha: 0.2)),
+                          ),
+                          child: IconButton(
+                            tooltip: 'Filter',
+                            onPressed: _showFilterDialog,
+                            icon: const Icon(Icons.filter_list),
+                            color: AppColors.danger,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+                    builder: (context, state) {
+                      final total = state.allTimeoffPagination?.total ?? 0;
+                      return Container(
+                        margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 13),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF4DC),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.warning_rounded,
+                                color: Color(0xFFE87518)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'There are $total requests awaiting approval.',
+                                style: const TextStyle(
+                                    fontSize: 14, color: AppColors.dark),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  Expanded(
+                    child:
+                        BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+                      builder: (context, state) {
+                        if (state.isLoading) return const LoadingWidget();
+                        if (state.isError) {
+                          return MessageState(
+                            message: state.errorMessage ??
+                                'Failed to load requests.',
+                            onRetry: () =>
+                                _loadRequests(_searchController.text.trim()),
+                          );
+                        }
+
+                        final requests = state.allTimeoffRequests;
+
+                        if (requests.isEmpty) {
+                          return const MessageState(
+                              message: 'No time off requests found.');
+                        }
+
+                        final groups = <String, List<ApprovalRequest>>{};
+                        for (final request in requests) {
+                          final date = ApprovalRequestData.parseDynamicDate(
+                            ApprovalRequestData.resolveRequestDateValue(
+                                request),
+                          );
+                          final key = date == null
+                              ? 'Unknown date'
+                              : Jiffy.parseFromDateTime(date)
+                                  .format(pattern: 'MMM yyyy');
+                          groups.putIfAbsent(key, () => []).add(request);
+                        }
+
+                        return ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                          children: groups.entries
+                              .expand((entry) => [
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                          top: 12, bottom: 8),
+                                      child: Text(
+                                        entry.key,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.blackshade,
+                                        ),
+                                      ),
+                                    ),
+                                    ...entry.value.map(
+                                      (request) =>
+                                          _RequestTile(request: request),
+                                    ),
+                                  ])
+                              .toList(),
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
             ),
-            BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-              builder: (context, state) {
-                final total = state.allTimeoffPagination?.total ?? 0;
-                return Container(
-                  margin: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF4DC),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.warning_rounded,
-                          color: Color(0xFFE87518)),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'There are $total requests awaiting approval.',
-                          style: const TextStyle(
-                              fontSize: 14, color: AppColors.dark),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            Expanded(
-              child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-                builder: (context, state) {
-                  if (state.isLoading) return const LoadingWidget();
-                  if (state.isError) {
-                    return MessageState(
-                      message: state.errorMessage ?? 'Failed to load requests.',
-                      onRetry: () =>
-                          _loadRequests(_searchController.text.trim()),
-                    );
-                  }
-
-                  final requests = state.allTimeoffRequests;
-
-                  if (requests.isEmpty) {
-                    return const MessageState(
-                        message: 'No time off requests found.');
-                  }
-
-                  final groups = <String, List<ApprovalRequest>>{};
-                  for (final request in requests) {
-                    final date = ApprovalRequestData.parseDynamicDate(
-                      ApprovalRequestData.resolveRequestDateValue(request),
-                    );
-                    final key = date == null
-                        ? 'Unknown date'
-                        : Jiffy.parseFromDateTime(date)
-                            .format(pattern: 'MMM yyyy');
-                    groups.putIfAbsent(key, () => []).add(request);
-                  }
-
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-                    children: groups.entries
-                        .expand((entry) => [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 12, bottom: 8),
-                                child: Text(
-                                  entry.key,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.blackshade,
-                                  ),
-                                ),
-                              ),
-                              ...entry.value.map(
-                                (request) => _RequestTile(request: request),
-                              ),
-                            ])
-                        .toList(),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -543,50 +605,58 @@ class _RequestTile extends StatelessWidget {
         ? '--'
         : Jiffy.parseFromDateTime(date).format(pattern: 'EEE, dd MMM yyyy');
 
-    return InkWell(
-      onTap: request.id == null
-          ? null
-          : () => context.pushNamed(
-                'timeoff-detail',
-                extra: {'requestId': request.id},
-              ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.danger.withValues(alpha: 0.1)),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Avatar(name: name, url: request.requester?.personal?.avatar),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$name ($employeeId)',
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w700),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: request.id == null
+              ? null
+              : () => context.pushNamed(
+                    'timeoff-detail',
+                    extra: {'requestId': request.id},
                   ),
-                  const SizedBox(height: 5),
-                  Text('Time off request for ${request.type?.name ?? '--'}',
-                      style: const TextStyle(color: AppColors.blackshade)),
-                  const SizedBox(height: 5),
-                  Text('• $dateText',
-                      style: const TextStyle(color: AppColors.blackshade)),
-                  Text(
-                    '• Reason: ${request.note?.trim().isNotEmpty == true ? request.note : '--'}',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.blackshade),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Avatar(name: name, url: request.requester?.personal?.avatar),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$name ($employeeId)',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 5),
+                      Text('Time off request for ${request.type?.name ?? '--'}',
+                          style: const TextStyle(color: AppColors.blackshade)),
+                      const SizedBox(height: 5),
+                      Text('• $dateText',
+                          style: const TextStyle(color: AppColors.blackshade)),
+                      Text(
+                        '• Reason: ${request.note?.trim().isNotEmpty == true ? request.note : '--'}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: AppColors.blackshade),
+                      ),
+                      const SizedBox(height: 7),
+                      _StatusChip(status: request.status),
+                    ],
                   ),
-                  const SizedBox(height: 7),
-                  _StatusChip(status: request.status),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -603,12 +673,12 @@ class _Avatar extends StatelessWidget {
     final initials = name.trim().isEmpty ? 'U' : name.trim()[0].toUpperCase();
     return CircleAvatar(
       radius: 23,
-      backgroundColor: AppColors.secondary.withValues(alpha: 0.12),
+      backgroundColor: AppColors.danger.withValues(alpha: 0.12),
       backgroundImage: (url ?? '').isEmpty ? null : NetworkImage(url!),
       child: (url ?? '').isEmpty
           ? Text(initials,
               style: const TextStyle(
-                  color: AppColors.secondary, fontWeight: FontWeight.w700))
+                  color: AppColors.danger, fontWeight: FontWeight.w700))
           : null,
     );
   }

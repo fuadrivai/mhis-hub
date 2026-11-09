@@ -163,6 +163,7 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 88),
           child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
             builder: (context, state) {
               final List<Approval> approvals = state.approvals;
@@ -173,7 +174,7 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    color: AppColors.whiteshade,
+                    color: Colors.transparent,
                     padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
                     child: AppBar(
                       automaticallyImplyLeading: false,
@@ -190,7 +191,8 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
                         },
                         decoration: TextFormDecoration.box(
                           hintText: 'Search requester or timeoff name',
-                          prefixIcon: const Icon(Icons.search),
+                          prefixIcon:
+                              const Icon(Icons.search, color: AppColors.danger),
                         ),
                       ),
                     ),
@@ -231,8 +233,10 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
                               });
                             },
                             decoration: TextFormDecoration.box(
-                              prefixIcon: const Icon(Icons.calendar_month),
-                              suffixIcon: const Icon(Icons.arrow_drop_down),
+                              prefixIcon: const Icon(Icons.calendar_month,
+                                  color: AppColors.danger),
+                              suffixIcon: const Icon(Icons.arrow_drop_down,
+                                  color: AppColors.danger),
                             ),
                           ),
                         ),
@@ -453,12 +457,16 @@ class _SummaryTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
+              Flexible(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
               ),
             ],

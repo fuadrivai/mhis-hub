@@ -1,4 +1,5 @@
 import 'package:fl_mhis_hr/library/constant.dart';
+import 'package:fl_mhis_hr/pages/login/screen/auth_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -13,10 +14,14 @@ class FingerprintLoginScreen extends StatefulWidget {
 class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
   final LocalAuthentication auth = LocalAuthentication();
   String _message = "Tap button to login with Fingerprint";
+  bool _isAuthenticating = false;
 
   Future<void> _authenticate() async {
+    if (_isAuthenticating) return;
+    setState(() => _isAuthenticating = true);
     try {
       final isAvailable = await auth.canCheckBiometrics;
+      if (!mounted) return;
       if (!isAvailable) {
         setState(() {
           _message = "Biometric not available on this device";
@@ -32,8 +37,8 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
         ),
       );
 
+      if (!mounted) return;
       if (didAuthenticate) {
-        if (!mounted) return;
         context.go('/');
       } else {
         setState(() {
@@ -41,39 +46,49 @@ class _FingerprintLoginScreenState extends State<FingerprintLoginScreen> {
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _message = "Error: $e";
       });
+    } finally {
+      if (mounted) setState(() => _isAuthenticating = false);
     }
   }
 
   @override
   void initState() {
-    _authenticate();
     super.initState();
+    _authenticate();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Fingerprint Login"),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Image.asset(Common.logoSplash, width: 300, height: 300),
-            const Icon(Icons.fingerprint, size: 80, color: Colors.blue),
-            const SizedBox(height: 20),
-            Text(_message, textAlign: TextAlign.center),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
-              onPressed: _authenticate,
-              icon: const Icon(Icons.fingerprint),
-              label: const Text("Login with Fingerprint"),
+    return AuthLayout(
+      onBack: () => context.go('/auth'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const AuthTitle('FINGERPRINT LOGIN'),
+          const SizedBox(height: 32),
+          const Icon(Icons.fingerprint, size: 80, color: AppColors.danger),
+          const SizedBox(height: 20),
+          Text(_message, textAlign: TextAlign.center),
+          const SizedBox(height: 30),
+          AuthAction(
+            label: 'Login with Fingerprint',
+            isLoading: _isAuthenticating,
+            onPressed: _authenticate,
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => context.go('/auth'),
+              style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+              child: const Text('Back to Login'),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

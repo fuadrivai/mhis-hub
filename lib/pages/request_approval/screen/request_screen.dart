@@ -2,7 +2,6 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/request_approval/screen/my_request_widget.dart';
 import 'package:fl_mhis_hr/pages/request_approval/screen/my_approval_widget.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
-import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -39,21 +38,14 @@ class _RequestScreenState extends State<RequestScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppbar(
-        backgroundColor: AppColors.whiteshade,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: "Timeoff Request",
-      ),
+      backgroundColor: const Color(0xFFF8F8FA),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const TimeoffScreen2()));
         },
-        backgroundColor: AppColors.secondary,
-        elevation: 8,
+        backgroundColor: AppColors.danger,
+        elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -72,27 +64,90 @@ class _RequestScreenState extends State<RequestScreen>
           ),
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(color: AppColors.whiteshade),
-            child: TabBar(
-              controller: _tabController!,
-              labelColor: AppColors.secondary,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: AppColors.secondary,
-              tabs: const [
-                Tab(text: "My requests"),
-                Tab(text: "My Approvals"),
-              ],
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 220,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: Common.homeHeaderGradient),
             ),
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController!,
+          SafeArea(
+            child: Column(
               children: [
-                const MyRequestWidget(),
-                const MyApprovalWidget(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Back',
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 4),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Timeoff Request',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'View your requests and approvals',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: TabBar(
+                    controller: _tabController!,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.danger,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      color: AppColors.danger,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    tabs: const [
+                      Tab(text: "My requests"),
+                      Tab(text: "My Approvals"),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController!,
+                    children: const [
+                      MyRequestWidget(),
+                      MyApprovalWidget(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
