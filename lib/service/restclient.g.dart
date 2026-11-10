@@ -824,6 +824,33 @@ class _RestClient implements RestClient {
   }
 
   @override
+  Future<NextApprovalResponse> getNextApproval(int id) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<NextApprovalResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'time/request/approval/${id}/next',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late NextApprovalResponse _value;
+    try {
+      _value = NextApprovalResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<List<Approval>> getUserApproval(Map<String, dynamic> post) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

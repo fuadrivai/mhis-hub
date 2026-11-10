@@ -626,7 +626,8 @@ class _RequestTile extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Avatar(name: name, url: request.requester?.personal?.avatar),
+                _Avatar(
+                    name: name, url: request.requester?.personal?.avatarUrl),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

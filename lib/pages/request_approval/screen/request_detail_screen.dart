@@ -1,4 +1,4 @@
-﻿// ignore_for_file: unused_element
+// ignore_for_file: unused_element
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/request_approval/bloc/request_approval_bloc.dart';
@@ -10,7 +10,13 @@ import 'package:jiffy/jiffy.dart';
 
 class RequestDetailScreen extends StatefulWidget {
   final int requestId;
-  const RequestDetailScreen({super.key, required this.requestId});
+  final int? approvalId;
+
+  const RequestDetailScreen({
+    super.key,
+    required this.requestId,
+    this.approvalId,
+  });
 
   @override
   State<RequestDetailScreen> createState() => _RequestDetailScreenState();
@@ -21,12 +27,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
   late final TabController _tabController;
   int employeeId = 0;
   bool isAdmin = false;
+  late int _requestId = widget.requestId;
+  late int? _approvalId = widget.approvalId;
+  String? _submittedAction;
+  bool _continueAfterAction = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    context.read<RequestApprovalBloc>().add(OnInitDetail(widget.requestId));
+    context.read<RequestApprovalBloc>().add(OnInitDetail(_requestId));
     Session.get('employeeId').then((empId) {
       employeeId = int.tryParse(empId ?? '') ?? 0;
       if (!mounted) {
@@ -49,106 +59,257 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
     super.dispose();
   }
 
+  void _requestNext() {
+    final approvalId = _approvalId;
+    if (approvalId == null) return;
+    context.read<RequestApprovalBloc>().add(OnGetNextApproval(approvalId));
+  }
+
+  void _handleNextState(RequestApprovalState state) {
+    final next = state.nextApproval;
+    final afterAction = _continueAfterAction;
+    final doneLabel = _submittedAction == 'rejected' ? 'Rejected' : 'Approved';
+    final noNext = state.isNextEmpty ||
+        (!state.isNextError && next?.approvalRequest?.id == _requestId);
+    if (afterAction) {
+      setState(() {
+        _continueAfterAction = false;
+        _submittedAction = null;
+      });
+    }
+    String? message;
+    if (state.isNextError) {
+      message = afterAction
+          ? '$doneLabel. Failed to load next: ${state.errorMessage}'
+          : 'Error: ${state.errorMessage}';
+    } else if (noNext) {
+      message = afterAction
+          ? '$doneLabel. No more pending approvals'
+          : 'No more pending approvals';
+    }
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      if (afterAction) {
+        if (state.isNextError) {
+          context.read<RequestApprovalBloc>().add(OnInitDetail(_requestId));
+        } else if (context.canPop()) {
+          context.pop();
+        }
+      }
+      return;
+    }
+    final nextRequestId = next?.approvalRequest?.id;
+    if (nextRequestId == null) return;
+    if (afterAction) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(doneLabel),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+    setState(() {
+      _requestId = nextRequestId;
+      _approvalId = next!.id;
+    });
+    _tabController.index = 0;
+    context.read<RequestApprovalBloc>().add(OnInitDetail(nextRequestId));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteshade,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.dark,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back),
-        ),
-        title: const Text(
-          'Timeoff Request Detail',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: AppColors.dark,
+      backgroundColor: const Color(0xFFF8F8FA),
+      body: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 220,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: Common.homeHeaderGradient),
+            ),
           ),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.secondary,
-          labelColor: AppColors.secondary,
-          unselectedLabelColor: AppColors.blackshade,
-          labelStyle:
-              const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-          unselectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-          tabs: const [
-            Tab(text: 'Detail'),
-            Tab(text: 'Approval'),
-          ],
-        ),
-      ),
-      body: BlocListener<RequestApprovalBloc, RequestApprovalState>(
-        listenWhen: (previous, current) {
-          final successTriggered =
-              !previous.isFormSuccess && current.isFormSuccess;
-          final errorTriggered = !previous.isFormError && current.isFormError;
-          return successTriggered || errorTriggered;
-        },
-        listener: (context, state) {
-          _handleFormSubmissionState(state);
-        },
-        child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-          builder: (context, state) {
-            if (state.isFormLoading) {
-              return const LoadingWidget();
-            }
-
-            if (state.isFormError) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(state.errorMessage ?? 'An error occurred'),
-                ),
-              );
-            }
-
-            if (state.request == null) {
-              return const Center(child: Text('Request detail not found'));
-            }
-
-            final ApprovalRequest request = state.request!;
-            final Approval? approval = request.approvals?.firstWhere(
-                (a) => a.approver?.id == employeeId,
-                orElse: () => Approval());
-            final bool showAction = approval?.showAction == true ||
-                (isAdmin && request.status?.toLowerCase() == 'pending');
-            final bool canCancelRequest =
-                request.requester?.id == employeeId && request.showCancel;
-
-            return Column(
+          SafeArea(
+            child: Column(
               children: [
-                _buildHeader(request),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 18),
+                  child: Row(
                     children: [
-                      _DetailTab(
-                        request: request,
-                        approval: approval,
-                        showAction: showAction,
-                        canCancelRequest: canCancelRequest,
+                      IconButton(
+                        tooltip: 'Back',
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back),
+                        color: Colors.white,
                       ),
-                      _ApprovalTab(request: request),
+                      const SizedBox(width: 4),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Request Detail',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Review request details and approvals',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: AppColors.danger,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    indicator: BoxDecoration(
+                      color: AppColors.danger,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    tabs: const [
+                      Tab(text: 'Detail'),
+                      Tab(text: 'Approval'),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: MultiBlocListener(
+                    listeners: [
+                      BlocListener<RequestApprovalBloc, RequestApprovalState>(
+                        listenWhen: (previous, current) =>
+                            (!previous.isFormSuccess &&
+                                current.isFormSuccess) ||
+                            (!previous.isFormError && current.isFormError),
+                        listener: (context, state) {
+                          _handleFormSubmissionState(state);
+                        },
+                      ),
+                      BlocListener<RequestApprovalBloc, RequestApprovalState>(
+                        listenWhen: (previous, current) =>
+                            previous.nextApproval != current.nextApproval ||
+                            (!previous.isNextEmpty && current.isNextEmpty) ||
+                            (!previous.isNextError && current.isNextError),
+                        listener: (context, state) {
+                          _handleNextState(state);
+                        },
+                      ),
+                    ],
+                    child:
+                        BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+                      builder: (context, state) {
+                        if (state.isFormLoading || _continueAfterAction) {
+                          return const LoadingWidget();
+                        }
+
+                        if (state.isFormError) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Text(
+                                  state.errorMessage ?? 'An error occurred'),
+                            ),
+                          );
+                        }
+
+                        if (state.request == null) {
+                          return const Center(
+                              child: Text('Request detail not found'));
+                        }
+
+                        final ApprovalRequest request = state.request!;
+                        final Approval? approval =
+                            request.approvals?.firstWhere(
+                          (a) => a.approver?.id == employeeId,
+                          orElse: () => Approval(),
+                        );
+                        final bool showAction = approval?.showAction == true ||
+                            (isAdmin &&
+                                request.status?.toLowerCase() == 'pending');
+                        final bool canCancelRequest =
+                            request.requester?.id == employeeId &&
+                                request.showCancel;
+
+                        return Column(
+                          children: [
+                            _buildHeader(
+                              request,
+                              onNextRequest: _approvalId == null
+                                  ? null
+                                  : (state.isNextLoading ? null : _requestNext),
+                              showNext: _approvalId != null,
+                              nextLoading: state.isNextLoading,
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                controller: _tabController,
+                                children: [
+                                  _DetailTab(
+                                    request: request,
+                                    approval: approval,
+                                    showAction: showAction,
+                                    canCancelRequest: canCancelRequest,
+                                    onActionSubmitted: (action) =>
+                                        _submittedAction = action,
+                                  ),
+                                  _ApprovalTab(request: request),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ],
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _handleFormSubmissionState(RequestApprovalState state) async {
     if (state.isFormSuccess) {
+      final action = _submittedAction;
+      final approvalId = _approvalId;
+      if (action != null && approvalId != null) {
+        setState(() => _continueAfterAction = true);
+        context.read<RequestApprovalBloc>().add(OnGetNextApproval(approvalId));
+        return;
+      }
+      _submittedAction = null;
       Common.flushBar(
         context,
         title: 'Success',
@@ -176,13 +337,18 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
 
   // ─────────────────────────────────────────────── header ────────────────────
 
-  Widget _buildHeader(ApprovalRequest request) {
+  Widget _buildHeader(
+    ApprovalRequest request, {
+    VoidCallback? onNextRequest,
+    bool showNext = false,
+    bool nextLoading = false,
+  }) {
     final String requesterName = request.requester?.personal?.fullname ??
         request.requester?.user?.name ??
         'Unknown';
     final String position =
         request.requester?.employment?.jobPosition?.name ?? '';
-    final String? avatar = request.requester?.personal?.avatar;
+    final String? avatar = request.requester?.personal?.avatarUrl;
     final String timeoffName = request.type?.name ?? '--';
     final String createdAt = Approval.formatDateTime(request.createdAt) ?? '--';
     final int totalSteps =
@@ -192,32 +358,44 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
         : (request.currentStep?.toString() ?? '--');
 
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _Avatar(url: avatar, name: requesterName),
-              const SizedBox(width: 12),
+              _Avatar(url: avatar, name: requesterName, radius: 28),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       requesterName,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: AppColors.dark,
                       ),
                     ),
                     if (position.isNotEmpty) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         position,
                         maxLines: 1,
@@ -231,52 +409,96 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                   ],
                 ),
               ),
+              if (showNext) ...[
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  tooltip: 'Next pending approval',
+                  onPressed: onNextRequest,
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: BorderSide(
+                      color: AppColors.danger.withValues(alpha: 0.55),
+                    ),
+                    minimumSize: const Size(40, 40),
+                    padding: EdgeInsets.zero,
+                  ),
+                  icon: nextLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.danger,
+                          ),
+                        )
+                      : const Icon(Icons.arrow_forward_rounded, size: 18),
+                ),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          Column(
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              _HeaderMetaRow(
-                label: 'Timeoff Type',
-                value: timeoffName,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.event_available_outlined,
+                        size: 17, color: AppColors.danger),
+                    const SizedBox(width: 7),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.48,
+                      ),
+                      child: Text(
+                        timeoffName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppColors.danger,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              _HeaderMetaRow(
-                label: 'Status',
-                value: request.status ?? '--',
-                valueColor: _headerStatusColor(request.status),
-                badge: true,
+              _StatusChip(status: request.status),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _HeaderSummaryTile(
+                  icon: Icons.schedule_outlined,
+                  label: 'Created',
+                  value: createdAt,
+                ),
               ),
-              const SizedBox(height: 8),
-              _HeaderMetaRow(
-                label: 'Created At',
-                value: createdAt,
-              ),
-              const SizedBox(height: 8),
-              _HeaderMetaRow(
-                label: 'Current Step',
-                value: currentStep,
+              const SizedBox(width: 10),
+              Expanded(
+                child: _HeaderSummaryTile(
+                  icon: Icons.account_tree_outlined,
+                  label: 'Approval step',
+                  value: currentStep,
+                ),
               ),
             ],
           ),
         ],
       ),
     );
-  }
-
-  static Color _headerStatusColor(String? status) {
-    switch ((status ?? '').toLowerCase()) {
-      case 'approved':
-        return const Color(0xFF0EA56A);
-      case 'rejected':
-        return const Color(0xFFD64545);
-      case 'pending':
-        return const Color(0xFFF2A93B);
-      default:
-        return AppColors.blackshade;
-    }
   }
 }
 
@@ -285,11 +507,13 @@ class _DetailTab extends StatelessWidget {
   final Approval? approval;
   final bool showAction;
   final bool canCancelRequest;
+  final ValueChanged<String>? onActionSubmitted;
   const _DetailTab({
     required this.request,
     this.approval,
     this.showAction = false,
     this.canCancelRequest = false,
+    this.onActionSubmitted,
   });
 
   @override
@@ -302,28 +526,47 @@ class _DetailTab extends StatelessWidget {
       children: [
         _SectionCard(
           title: 'Request Information',
+          icon: Icons.receipt_long_outlined,
           child: displayFields.isEmpty
               ? const _EmptyHint('No details available')
               : Column(
-                  children: displayFields
-                      .map((f) => _FieldRow(label: f.label, value: f.value))
-                      .toList(),
+                  children: List.generate(
+                    displayFields.length,
+                    (index) => _FieldRow(
+                      label: displayFields[index].label,
+                      value: displayFields[index].value,
+                      showDivider: index < displayFields.length - 1,
+                    ),
+                  ),
                 ),
         ),
         const SizedBox(height: 12),
         _SectionCard(
           title: 'Note',
+          icon: Icons.notes_rounded,
           child: ((request.note ?? '').trim().isNotEmpty)
-              ? Text(
-                  request.note!.trim(),
-                  style: const TextStyle(
-                      fontSize: 14, height: 1.5, color: AppColors.dark),
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F8FA),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    request.note!.trim(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                      color: AppColors.dark,
+                    ),
+                  ),
                 )
               : const _EmptyHint('No note available'),
         ),
         const SizedBox(height: 12),
         _SectionCard(
           title: 'Attachments',
+          icon: Icons.attach_file_rounded,
           child: (request.attachments ?? []).isNotEmpty
               ? Column(
                   children: (request.attachments ?? [])
@@ -356,6 +599,10 @@ class _DetailTab extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.danger),
                       foregroundColor: AppColors.danger,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13),
+                      ),
                     ),
                     child: const Text('Reject'),
                   ),
@@ -378,8 +625,12 @@ class _DetailTab extends StatelessWidget {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.danger,
                       foregroundColor: AppColors.whiteshade,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(13),
+                      ),
                     ),
                     child: const Text('Approve'),
                   ),
@@ -408,6 +659,10 @@ class _DetailTab extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.danger),
                   foregroundColor: AppColors.danger,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(13),
+                  ),
                 ),
                 child: const Text('Cancel Request'),
               ),
@@ -423,64 +678,154 @@ class _DetailTab extends StatelessWidget {
     required String action,
   }) {
     final TextEditingController controller = TextEditingController();
-    String? errorText;
+    final String key = action.toLowerCase();
+    final bool isApprove = key == 'approved';
+    final String title = switch (key) {
+      'approved' => 'Approve Request',
+      'rejected' => 'Reject Request',
+      _ => 'Cancel Request',
+    };
+    final String confirmLabel = switch (key) {
+      'approved' => 'Approve',
+      'rejected' => 'Reject',
+      _ => 'Cancel Request',
+    };
+    final IconData icon = isApprove
+        ? Icons.check_circle_outline_rounded
+        : key == 'rejected'
+            ? Icons.highlight_off_rounded
+            : Icons.event_busy_outlined;
 
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              title: Text('$action Request'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: controller,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: 'Reason / Note',
-                      hintText: 'Enter your reason',
-                      errorText: errorText,
-                      border: const OutlineInputBorder(),
+        return Dialog(
+          backgroundColor: Colors.white,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.danger.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(icon, color: AppColors.danger),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.dark,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: 'Reason / Note',
+                    hintText: 'Enter your reason',
+                    filled: true,
+                    fillColor: const Color(0xFFF8F8FA),
+                    floatingLabelStyle:
+                        const TextStyle(color: AppColors.danger),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(13),
+                      borderSide: BorderSide(
+                        color: AppColors.danger.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(13),
+                      borderSide: BorderSide(
+                        color: AppColors.danger.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(13),
+                      borderSide: const BorderSide(color: AppColors.danger),
                     ),
                   ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Cancel'),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    final String value = controller.text.trim();
-                    Map<String, dynamic> map = {
-                      "request_id": request.id,
-                      "action": action.toLowerCase(),
-                      "reason": value,
-                    };
-                    if (action.toLowerCase() == 'cancelled') {
-                      context
-                          .read<RequestApprovalBloc>()
-                          .add(PostCancelRequest(request.id!, map));
-                    } else {
-                      context.read<RequestApprovalBloc>().add(PostAction(map));
-                    }
-                    Navigator.pop(dialogContext, value);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: action == 'Reject'
-                        ? AppColors.danger
-                        : AppColors.primary,
-                    foregroundColor: AppColors.whiteshade,
-                  ),
-                  child: Text(action),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.danger),
+                          foregroundColor: AppColors.danger,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                        ),
+                        child: const Text('Close'),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final String value = controller.text.trim();
+                          Map<String, dynamic> map = {
+                            "request_id": request.id,
+                            "action": key,
+                            "reason": value,
+                          };
+                          if (key == 'cancelled') {
+                            context
+                                .read<RequestApprovalBloc>()
+                                .add(PostCancelRequest(request.id!, map));
+                          } else {
+                            onActionSubmitted?.call(action);
+                            context
+                                .read<RequestApprovalBloc>()
+                                .add(PostAction(map));
+                          }
+                          Navigator.pop(dialogContext, value);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.danger,
+                          foregroundColor: AppColors.whiteshade,
+                          minimumSize: const Size.fromHeight(48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                        ),
+                        child: Text(
+                          confirmLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            );
-          },
+            ),
+          ),
         );
       },
     );
@@ -588,43 +933,46 @@ class _ApprovalTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        if (approvals.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _SectionCard(
-            title: 'Approvers',
-            child: Column(
-              children: approvals.asMap().entries.map((entry) {
-                final int index = entry.key;
-                final Approval ap = entry.value;
-                final String name = ap.approver?.personal?.fullname ??
-                    ap.approver?.user?.name ??
-                    'Unknown';
-                return _ApproverRow(
-                  step: ap.stepOrder ?? (index + 1),
-                  name: name,
-                  status: ap.status,
-                  note: ap.actionedDate != null
-                      ? 'Actioned on ${Approval.formatDateTime(ap.actionedDate)}'
-                      : null,
-                  isLast: index == approvals.length - 1,
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-        if (histories.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _SectionCard(
-            title: 'History',
-            child: Column(
-              children: List.generate(
-                histories.length,
-                (i) => _HistoryRow(
-                    history: histories[i], isLast: i == histories.length - 1),
-              ),
-            ),
-          ),
-        ],
+        _SectionCard(
+          title: 'Approvers',
+          icon: Icons.groups_2_outlined,
+          child: approvals.isEmpty
+              ? const _EmptyHint('No approvers available')
+              : Column(
+                  children: approvals.asMap().entries.map((entry) {
+                    final int index = entry.key;
+                    final Approval ap = entry.value;
+                    final String name = ap.approver?.personal?.fullname ??
+                        ap.approver?.user?.name ??
+                        'Unknown';
+                    return _ApproverRow(
+                      step: ap.stepOrder ?? (index + 1),
+                      name: name,
+                      status: ap.status,
+                      note: ap.actionedDate != null
+                          ? 'Actioned on ${Approval.formatDateTime(ap.actionedDate)}'
+                          : null,
+                      isLast: index == approvals.length - 1,
+                    );
+                  }).toList(),
+                ),
+        ),
+        const SizedBox(height: 12),
+        _SectionCard(
+          title: 'History',
+          icon: Icons.history_rounded,
+          child: histories.isEmpty
+              ? const _EmptyHint('No approval history yet')
+              : Column(
+                  children: List.generate(
+                    histories.length,
+                    (i) => _HistoryRow(
+                      history: histories[i],
+                      isLast: i == histories.length - 1,
+                    ),
+                  ),
+                ),
+        ),
         const SizedBox(height: 24),
       ],
     );
@@ -654,9 +1002,12 @@ class _ApprovalTab extends StatelessWidget {
 class _SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
+  final IconData icon;
+
   const _SectionCard({
     required this.title,
     required this.child,
+    this.icon = Icons.circle_outlined,
   });
 
   @override
@@ -665,34 +1016,113 @@ class _SectionCard extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.07)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.035),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.blackshade,
-                letterSpacing: 0.3,
-              ),
+            padding: const EdgeInsets.fromLTRB(14, 13, 14, 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    color: AppColors.danger.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(icon, size: 19, color: AppColors.danger),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.dark,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: AppColors.danger.withValues(alpha: 0.08),
+          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
             child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeaderSummaryTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _HeaderSummaryTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 62),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F8FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 17, color: AppColors.danger),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.blackshade,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.dark,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -703,37 +1133,104 @@ class _SectionCard extends StatelessWidget {
 class _FieldRow extends StatelessWidget {
   final String label;
   final String value;
-  const _FieldRow({required this.label, required this.value});
+  final bool showDivider;
+
+  const _FieldRow({
+    required this.label,
+    required this.value,
+    this.showDivider = true,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final normalizedLabel = label.toLowerCase().replaceAll(
+          RegExp(r'[^a-z]'),
+          '',
+        );
+    final isCompactDateTimeField = const {
+      'date',
+      'startdate',
+      'enddate',
+      'endate',
+      'starttime',
+      'endtime',
+    }.contains(normalizedLabel);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
+      padding: EdgeInsets.only(
+        top: 4,
+        bottom: showDivider ? 10 : 4,
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 130,
-            child: Text(label,
-                style:
-                    const TextStyle(fontSize: 13, color: AppColors.blackshade)),
-          ),
-          const Text(':  ',
-              style: TextStyle(fontSize: 13, color: AppColors.blackshade)),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.dark,
-              ),
+          if (isCompactDateTimeField)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: normalizedLabel == 'date' ? 42 : 78,
+                  child: _fieldLabel,
+                ),
+                const Text(' : ', style: _fieldLabelStyle),
+                Expanded(child: _fieldValue),
+              ],
+            )
+          else
+            LayoutBuilder(
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 340) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _fieldLabel,
+                      const SizedBox(height: 4),
+                      _fieldValue,
+                    ],
+                  );
+                }
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 124, child: _fieldLabel),
+                    const SizedBox(width: 10),
+                    Expanded(child: _fieldValue),
+                  ],
+                );
+              },
             ),
-          ),
+          if (showDivider) ...[
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: AppColors.danger.withValues(alpha: 0.07),
+            ),
+          ],
         ],
       ),
     );
   }
+
+  Widget get _fieldLabel => Text(
+        label,
+        style: _fieldLabelStyle,
+      );
+
+  static const TextStyle _fieldLabelStyle = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.blackshade,
+  );
+
+  Widget get _fieldValue => Text(
+        value,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          height: 1.35,
+          color: AppColors.dark,
+        ),
+      );
 }
 
 class _AttachmentRow extends StatelessWidget {
@@ -1086,96 +1583,26 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-class _HeaderMetaRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color? valueColor;
-  final bool badge;
-
-  const _HeaderMetaRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-    this.badge = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 110,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blackshade,
-            ),
-          ),
-        ),
-        const Text(
-          ': ',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.blackshade,
-          ),
-        ),
-        Expanded(
-          child: badge
-              ? Align(
-                  alignment: Alignment.centerLeft,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: (valueColor ?? AppColors.dark)
-                          .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(99),
-                      border: Border.all(
-                        color: (valueColor ?? AppColors.dark)
-                            .withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: valueColor ?? AppColors.dark,
-                      ),
-                    ),
-                  ),
-                )
-              : Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: valueColor ?? AppColors.dark,
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
 class _Avatar extends StatelessWidget {
   final String? url;
   final String name;
-  const _Avatar({this.url, required this.name});
+  final double radius;
+
+  const _Avatar({
+    this.url,
+    required this.name,
+    this.radius = 24,
+  });
 
   @override
   Widget build(BuildContext context) {
     final String initials = _initials(name);
     final bool hasUrl = (url ?? '').trim().isNotEmpty;
+    final double size = radius * 2;
 
     return Container(
-      width: 48,
-      height: 48,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: AppColors.secondary.withValues(alpha: 0.1),
         shape: BoxShape.circle,

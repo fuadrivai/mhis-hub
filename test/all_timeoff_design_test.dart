@@ -20,6 +20,21 @@ class RecordingAllTimeoffBloc extends RequestApprovalBloc {
 }
 
 void main() {
+  test('person avatar URLs resolve relative paths against the API host', () {
+    expect(
+      Person(avatar: '/profile/profile_519_1785043900.png').avatarUrl,
+      'https://mhis-hub.mhis.link/profile/profile_519_1785043900.png',
+    );
+    expect(
+      Person(avatar: 'profile/profile_519_1785043900.png').avatarUrl,
+      'https://mhis-hub.mhis.link/storage/profile/profile_519_1785043900.png',
+    );
+    expect(
+      Person(avatar: 'https://images.example.com/avatar.png').avatarUrl,
+      'https://images.example.com/avatar.png',
+    );
+  });
+
   for (final size in [const Size(320, 568), const Size(1024, 768)]) {
     testWidgets('all timeoff actions and layout at $size', (tester) async {
       tester.view.physicalSize = size;

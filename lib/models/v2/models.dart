@@ -21,6 +21,7 @@ export 'package:fl_mhis_hr/models/v2/grid_menu_item.dart';
 export 'package:fl_mhis_hr/models/v2/file_attachment.dart';
 export 'package:fl_mhis_hr/models/v2/timeoff_schema.dart';
 export 'package:fl_mhis_hr/models/v2/approval.dart';
+export 'package:fl_mhis_hr/models/v2/next_approval_response.dart';
 export 'package:fl_mhis_hr/models/v2/shift.dart';
 export 'package:fl_mhis_hr/models/v2/schedule.dart';
 export 'package:fl_mhis_hr/models/v2/announcement_category.dart';

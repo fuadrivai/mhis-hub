@@ -108,6 +108,9 @@ abstract class RestClient {
   @GET("time/request/approval")
   Future<List<Approval>> getUserApproval(@Body() Map<String, dynamic> post);
 
+  @GET("time/request/approval/{id}/next")
+  Future<NextApprovalResponse> getNextApproval(@Path() int id);
+
   @GET("employee/schedule/active")
   Future<Shift> getActiveShift();
 

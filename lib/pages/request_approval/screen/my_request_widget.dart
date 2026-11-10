@@ -1,6 +1,7 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/request_approval/bloc/request_approval_bloc.dart';
+import 'package:fl_mhis_hr/pages/request_approval/screen/list_scroll_anchor.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,11 +16,16 @@ class MyRequestWidget extends StatefulWidget {
   State<MyRequestWidget> createState() => _MyRequestWidgetState();
 }
 
-class _MyRequestWidgetState extends State<MyRequestWidget> {
+class _MyRequestWidgetState extends State<MyRequestWidget>
+    with AutomaticKeepAliveClientMixin {
   DateTime selectedDate = DateTime.now();
   String? strMonthYear;
   Map<String, dynamic> map = {};
   late final TextEditingController _monthController;
+  final ListScrollAnchor _scrollAnchor = ListScrollAnchor();
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   initState() {
@@ -37,201 +43,238 @@ class _MyRequestWidgetState extends State<MyRequestWidget> {
   @override
   void dispose() {
     _monthController.dispose();
+    _scrollAnchor.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<RequestApprovalBloc>().add(OnInitRequest(map));
+    super.build(context);
+    return BlocListener<RequestApprovalBloc, RequestApprovalState>(
+      listenWhen: (previous, current) =>
+          (previous.isRequestRefreshing &&
+              !current.isRequestRefreshing &&
+              !current.isRequestLoading) ||
+          (previous.requestRefreshError != current.requestRefreshError &&
+              current.requestRefreshError != null),
+      listener: (context, state) {
+        if (state.requestRefreshError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Failed to refresh requests: ${state.requestRefreshError}'),
+            behavior: SnackBarBehavior.floating,
+          ));
+        } else {
+          _scrollAnchor.preserveVisibleItem(
+              state.requests.map((request) => request.id).whereType<int>());
+        }
       },
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(bottom: 88),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-              child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-                builder: (context, state) {
-                  if (state.isBalanceLoading) {
-                    return const LoadingShimmer(height: 150);
-                  }
-                  if (state.isBalanceError) {
-                    return const Text(
-                      "Failed to load balance",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red,
-                      ),
-                    );
-                  }
-                  if (state.isBalanceEmpty == true) {
-                    return const BalanceCard();
-                  }
-                  LeaveAllocation? leaveBalance = state.leaveBalance;
-                  return BalanceCardWidget(leaveBalance: leaveBalance);
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _monthController,
-                      readOnly: true,
-                      onTap: () {
-                        showMonthPicker(
-                          context: context,
-                          initialDate: selectedDate,
-                          monthPickerDialogSettings: Common.monthPickerDialog(),
-                        ).then((date) {
-                          if (date != null && mounted) {
-                            setState(() {
-                              selectedDate = date;
-                              strMonthYear =
-                                  Jiffy.parseFromDateTime(selectedDate)
-                                      .format(pattern: "MMMM yyyy");
-                              _monthController.text = strMonthYear!;
-                              String year =
-                                  Jiffy.parseFromDateTime(selectedDate)
-                                      .format(pattern: "yyyy");
-                              String month =
-                                  Jiffy.parseFromDateTime(selectedDate)
-                                      .format(pattern: "M");
-                              map = {"month": month, "year": year};
-                              context
-                                  .read<RequestApprovalBloc>()
-                                  .add(OnInitRequest(map));
-                            });
-                          }
-                        });
-                      },
-                      decoration: TextFormDecoration.box(
-                        prefixIcon: const Icon(
-                          Icons.calendar_month,
-                          color: AppColors.danger,
-                        ),
-                        suffixIcon: const Icon(
-                          Icons.arrow_drop_down,
-                          color: AppColors.danger,
-                        ),
-                      ).copyWith(
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                              color: AppColors.danger.withValues(alpha: 0.12)),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.danger),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  FilterIconWidget(onTap: () {}),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border:
-                    Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(14),
-              child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          context.read<RequestApprovalBloc>().add(OnInitRequest(map));
+        },
+        child: SingleChildScrollView(
+          key: _scrollAnchor.viewportKey,
+          controller: _scrollAnchor.controller,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 88),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10.0, vertical: 10.0),
+                child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
                   builder: (context, state) {
-                if (state.isLoading) {
-                  return const Column(
-                    children: [
-                      LoadingShimmer(height: 105),
-                      LoadingShimmer(height: 105),
-                      LoadingShimmer(height: 105),
-                    ],
-                  );
-                }
-                if (state.requests.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 28,
-                      horizontal: 12,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.inbox_rounded,
-                          size: 44,
-                          color: Colors.grey.shade400,
+                    if (state.isBalanceLoading) {
+                      return const LoadingShimmer(height: 150);
+                    }
+                    if (state.isBalanceError) {
+                      return const Text(
+                        "Failed to load balance",
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
                         ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          "No requests found",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "There is no request data for the selected month.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: state.requests.length,
-                  separatorBuilder: (context, i) => const SizedBox(height: 10),
-                  itemBuilder: (context, i) {
-                    ApprovalRequest request = state.requests[i];
-                    return _buildLeaveRequestItem(
-                      type: request.type?.name ?? "--",
-                      date: ApprovalRequestData.formatRequestDate(request),
-                      reason: request.note ?? "--",
-                      status: request.status ?? "--",
-                      statusColor: Common.statusColor(request.status),
-                      onTap: () {
-                        context.pushNamed(
-                          "timeoff-detail",
-                          extra: {
-                            "requestId": request.id,
-                          },
-                        );
-                      },
-                    );
+                      );
+                    }
+                    if (state.isBalanceEmpty == true) {
+                      return const BalanceCard();
+                    }
+                    LeaveAllocation? leaveBalance = state.leaveBalance;
+                    return BalanceCardWidget(leaveBalance: leaveBalance);
                   },
-                );
-              }),
-            ),
-          ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _monthController,
+                        readOnly: true,
+                        onTap: () {
+                          showMonthPicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            monthPickerDialogSettings:
+                                Common.monthPickerDialog(),
+                          ).then((date) {
+                            if (date != null && mounted) {
+                              setState(() {
+                                selectedDate = date;
+                                strMonthYear =
+                                    Jiffy.parseFromDateTime(selectedDate)
+                                        .format(pattern: "MMMM yyyy");
+                                _monthController.text = strMonthYear!;
+                                String year =
+                                    Jiffy.parseFromDateTime(selectedDate)
+                                        .format(pattern: "yyyy");
+                                String month =
+                                    Jiffy.parseFromDateTime(selectedDate)
+                                        .format(pattern: "M");
+                                map = {"month": month, "year": year};
+                                context
+                                    .read<RequestApprovalBloc>()
+                                    .add(OnInitRequest(map));
+                              });
+                            }
+                          });
+                        },
+                        decoration: TextFormDecoration.box(
+                          prefixIcon: const Icon(
+                            Icons.calendar_month,
+                            color: AppColors.danger,
+                          ),
+                          suffixIcon: const Icon(
+                            Icons.arrow_drop_down,
+                            color: AppColors.danger,
+                          ),
+                        ).copyWith(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.12)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                const BorderSide(color: AppColors.danger),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilterIconWidget(onTap: () {}),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: AppColors.danger.withValues(alpha: 0.1)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(14),
+                child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+                    builder: (context, state) {
+                  if (state.isRequestLoading) {
+                    return const Column(
+                      children: [
+                        LoadingShimmer(height: 105),
+                        LoadingShimmer(height: 105),
+                        LoadingShimmer(height: 105),
+                      ],
+                    );
+                  }
+                  if (state.requests.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 28,
+                        horizontal: 12,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inbox_rounded,
+                            size: 44,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "No requests found",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "There is no request data for the selected month.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: state.requests.length,
+                    separatorBuilder: (context, i) =>
+                        const SizedBox(height: 10),
+                    itemBuilder: (context, i) {
+                      ApprovalRequest request = state.requests[i];
+                      return KeyedSubtree(
+                        key: _scrollAnchor.keyFor(request.id),
+                        child: _buildLeaveRequestItem(
+                          type: request.type?.name ?? "--",
+                          date: ApprovalRequestData.formatRequestDate(request),
+                          reason: request.note ?? "--",
+                          status: request.status ?? "--",
+                          statusColor: Common.statusColor(request.status),
+                          onTap: () {
+                            context.pushNamed(
+                              "timeoff-detail",
+                              extra: {
+                                "requestId": request.id,
+                              },
+                            ).then((result) {
+                              if (!context.mounted) return;
+                              context.read<RequestApprovalBloc>().add(
+                                    OnInitRequest(Map.of(map),
+                                        background: true),
+                                  );
+                            });
+                          },
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -12,16 +12,28 @@ part 'request_approval_state.dart';
 
 class RequestApprovalBloc
     extends Bloc<RequestApprovalEvent, RequestApprovalState> {
-  RequestApprovalBloc() : super(const RequestApprovalState()) {
+  RequestApprovalBloc({
+    Future<List<ApprovalRequest>> Function(Map<String, dynamic>)? loadRequests,
+    Future<List<Approval>> Function(Map<String, dynamic>)? loadApprovals,
+  })  : _loadRequests = loadRequests ?? RequestApprovalApi.getUserTimeoff,
+        _loadApprovals = loadApprovals ?? RequestApprovalApi.getUserApproval,
+        super(const RequestApprovalState()) {
     on<OnGetBalance>(_onGetBalance);
     on<OnInitRequest>(_onInitRequest);
     on<OnInitApproval>(_onInitApproval);
     on<OnInitAllTimeoff>(_onInitAllTimeoff);
     on<OnInitAllTimeoffFilters>(_onInitAllTimeoffFilters);
     on<OnInitDetail>(_onInitDetail);
+    on<OnGetNextApproval>(_onGetNextApproval);
     on<PostAction>(_onPostAction);
     on<PostCancelRequest>(_onPostCancelRequest);
   }
+
+  final Future<List<ApprovalRequest>> Function(Map<String, dynamic>)
+      _loadRequests;
+  final Future<List<Approval>> Function(Map<String, dynamic>) _loadApprovals;
+  int _requestGeneration = 0;
+  int _approvalGeneration = 0;
 
   String _extractErrorMessage(Object e) {
     if (e is DioException) {
@@ -39,27 +51,41 @@ class RequestApprovalBloc
 
   void _onInitRequest(
       OnInitRequest event, Emitter<RequestApprovalState> emit) async {
+    final generation = ++_requestGeneration;
     try {
       emit(state.copyWith(
-        isLoading: true,
-        isError: false,
-        isSuccess: false,
+        isRequestLoading: event.background ? state.isRequestLoading : true,
+        isRequestRefreshing: event.background,
+        isError: event.background ? state.isError : false,
+        isSuccess: event.background ? state.isSuccess : false,
+        clearRequestRefreshError: true,
       ));
 
       Map<String, dynamic> map = event.map;
 
-      List<ApprovalRequest> requests =
-          await RequestApprovalApi.getUserTimeoff(map);
+      List<ApprovalRequest> requests = await _loadRequests(map);
+      if (generation != _requestGeneration) return;
       emit(state.copyWith(
-        isLoading: false,
+        isRequestLoading: false,
+        isRequestRefreshing: false,
         isError: false,
         isSuccess: true,
         requests: requests,
       ));
     } catch (e) {
+      if (generation != _requestGeneration) return;
       final errorMessage = _extractErrorMessage(e);
+      if (event.background) {
+        emit(state.copyWith(
+          isRequestLoading: false,
+          isRequestRefreshing: false,
+          requestRefreshError: errorMessage,
+        ));
+        return;
+      }
       emit(state.copyWith(
-        isLoading: false,
+        isRequestLoading: false,
+        isRequestRefreshing: false,
         isError: true,
         isSuccess: false,
         loadMore: false,
@@ -70,26 +96,41 @@ class RequestApprovalBloc
 
   void _onInitApproval(
       OnInitApproval event, Emitter<RequestApprovalState> emit) async {
+    final generation = ++_approvalGeneration;
     try {
       emit(state.copyWith(
-        isLoading: true,
-        isError: false,
-        isSuccess: false,
+        isApprovalLoading: event.background ? state.isApprovalLoading : true,
+        isApprovalRefreshing: event.background,
+        isError: event.background ? state.isError : false,
+        isSuccess: event.background ? state.isSuccess : false,
+        clearApprovalRefreshError: true,
       ));
 
       Map<String, dynamic> map = event.map;
 
-      List<Approval> approvals = await RequestApprovalApi.getUserApproval(map);
+      List<Approval> approvals = await _loadApprovals(map);
+      if (generation != _approvalGeneration) return;
       emit(state.copyWith(
-        isLoading: false,
+        isApprovalLoading: false,
+        isApprovalRefreshing: false,
         isError: false,
         isSuccess: true,
         approvals: approvals,
       ));
     } catch (e) {
+      if (generation != _approvalGeneration) return;
       final errorMessage = _extractErrorMessage(e);
+      if (event.background) {
+        emit(state.copyWith(
+          isApprovalLoading: false,
+          isApprovalRefreshing: false,
+          approvalRefreshError: errorMessage,
+        ));
+        return;
+      }
       emit(state.copyWith(
-        isLoading: false,
+        isApprovalLoading: false,
+        isApprovalRefreshing: false,
         isError: true,
         isSuccess: false,
         loadMore: false,
@@ -184,6 +225,33 @@ class RequestApprovalBloc
         isFormError: true,
         isFormSuccess: false,
         errorMessage: errorMessage,
+      ));
+    }
+  }
+
+  void _onGetNextApproval(
+      OnGetNextApproval event, Emitter<RequestApprovalState> emit) async {
+    emit(state.copyWith(
+      isNextLoading: true,
+      isNextError: false,
+      isNextEmpty: false,
+    ));
+    try {
+      final next = await RequestApprovalApi.getNextApproval(event.approvalId);
+      if (next?.id == null || next?.approvalRequest?.id == null) {
+        emit(state.copyWith(isNextLoading: false, isNextEmpty: true));
+        return;
+      }
+      emit(state.copyWith(isNextLoading: false, nextApproval: next));
+    } catch (e) {
+      if (e is DioException && e.response?.statusCode == 404) {
+        emit(state.copyWith(isNextLoading: false, isNextEmpty: true));
+        return;
+      }
+      emit(state.copyWith(
+        isNextLoading: false,
+        isNextError: true,
+        errorMessage: _extractErrorMessage(e),
       ));
     }
   }

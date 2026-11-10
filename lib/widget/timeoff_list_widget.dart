@@ -1,29 +1,76 @@
+import 'dart:math';
+
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class TimeoffListWidget extends StatelessWidget {
+class TimeoffListWidget extends StatefulWidget {
   final List<Timeoff> timeoffs;
   const TimeoffListWidget({super.key, required this.timeoffs});
+
+  @override
+  State<TimeoffListWidget> createState() => _TimeoffListWidgetState();
+}
+
+class _TimeoffListWidgetState extends State<TimeoffListWidget> {
+  static const _icons = [
+    Icons.calendar_today_outlined,
+    Icons.event_available_outlined,
+    Icons.beach_access_outlined,
+    Icons.flight_takeoff_outlined,
+    Icons.local_hospital_outlined,
+    Icons.home_work_outlined,
+    Icons.spa_outlined,
+    Icons.work_outline,
+    Icons.celebration_outlined,
+  ];
+
+  final _random = Random();
+  late List<IconData> _itemIcons;
+
+  @override
+  void initState() {
+    super.initState();
+    _randomizeIcons();
+  }
+
+  @override
+  void didUpdateWidget(covariant TimeoffListWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.timeoffs, widget.timeoffs)) {
+      _randomizeIcons();
+    }
+  }
+
+  void _randomizeIcons() {
+    _itemIcons = List.generate(
+      widget.timeoffs.length,
+      (_) => _icons[_random.nextInt(_icons.length)],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       sliver: SliverList.builder(
-        itemCount: timeoffs.length,
+        itemCount: widget.timeoffs.length,
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: buildTimeoffCard(context, timeoffs[index]),
+            child: _buildTimeoffCard(
+              context,
+              widget.timeoffs[index],
+              _itemIcons[index],
+            ),
           );
         },
       ),
     );
   }
 
-  Widget buildTimeoffCard(BuildContext context, Timeoff item) {
+  Widget _buildTimeoffCard(BuildContext context, Timeoff item, IconData icon) {
     return Material(
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -48,8 +95,8 @@ class TimeoffListWidget extends StatelessWidget {
                   color: AppColors.danger.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.calendar_today_outlined,
+                child: Icon(
+                  icon,
                   color: AppColors.danger,
                   size: 20,
                 ),

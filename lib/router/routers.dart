@@ -150,9 +150,11 @@ class RouteNavigation {
                     name: "timeoff-detail",
                     pageBuilder: (context, state) {
                       var extra = state.extra as Map<String, dynamic>;
+                      final approvalId = extra['approvalId'];
                       return NoTransitionPage(
                         child: RequestDetailScreen(
                           requestId: extra['requestId'],
+                          approvalId: approvalId is int ? approvalId : null,
                         ),
                       );
                     },

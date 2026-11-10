@@ -76,7 +76,9 @@ class AuthLayout extends StatelessWidget {
                                   child: Container(
                                     width: 94,
                                     height: 94,
-                                    padding: const EdgeInsets.all(10),
+                                    // Logo artwork sits ~3.5% left of its canvas center
+                                    padding: const EdgeInsets.fromLTRB(
+                                        15, 13, 10, 13),
                                     decoration: BoxDecoration(
                                       color: AppColors.white,
                                       shape: BoxShape.circle,

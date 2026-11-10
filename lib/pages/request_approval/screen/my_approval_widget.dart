@@ -3,6 +3,7 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/request_approval/bloc/request_approval_bloc.dart';
+import 'package:fl_mhis_hr/pages/request_approval/screen/list_scroll_anchor.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,12 +18,17 @@ class MyApprovalWidget extends StatefulWidget {
   State<MyApprovalWidget> createState() => _MyApprovalWidgetState();
 }
 
-class _MyApprovalWidgetState extends State<MyApprovalWidget> {
-  DateTime selectedDate = DateTime.now();
+class _MyApprovalWidgetState extends State<MyApprovalWidget>
+    with AutomaticKeepAliveClientMixin {
+  DateTime? selectedDate;
   String? strMonthYear;
-  String selectedStatus = 'All';
+  String selectedStatus = 'Pending';
   String searchQuery = '';
   Map<String, dynamic> map = {};
+  final ListScrollAnchor _scrollAnchor = ListScrollAnchor();
+
+  @override
+  bool get wantKeepAlive => true;
 
   final List<String> statuses = const [
     'All',
@@ -38,15 +44,26 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
     _syncPeriodAndLoad();
   }
 
-  void _syncPeriodAndLoad() {
-    strMonthYear =
-        Jiffy.parseFromDateTime(selectedDate).format(pattern: 'MMMM yyyy');
-    final String year =
-        Jiffy.parseFromDateTime(selectedDate).format(pattern: 'yyyy');
-    final String month =
-        Jiffy.parseFromDateTime(selectedDate).format(pattern: 'M');
-    map = {'month': month, 'year': year};
-    context.read<RequestApprovalBloc>().add(OnInitApproval(map));
+  @override
+  void dispose() {
+    _scrollAnchor.dispose();
+    super.dispose();
+  }
+
+  void _syncPeriodAndLoad({bool background = false}) {
+    final date = selectedDate;
+    if (date == null) {
+      strMonthYear = null;
+      map = {'status': selectedStatus.toLowerCase()};
+    } else {
+      strMonthYear = Jiffy.parseFromDateTime(date).format(pattern: 'MMMM yyyy');
+      final String year = Jiffy.parseFromDateTime(date).format(pattern: 'yyyy');
+      final String month = Jiffy.parseFromDateTime(date).format(pattern: 'M');
+      map = {'month': month, 'year': year};
+    }
+    context
+        .read<RequestApprovalBloc>()
+        .add(OnInitApproval(Map.of(map), background: background));
   }
 
   List<Approval> _filteredApprovals(List<Approval> approvals) {
@@ -88,10 +105,14 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
     }
 
     if (selectedStatus != 'All') {
-      return 'No approval data with status $selectedStatus for the selected month.';
+      return selectedDate == null
+          ? 'No approval data with status $selectedStatus.'
+          : 'No approval data with status $selectedStatus for the selected month.';
     }
 
-    return 'There is no approval data for the selected month.';
+    return selectedDate == null
+        ? 'There is no approval data.'
+        : 'There is no approval data for the selected month.';
   }
 
   int _countStatus(List<Approval> approvals, String status) {
@@ -148,201 +169,249 @@ class _MyApprovalWidgetState extends State<MyApprovalWidget> {
     setState(() {
       selectedStatus = selected;
     });
+    if (selectedDate == null) {
+      _syncPeriodAndLoad();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        context.read<RequestApprovalBloc>().add(OnInitApproval(map));
+    super.build(context);
+    return BlocListener<RequestApprovalBloc, RequestApprovalState>(
+      listenWhen: (previous, current) =>
+          (previous.isApprovalRefreshing &&
+              !current.isApprovalRefreshing &&
+              !current.isApprovalLoading) ||
+          (previous.approvalRefreshError != current.approvalRefreshError &&
+              current.approvalRefreshError != null),
+      listener: (context, state) {
+        if (state.approvalRefreshError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                'Failed to refresh approvals: ${state.approvalRefreshError}'),
+            behavior: SnackBarBehavior.floating,
+          ));
+        } else {
+          _scrollAnchor.preserveVisibleItem(
+              state.approvals.map((approval) => approval.id).whereType<int>());
+        }
       },
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () {
-          FocusScope.of(context).unfocus();
+      child: RefreshIndicator(
+        onRefresh: () async {
+          context.read<RequestApprovalBloc>().add(OnInitApproval(map));
         },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 88),
-          child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
-            builder: (context, state) {
-              final List<Approval> approvals = state.approvals;
-              final List<Approval> filteredApprovals =
-                  _filteredApprovals(approvals);
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: SingleChildScrollView(
+            key: _scrollAnchor.viewportKey,
+            controller: _scrollAnchor.controller,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 88),
+            child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
+              builder: (context, state) {
+                final List<Approval> approvals = state.approvals;
+                final List<Approval> filteredApprovals =
+                    _filteredApprovals(approvals);
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    color: Colors.transparent,
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                    child: AppBar(
-                      automaticallyImplyLeading: false,
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      surfaceTintColor: Colors.transparent,
-                      titleSpacing: 0,
-                      toolbarHeight: 52,
-                      title: TextFormField(
-                        onChanged: (value) {
-                          setState(() {
-                            searchQuery = value;
-                          });
-                        },
-                        decoration: TextFormDecoration.box(
-                          hintText: 'Search requester or timeoff name',
-                          prefixIcon:
-                              const Icon(Icons.search, color: AppColors.danger),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+                      child: AppBar(
+                        automaticallyImplyLeading: false,
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
+                        titleSpacing: 0,
+                        toolbarHeight: 52,
+                        title: TextFormField(
+                          onChanged: (value) {
+                            setState(() {
+                              searchQuery = value;
+                            });
+                          },
+                          decoration: TextFormDecoration.box(
+                            hintText: 'Search requester or timeoff name',
+                            prefixIcon: const Icon(Icons.search,
+                                color: AppColors.danger),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
-                    child: _SummarySection(
-                      pendingCount: _countStatus(approvals, 'pending'),
-                      approvedCount: _countStatus(approvals, 'approved'),
-                      rejectedCount: _countStatus(approvals, 'rejected'),
-                      skippedCount: _countStatus(approvals, 'skipped'),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      child: _SummarySection(
+                        pendingCount: _countStatus(approvals, 'pending'),
+                        approvedCount: _countStatus(approvals, 'approved'),
+                        rejectedCount: _countStatus(approvals, 'rejected'),
+                        skippedCount: _countStatus(approvals, 'skipped'),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller:
-                                TextEditingController(text: strMonthYear),
-                            readOnly: true,
-                            onTap: () {
-                              showMonthPicker(
-                                context: context,
-                                initialDate: selectedDate,
-                                monthPickerDialogSettings:
-                                    Common.monthPickerDialog(),
-                              ).then((date) {
-                                if (date == null) {
-                                  return;
-                                }
-                                setState(() {
-                                  selectedDate = date;
-                                  _syncPeriodAndLoad();
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller:
+                                  TextEditingController(text: strMonthYear),
+                              readOnly: true,
+                              onTap: () {
+                                showMonthPicker(
+                                  context: context,
+                                  initialDate: selectedDate ?? DateTime.now(),
+                                  monthPickerDialogSettings:
+                                      Common.monthPickerDialog(),
+                                ).then((date) {
+                                  if (date == null) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    selectedDate = date;
+                                    _syncPeriodAndLoad();
+                                  });
                                 });
-                              });
-                            },
-                            decoration: TextFormDecoration.box(
-                              prefixIcon: const Icon(Icons.calendar_month,
-                                  color: AppColors.danger),
-                              suffixIcon: const Icon(Icons.arrow_drop_down,
-                                  color: AppColors.danger),
+                              },
+                              decoration: TextFormDecoration.box(
+                                hintText:
+                                    selectedDate == null ? 'All months' : null,
+                                prefixIcon: const Icon(Icons.calendar_month,
+                                    color: AppColors.danger),
+                                suffixIcon: selectedDate == null
+                                    ? const Icon(Icons.arrow_drop_down,
+                                        color: AppColors.danger)
+                                    : IconButton(
+                                        tooltip: 'Clear month',
+                                        onPressed: () {
+                                          setState(() {
+                                            selectedDate = null;
+                                          });
+                                          _syncPeriodAndLoad();
+                                        },
+                                        icon: const Icon(Icons.clear,
+                                            color: AppColors.danger),
+                                      ),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        FilterIconWidget(onTap: _showStatusFilterDialog),
-                      ],
+                          const SizedBox(width: 10),
+                          FilterIconWidget(onTap: _showStatusFilterDialog),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 14,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: state.isLoading
-                        ? const LoadingWidget()
-                        : filteredApprovals.isEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 28,
-                                  horizontal: 12,
-                                ),
-                                child: Column(
-                                  children: [
-                                    Icon(
-                                      Icons.approval_outlined,
-                                      size: 44,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    const Text(
-                                      'No approvals found',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: state.isApprovalLoading
+                          ? const LoadingWidget()
+                          : filteredApprovals.isEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 28,
+                                    horizontal: 12,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.approval_outlined,
+                                        size: 44,
+                                        color: Colors.grey.shade400,
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      _emptyApprovalMessage(),
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade600,
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        'No approvals found',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ListView.separated(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: filteredApprovals.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 10),
-                                itemBuilder: (context, index) {
-                                  final Approval approval =
-                                      filteredApprovals[index];
-                                  final String status =
-                                      _displayStatus(approval.status);
-                                  return _ApprovalCard(
-                                      title: approval
-                                              .approvalRequest?.type?.name ??
-                                          '--',
-                                      subtitle:
-                                          ApprovalRequestData.formatRequestDate(
-                                              approval.approvalRequest ??
-                                                  ApprovalRequest()),
-                                      requesterName: approval.approvalRequest
-                                              ?.requester?.personal?.fullname ??
-                                          '--',
-                                      note: approval.approvalRequest?.note ??
-                                          '--',
-                                      status: status,
-                                      statusColor:
-                                          Common.statusColor(approval.status),
-                                      onTap: () {
-                                        context.pushNamed(
-                                          "timeoff-detail",
-                                          extra: {
-                                            "requestId":
-                                                approval.approvalRequest?.id,
-                                          },
-                                        ).then((result) {
-                                          _syncPeriodAndLoad();
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        _emptyApprovalMessage(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.separated(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  shrinkWrap: true,
+                                  itemCount: filteredApprovals.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(height: 10),
+                                  itemBuilder: (context, index) {
+                                    final Approval approval =
+                                        filteredApprovals[index];
+                                    final String status =
+                                        _displayStatus(approval.status);
+                                    return _ApprovalCard(
+                                        key: _scrollAnchor.keyFor(approval.id),
+                                        title: approval
+                                                .approvalRequest?.type?.name ??
+                                            '--',
+                                        subtitle: ApprovalRequestData
+                                            .formatRequestDate(
+                                                approval.approvalRequest ??
+                                                    ApprovalRequest()),
+                                        requesterName: approval
+                                                .approvalRequest
+                                                ?.requester
+                                                ?.personal
+                                                ?.fullname ??
+                                            '--',
+                                        note: approval.approvalRequest?.note ??
+                                            '--',
+                                        status: status,
+                                        statusColor:
+                                            Common.statusColor(approval.status),
+                                        onTap: () {
+                                          context.pushNamed(
+                                            "timeoff-detail",
+                                            extra: {
+                                              "requestId":
+                                                  approval.approvalRequest?.id,
+                                              "approvalId": approval.id,
+                                            },
+                                          ).then((result) {
+                                            if (mounted) {
+                                              _syncPeriodAndLoad(
+                                                  background: true);
+                                            }
+                                          });
                                         });
-                                      });
-                                },
-                              ),
-                  ),
-                  const SizedBox(height: 14),
-                ],
-              );
-            },
+                                  },
+                                ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -495,6 +564,7 @@ class _ApprovalCard extends StatelessWidget {
   final GestureTapCallback onTap;
 
   const _ApprovalCard({
+    super.key,
     required this.title,
     required this.subtitle,
     required this.requesterName,

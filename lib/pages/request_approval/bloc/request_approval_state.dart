@@ -2,10 +2,15 @@ part of 'request_approval_bloc.dart';
 
 final class RequestApprovalState extends Equatable {
   final bool isLoading, isError, isSuccess, loadMore;
+  final bool isRequestLoading, isApprovalLoading;
+  final bool isRequestRefreshing, isApprovalRefreshing;
   final bool isFormLoading, isFormError, isFormSuccess;
   final bool isBalanceLoading, isBalanceError, isBalanceSuccess, isBalanceEmpty;
   final bool isFilterLoading, isFilterError;
+  final bool isNextLoading, isNextError, isNextEmpty;
+  final Approval? nextApproval;
   final String? errorMessage;
+  final String? requestRefreshError, approvalRefreshError;
   final List<ApprovalRequest> requests;
   final List<ApprovalRequest> allTimeoffRequests;
   final List<Approval> approvals;
@@ -20,6 +25,10 @@ final class RequestApprovalState extends Equatable {
   final List<Timeoff> timeoffs;
   const RequestApprovalState({
     this.isLoading = false,
+    this.isRequestLoading = false,
+    this.isApprovalLoading = false,
+    this.isRequestRefreshing = false,
+    this.isApprovalRefreshing = false,
     this.isFormLoading = false,
     this.isError = false,
     this.isFormError = false,
@@ -31,7 +40,13 @@ final class RequestApprovalState extends Equatable {
     this.isBalanceEmpty = false,
     this.isFilterLoading = false,
     this.isFilterError = false,
+    this.isNextLoading = false,
+    this.isNextError = false,
+    this.isNextEmpty = false,
+    this.nextApproval,
     this.errorMessage,
+    this.requestRefreshError,
+    this.approvalRefreshError,
     this.loadMore = false,
     this.requests = const [],
     this.allTimeoffRequests = const [],
@@ -48,10 +63,18 @@ final class RequestApprovalState extends Equatable {
   });
   RequestApprovalState copyWith({
     bool? isLoading,
+    bool? isRequestLoading,
+    bool? isApprovalLoading,
+    bool? isRequestRefreshing,
+    bool? isApprovalRefreshing,
     bool? isError,
     bool? isSuccess,
     bool? loadMore,
     String? errorMessage,
+    String? requestRefreshError,
+    String? approvalRefreshError,
+    bool clearRequestRefreshError = false,
+    bool clearApprovalRefreshError = false,
     bool? isFormLoading,
     bool? isFormError,
     bool? isFormSuccess,
@@ -61,6 +84,10 @@ final class RequestApprovalState extends Equatable {
     bool? isBalanceEmpty,
     bool? isFilterLoading,
     bool? isFilterError,
+    bool? isNextLoading,
+    bool? isNextError,
+    bool? isNextEmpty,
+    Approval? nextApproval,
     List<ApprovalRequest>? requests,
     List<Approval>? approvals,
     ApprovalRequest? request,
@@ -76,8 +103,18 @@ final class RequestApprovalState extends Equatable {
   }) {
     return RequestApprovalState(
       errorMessage: errorMessage ?? this.errorMessage,
+      requestRefreshError: clearRequestRefreshError
+          ? null
+          : requestRefreshError ?? this.requestRefreshError,
+      approvalRefreshError: clearApprovalRefreshError
+          ? null
+          : approvalRefreshError ?? this.approvalRefreshError,
       isError: isError ?? this.isError,
       isLoading: isLoading ?? this.isLoading,
+      isRequestLoading: isRequestLoading ?? this.isRequestLoading,
+      isApprovalLoading: isApprovalLoading ?? this.isApprovalLoading,
+      isRequestRefreshing: isRequestRefreshing ?? this.isRequestRefreshing,
+      isApprovalRefreshing: isApprovalRefreshing ?? this.isApprovalRefreshing,
       isSuccess: isSuccess ?? this.isSuccess,
       loadMore: loadMore ?? this.loadMore,
       isFormLoading: isFormLoading ?? this.isFormLoading,
@@ -89,6 +126,10 @@ final class RequestApprovalState extends Equatable {
       isBalanceEmpty: isBalanceEmpty ?? this.isBalanceEmpty,
       isFilterLoading: isFilterLoading ?? this.isFilterLoading,
       isFilterError: isFilterError ?? this.isFilterError,
+      isNextLoading: isNextLoading ?? this.isNextLoading,
+      isNextError: isNextError ?? this.isNextError,
+      isNextEmpty: isNextEmpty ?? this.isNextEmpty,
+      nextApproval: nextApproval ?? this.nextApproval,
       requests: requests ?? this.requests,
       request: request ?? this.request,
       approvals: approvals ?? this.approvals,
@@ -107,7 +148,13 @@ final class RequestApprovalState extends Equatable {
   @override
   List<Object?> get props => [
         errorMessage,
+        requestRefreshError,
+        approvalRefreshError,
         isLoading,
+        isRequestLoading,
+        isApprovalLoading,
+        isRequestRefreshing,
+        isApprovalRefreshing,
         isError,
         isSuccess,
         loadMore,
@@ -125,7 +172,10 @@ final class RequestApprovalState extends Equatable {
         isBalanceEmpty,
         isFilterLoading,
         isFilterError,
-        allTimeoffRequests,
+        isNextLoading,
+        isNextError,
+        isNextEmpty,
+        nextApproval,
         allTimeoffPagination,
         branches,
         organizations,

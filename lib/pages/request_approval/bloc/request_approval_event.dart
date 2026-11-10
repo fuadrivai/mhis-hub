@@ -6,16 +6,18 @@ abstract class RequestApprovalEvent extends Equatable {
 
 class OnInitRequest extends RequestApprovalEvent {
   final Map<String, dynamic> map;
-  const OnInitRequest(this.map);
+  final bool background;
+  const OnInitRequest(this.map, {this.background = false});
   @override
-  List<Object?> get props => [map];
+  List<Object?> get props => [map, background];
 }
 
 class OnInitApproval extends RequestApprovalEvent {
   final Map<String, dynamic> map;
-  const OnInitApproval(this.map);
+  final bool background;
+  const OnInitApproval(this.map, {this.background = false});
   @override
-  List<Object?> get props => [map];
+  List<Object?> get props => [map, background];
 }
 
 class OnInitAllTimeoff extends RequestApprovalEvent {
@@ -37,6 +39,13 @@ class OnInitDetail extends RequestApprovalEvent {
   const OnInitDetail(this.id);
   @override
   List<Object?> get props => [id];
+}
+
+class OnGetNextApproval extends RequestApprovalEvent {
+  final int approvalId;
+  const OnGetNextApproval(this.approvalId);
+  @override
+  List<Object?> get props => [approvalId];
 }
 
 class PostAction extends RequestApprovalEvent {

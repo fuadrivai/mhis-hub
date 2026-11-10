@@ -131,7 +131,15 @@ class Person {
         {"title": "Blood Type", "value": bloodType}
       ];
 
-  String get avatarLink => avatar != null && avatar!.isNotEmpty
-      ? "${Api.url}/storage/$avatar"
-      : "https://ui-avatars.com/api/?name=$fullname&background=0D8ABC&color=fff";
+  String? get avatarUrl {
+    final path = avatar?.trim();
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    if (path.startsWith('/')) return Uri.parse(Api.url).resolve(path).toString();
+    return '${Api.url}/storage/$path';
+  }
+
+  String get avatarLink =>
+      avatarUrl ??
+      "https://ui-avatars.com/api/?name=$fullname&background=0D8ABC&color=fff";
 }
