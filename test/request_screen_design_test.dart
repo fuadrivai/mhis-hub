@@ -45,8 +45,10 @@ void main() {
           id: 1,
           status: 'pending',
           type: Timeoff(
-            name: 'Annual leave',
+            code: 'hourly',
+            name: 'Hourly',
             schema: [
+              TimeoffSchema(name: 'type', label: 'Type'),
               TimeoffSchema(name: 'date', label: 'Date'),
               TimeoffSchema(name: 'start_date', label: 'Start Date'),
               TimeoffSchema(name: 'end_date', label: 'End Date'),
@@ -55,6 +57,7 @@ void main() {
             ],
           ),
           data: ApprovalRequestData(payload: {
+            'type': 'hourly',
             'date': '2027-01-03',
             'start_date': '2027-01-04',
             'end_date': '2027-01-05',
@@ -103,23 +106,27 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
+      tester.getTopLeft(find.text('Type')).dy,
+      closeTo(tester.getTopLeft(find.text('Hourly').last).dy, 1),
+    );
+    expect(
       tester.getTopLeft(find.text('Date')).dy,
       closeTo(tester.getTopLeft(find.text('03 January 2027')).dy, 1),
     );
     expect(
       tester.getTopLeft(find.text('Start Date')).dy,
-      closeTo(tester.getTopLeft(find.text('04 January 2027')).dy, 1),
+      closeTo(tester.getTopLeft(find.text('End Date')).dy, 1),
     );
     expect(
-      tester.getTopLeft(find.text('End Date')).dy,
+      tester.getTopLeft(find.text('04 January 2027')).dy,
       closeTo(tester.getTopLeft(find.text('05 January 2027')).dy, 1),
     );
     expect(
       tester.getTopLeft(find.text('Start Time')).dy,
-      closeTo(tester.getTopLeft(find.text('09:00')).dy, 1),
+      closeTo(tester.getTopLeft(find.text('End Time')).dy, 1),
     );
     expect(
-      tester.getTopLeft(find.text('End Time')).dy,
+      tester.getTopLeft(find.text('09:00')).dy,
       closeTo(tester.getTopLeft(find.text('17:00')).dy, 1),
     );
 

@@ -520,6 +520,14 @@ class _DetailTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<_FieldItem> fields = _buildFields();
     final List<_FieldItem> displayFields = fields;
+    final bool isHourlyRequest = [
+      request.type?.code,
+      request.type?.name,
+    ].any((type) => type?.trim().toLowerCase() == 'hourly');
+    final List<Widget> informationRows = _buildInformationRows(
+      displayFields,
+      isHourlyRequest: isHourlyRequest,
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -527,18 +535,9 @@ class _DetailTab extends StatelessWidget {
         _SectionCard(
           title: 'Request Information',
           icon: Icons.receipt_long_outlined,
-          child: displayFields.isEmpty
+          child: informationRows.isEmpty
               ? const _EmptyHint('No details available')
-              : Column(
-                  children: List.generate(
-                    displayFields.length,
-                    (index) => _FieldRow(
-                      label: displayFields[index].label,
-                      value: displayFields[index].value,
-                      showDivider: index < displayFields.length - 1,
-                    ),
-                  ),
-                ),
+              : Column(children: informationRows),
         ),
         const SizedBox(height: 12),
         _SectionCard(
@@ -829,6 +828,71 @@ class _DetailTab extends StatelessWidget {
         );
       },
     );
+  }
+
+  List<Widget> _buildInformationRows(
+    List<_FieldItem> fields, {
+    required bool isHourlyRequest,
+  }) {
+    const Set<String> hourlyFieldKeys = {
+      'startdate',
+      'enddate',
+      'starttime',
+      'endtime',
+    };
+    String normalizeLabel(String label) =>
+        label.toLowerCase().replaceAll(RegExp(r'[^a-z]'), '');
+
+    final Map<String, _FieldItem> hourlyFields = <String, _FieldItem>{};
+    if (isHourlyRequest) {
+      for (final _FieldItem field in fields) {
+        final String key = normalizeLabel(field.label);
+        if (hourlyFieldKeys.contains(key)) {
+          hourlyFields.putIfAbsent(key, () => field);
+        }
+      }
+    }
+
+    if (hourlyFields.isEmpty) {
+      return List<Widget>.generate(
+        fields.length,
+        (index) => _FieldRow(
+          label: fields[index].label,
+          value: fields[index].value,
+          showDivider: index < fields.length - 1,
+        ),
+      );
+    }
+
+    final List<Widget> rows = <Widget>[];
+    bool inlineFieldsAdded = false;
+    for (int index = 0; index < fields.length; index++) {
+      final _FieldItem field = fields[index];
+      final bool isHourlyField =
+          hourlyFieldKeys.contains(normalizeLabel(field.label));
+      if (isHourlyField) {
+        if (!inlineFieldsAdded) {
+          final bool hasFollowingFields = fields.skip(index + 1).any(
+              (item) => !hourlyFieldKeys.contains(normalizeLabel(item.label)));
+          rows.add(_HourlyInlineFields(
+            startDate: hourlyFields['startdate'],
+            endDate: hourlyFields['enddate'],
+            startTime: hourlyFields['starttime'],
+            endTime: hourlyFields['endtime'],
+            showDivider: hasFollowingFields,
+          ));
+          inlineFieldsAdded = true;
+        }
+        continue;
+      }
+
+      rows.add(_FieldRow(
+        label: field.label,
+        value: field.value,
+        showDivider: index < fields.length - 1,
+      ));
+    }
+    return rows;
   }
 
   List<_FieldItem> _buildFields() {
@@ -1130,6 +1194,102 @@ class _HeaderSummaryTile extends StatelessWidget {
   }
 }
 
+class _HourlyInlineFields extends StatelessWidget {
+  final _FieldItem? startDate;
+  final _FieldItem? endDate;
+  final _FieldItem? startTime;
+  final _FieldItem? endTime;
+  final bool showDivider;
+
+  const _HourlyInlineFields({
+    this.startDate,
+    this.endDate,
+    this.startTime,
+    this.endTime,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool hasDateFields = startDate != null || endDate != null;
+    final bool hasTimeFields = startTime != null || endTime != null;
+    final List<Widget> rows = <Widget>[];
+
+    if (hasDateFields) {
+      rows.add(_pairRow(startDate, endDate));
+    }
+    if (hasDateFields && hasTimeFields) {
+      rows.add(const SizedBox(height: 10));
+    }
+    if (hasTimeFields) {
+      rows.add(_pairRow(startTime, endTime));
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(top: 4, bottom: showDivider ? 10 : 4),
+      child: Column(
+        children: [
+          ...rows,
+          if (showDivider) ...[
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: AppColors.danger.withValues(alpha: 0.07),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _pairRow(_FieldItem? first, _FieldItem? second) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+            child: first == null ? const SizedBox.shrink() : _FieldCell(first)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: second == null ? const SizedBox.shrink() : _FieldCell(second),
+        ),
+      ],
+    );
+  }
+}
+
+class _FieldCell extends StatelessWidget {
+  final _FieldItem field;
+
+  const _FieldCell(this.field);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          field.label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.blackshade,
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          field.value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+            color: AppColors.dark,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _FieldRow extends StatelessWidget {
   final String label;
   final String value;
@@ -1154,7 +1314,11 @@ class _FieldRow extends StatelessWidget {
       'endate',
       'starttime',
       'endtime',
+      'type',
     }.contains(normalizedLabel);
+    final displayValue = normalizedLabel == 'type' && value.toLowerCase() == 'hourly'
+        ? 'Hourly'
+        : value;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -1173,7 +1337,7 @@ class _FieldRow extends StatelessWidget {
                   child: _fieldLabel,
                 ),
                 const Text(' : ', style: _fieldLabelStyle),
-                Expanded(child: _fieldValue),
+                Expanded(child: _fieldValue(displayValue)),
               ],
             )
           else
@@ -1185,7 +1349,7 @@ class _FieldRow extends StatelessWidget {
                     children: [
                       _fieldLabel,
                       const SizedBox(height: 4),
-                      _fieldValue,
+                      _fieldValue(displayValue),
                     ],
                   );
                 }
@@ -1194,7 +1358,7 @@ class _FieldRow extends StatelessWidget {
                   children: [
                     SizedBox(width: 124, child: _fieldLabel),
                     const SizedBox(width: 10),
-                    Expanded(child: _fieldValue),
+                    Expanded(child: _fieldValue(displayValue)),
                   ],
                 );
               },
@@ -1222,8 +1386,8 @@ class _FieldRow extends StatelessWidget {
     color: AppColors.blackshade,
   );
 
-  Widget get _fieldValue => Text(
-        value,
+  Widget _fieldValue(String displayValue) => Text(
+        displayValue,
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,

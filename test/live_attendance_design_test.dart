@@ -68,6 +68,31 @@ void main() {
               path: 'attendance',
               builder: (context, state) => const AttendanceScreen(),
             ),
+            GoRoute(
+              path: 'clockin',
+              name: 'clockin',
+              builder: (context, state) => Scaffold(
+                body: Center(
+                  child: ElevatedButton(
+                    onPressed: () => context.goNamed('attendance-response'),
+                    child: const Text('Camera destination'),
+                  ),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: 'clockout',
+              name: 'clockout',
+              builder: (context, state) => const Scaffold(
+                body: Center(child: Text('Clock-out camera destination')),
+              ),
+            ),
+            GoRoute(
+              path: 'attendance-response',
+              name: 'attendance-response',
+              builder: (context, state) => const Scaffold(
+                  body: Center(child: Text('Attendance success'))),
+            ),
           ],
         ),
       ]);
@@ -108,6 +133,17 @@ void main() {
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       expect(find.text('Open attendance'), findsOneWidget);
+
+      await tester.tap(find.text('Open attendance'));
+      await tester.pumpAndSettle();
+      await tester
+          .ensureVisible(find.widgetWithText(ElevatedButton, 'Clock In'));
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Clock In'));
+      await tester.pumpAndSettle();
+      expect(find.text('Camera destination'), findsOneWidget);
+      await tester.tap(find.text('Camera destination'));
+      await tester.pumpAndSettle();
+      expect(find.text('Attendance success'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
