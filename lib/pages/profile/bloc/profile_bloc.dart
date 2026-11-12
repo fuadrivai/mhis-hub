@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
@@ -17,13 +18,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final NavigationService _nav = locator<NavigationService>();
   final LocalAuthentication auth = LocalAuthentication();
 
-  ProfileBloc() : super(const ProfileState()) {
+  ProfileBloc({Future<Employee> Function()? getProfile})
+      : _getProfile = getProfile ??
+            (() => EmployeeApi.getEmployeeProfile(handleErrorsLocally: true)),
+        super(const ProfileState()) {
     on<OnLogout>(_onLogout);
     on<OnGetUserById>(_onGetUserById);
     on<OnChangePassword>(_onChangePassword);
     on<OnResetAuthenticationBiometrics>(_onResetAuthenticationBiometrics);
     on<OnRegisterFace>(_onRegisterFace);
   }
+
+  final Future<Employee> Function() _getProfile;
+  int _profileRequestVersion = 0;
 
   void _onLogout(OnLogout event, Emitter<ProfileState> emit) async {
     await LoginApi.onLogout();
@@ -62,32 +69,40 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   void _onGetUserById(OnGetUserById event, Emitter<ProfileState> emit) async {
+    final requestVersion = ++_profileRequestVersion;
     try {
-      emit(state.copyWith(isLoading: true));
+      emit(state.copyWith(isLoading: true, isError: false));
 
-      Employee employee = await EmployeeApi.getEmployeeProfile();
+      Employee employee = await _getProfile();
       final packageInfo = await PackageInfo.fromPlatform();
       bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
       bool? isBiometric =
           await Session.get("isBiometric") == "true" ? true : false;
+      if (requestVersion != _profileRequestVersion) return;
 
-      emit(state.copyWith(
-        employee: employee,
-        isLoading: false,
-        isError: false,
-        packageInfo: packageInfo,
-        canAuthenticateWithBiometrics: canAuthenticateWithBiometrics,
-        isBiometric: isBiometric,
-      ));
+      emit(
+        state.copyWith(
+          employee: employee,
+          isLoading: false,
+          isError: false,
+          packageInfo: packageInfo,
+          canAuthenticateWithBiometrics: canAuthenticateWithBiometrics,
+          isBiometric: isBiometric,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        employee: state.employee,
-        isLoading: false,
-        isError: false,
-        packageInfo: state.packageInfo,
-        canAuthenticateWithBiometrics: state.canAuthenticateWithBiometrics,
-        isBiometric: state.isBiometric,
-      ));
+      if (requestVersion != _profileRequestVersion) return;
+      final data = e is DioException ? e.response?.data : null;
+      final message = data is Map ? data['message'] : null;
+      emit(
+        state.copyWith(
+          isLoading: false,
+          isError: true,
+          errorMessage: message is String && message.trim().isNotEmpty
+              ? message
+              : 'Unable to load profile. Please try again.',
+        ),
+      );
     }
   }
 
@@ -99,6 +114,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(state.copyWith(isLoading: false));
     } catch (e) {
       emit(state.copyWith(
+        isLoading: false,
         loadingFormPassword: false,
         errorMessage: e.toString(),
       ));

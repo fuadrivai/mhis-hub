@@ -11,11 +11,16 @@ part 'timeoff_event.dart';
 part 'timeoff_state.dart';
 
 class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
-  TimeoffBloc() : super(const TimeoffState()) {
+  TimeoffBloc({Future<List<Timeoff>> Function()? getTimeoffs})
+      : _getTimeoffs = getTimeoffs ?? TimeoffApi.get,
+        super(const TimeoffState()) {
     on<OnInit>(_onInit);
     on<OnInitForm>(_onInitForm);
     on<OnSubmitTimeoffForm>(_onSubmitTimeoffForm);
   }
+
+  final Future<List<Timeoff>> Function() _getTimeoffs;
+  int _listRequestVersion = 0;
 
   String _extractErrorMessage(Object e) {
     if (e is DioException) {
@@ -32,6 +37,7 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
   }
 
   void _onInit(OnInit event, Emitter<TimeoffState> emit) async {
+    final requestVersion = ++_listRequestVersion;
     try {
       emit(state.copyWith(
         isLoading: true,
@@ -39,7 +45,8 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
         isSuccess: false,
       ));
 
-      List<Timeoff> timeoffs = await TimeoffApi.get();
+      final timeoffs = await _getTimeoffs();
+      if (requestVersion != _listRequestVersion) return;
 
       emit(state.copyWith(
         isLoading: false,
@@ -47,7 +54,12 @@ class TimeoffBloc extends Bloc<TimeoffEvent, TimeoffState> {
         timeoffs: timeoffs,
       ));
     } catch (e) {
-      final errorMessage = _extractErrorMessage(e);
+      if (requestVersion != _listRequestVersion) return;
+      final data = e is DioException ? e.response?.data : null;
+      final message = data is Map ? data['message'] : null;
+      final errorMessage = message is String && message.trim().isNotEmpty
+          ? message
+          : 'Unable to load timeoff types. Pull down to retry.';
       emit(state.copyWith(
         isLoading: false,
         timeoffs: state.timeoffs,

@@ -86,9 +86,14 @@ class _TimeoffScreenState extends State<TimeoffScreen> {
                         ),
                       ),
                       if (state.isLoading)
-                        const SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: LoadingWidget(),
+                        const SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              LoadingShimmer(height: 100),
+                              LoadingShimmer(height: 100),
+                              LoadingShimmer(height: 100),
+                            ],
+                          ),
                         )
                       else ...[
                         const SliverToBoxAdapter(
@@ -110,19 +115,40 @@ class _TimeoffScreenState extends State<TimeoffScreen> {
                             ),
                           ),
                         ),
-                        if ((state.timeoffs ?? []).isEmpty)
+                        if (state.isError)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    state.errorMessage ??
+                                        'Unable to load timeoff types. Pull down to retry.',
+                                    style:
+                                        const TextStyle(color: Colors.black54),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => context
+                                        .read<TimeoffBloc>()
+                                        .add(const OnInit()),
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if ((state.timeoffs ?? []).isEmpty && !state.isError)
                           SliverToBoxAdapter(
                             child: Padding(
                               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                              child: Text(
-                                state.isError
-                                    ? 'Unable to load timeoff types. Pull down to retry.'
-                                    : 'No timeoff types available.',
-                                style: const TextStyle(color: Colors.black54),
+                              child: const Text(
+                                'No timeoff types available.',
+                                style: TextStyle(color: Colors.black54),
                               ),
                             ),
                           )
-                        else
+                        else if ((state.timeoffs ?? []).isNotEmpty)
                           TimeoffListWidget(timeoffs: state.timeoffs ?? []),
                       ],
                     ],

@@ -4,6 +4,9 @@ import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:go_router/go_router.dart';
 
 class DioInterceptors extends InterceptorsWrapper {
+  static const handleForbiddenLocally = 'handleForbiddenLocally';
+  static const handleErrorsLocally = 'handleErrorsLocally';
+
   final Dio dio;
   DioInterceptors(this.dio);
   final NavigationService _nav = locator<NavigationService>();
@@ -29,9 +32,16 @@ class DioInterceptors extends InterceptorsWrapper {
   @override
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
     int? responseCode = err.response?.statusCode;
+    if (err.requestOptions.extra[handleErrorsLocally] == true &&
+        responseCode != 401 &&
+        responseCode != 302) {
+      handler.next(err);
+      return;
+    }
     if (responseCode == 403 &&
-        err.requestOptions.method == 'POST' &&
-        err.requestOptions.path == 'login') {
+        ((err.requestOptions.method == 'POST' &&
+                err.requestOptions.path == 'login') ||
+            err.requestOptions.extra[handleForbiddenLocally] == true)) {
       handler.next(err);
       return;
     }

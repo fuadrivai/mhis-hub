@@ -9,6 +9,26 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'dart:io';
 import 'package:go_router/go_router.dart';
 
+class _EmployeeError extends StatelessWidget {
+  const _EmployeeError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(message, textAlign: TextAlign.center),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
+}
+
 class EmployeeWidget extends StatefulWidget {
   const EmployeeWidget({super.key, this.showBack = false});
 
@@ -32,7 +52,9 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
   void initState() {
     context.read<EmployeeBloc>().add(OnInitV2(_selectedFilters));
     _controller.addListener(() {
-      if (_controller.position.maxScrollExtent == _controller.offset) {
+      if (_controller.position.maxScrollExtent == _controller.offset &&
+          !context.read<EmployeeBloc>().state.loadMoreError &&
+          !context.read<EmployeeBloc>().state.isError) {
         context.read<EmployeeBloc>().add(OnLoadMore(_selectedFilters));
       }
     });
@@ -189,7 +211,23 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                     BlocBuilder<EmployeeBloc, EmployeeState>(
                       builder: (context, state) {
                         if (state.isLoading) {
-                          return const LoadingWidget();
+                          return const Column(
+                            children: [
+                              LoadingShimmer(height: 150),
+                              LoadingShimmer(height: 150),
+                              LoadingShimmer(height: 150),
+                            ],
+                          );
+                        }
+
+                        if (state.isError) {
+                          return _EmployeeError(
+                            message: state.errorMessage ??
+                                'Unable to load employees. Please try again.',
+                            onRetry: () => context
+                                .read<EmployeeBloc>()
+                                .add(OnInitV2(_selectedFilters)),
+                          );
                         }
 
                         final List<Employee> employees = state.employees2 ?? [];
@@ -206,10 +244,20 @@ class _EmployeeWidgetState extends State<EmployeeWidget> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                          itemCount: employees.length + (isLoadMore ? 1 : 0),
+                          itemCount: employees.length +
+                              (isLoadMore || state.loadMoreError ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index >= employees.length) {
-                              return const LoadingBottom();
+                              if (state.loadMoreError) {
+                                return _EmployeeError(
+                                  message: state.errorMessage ??
+                                      'Unable to load more employees. Please try again.',
+                                  onRetry: () => context
+                                      .read<EmployeeBloc>()
+                                      .add(OnLoadMore(_selectedFilters)),
+                                );
+                              }
+                              return const LoadingShimmer(height: 150);
                             }
 
                             final Employee employee = employees[index];

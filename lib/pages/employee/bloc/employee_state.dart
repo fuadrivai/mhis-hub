@@ -1,7 +1,7 @@
 part of 'employee_bloc.dart';
 
 final class EmployeeState extends Equatable {
-  final bool isLoading, isError, isSuccess, loadMore;
+  final bool isLoading, isError, isSuccess, loadMore, loadMoreError;
   final String? errorMessage;
   final ServerSideEmployee? serverside;
 
@@ -19,6 +19,7 @@ final class EmployeeState extends Equatable {
     this.errorMessage,
     this.serverside,
     this.loadMore = false,
+    this.loadMoreError = false,
     this.pagination,
     this.employees2,
     this.branches = const [],
@@ -31,6 +32,7 @@ final class EmployeeState extends Equatable {
     bool? isError,
     bool? isSuccess,
     bool? loadMore,
+    bool? loadMoreError,
     String? errorMessage,
     ServerSideEmployee? serverside,
     Pagination? pagination,
@@ -47,6 +49,7 @@ final class EmployeeState extends Equatable {
       isSuccess: isSuccess ?? this.isSuccess,
       serverside: serverside ?? this.serverside,
       loadMore: loadMore ?? this.loadMore,
+      loadMoreError: loadMoreError ?? this.loadMoreError,
       pagination: pagination ?? this.pagination,
       employees2: employees2 ?? this.employees2,
       branches: branches ?? this.branches,
@@ -64,6 +67,7 @@ final class EmployeeState extends Equatable {
         isSuccess,
         serverside,
         loadMore,
+        loadMoreError,
         pagination,
         employees2,
         branches,

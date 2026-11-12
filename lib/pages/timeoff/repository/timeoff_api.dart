@@ -1,10 +1,13 @@
 import 'package:dio/dio.dart';
+import 'package:fl_mhis_hr/injector/dio_interceptor.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
 class TimeoffApi {
   static Future<List<Timeoff>> get() async {
-    final client = await Api.restClient();
+    final client = await Api.restClient(
+      extra: {DioInterceptors.handleErrorsLocally: true},
+    );
     var data = client.getTimeoffs();
     return data;
   }

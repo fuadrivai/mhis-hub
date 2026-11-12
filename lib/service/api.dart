@@ -4,12 +4,15 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/service/restclient.dart';
 
 class Api {
-  // static const String url = "http://192.168.207.3:3002";
-  static const String url = "https://mhis-hub.mhis.link";
+  static const String url = "http://192.168.207.3:3002";
+  // static const String url = "https://mhis-hub.mhis.link";
 
   static const String baseUrl = "$url/api/";
 
-  static Future<Dio> dioClient({Map<String, dynamic>? params}) async {
+  static Future<Dio> dioClient({
+    Map<String, dynamic>? params,
+    Map<String, dynamic>? extra,
+  }) async {
     final dio = Dio();
     final token = (await Session.get("token"))?.trim();
 
@@ -23,14 +26,18 @@ class Api {
     dio.options.headers["Accept"] = "application/json";
     dio.options.headers["X-Requested-With"] = "XMLHttpRequest";
     dio.options.queryParameters = params ?? {};
+    if (extra != null) {
+      dio.options.extra.addAll(extra);
+    }
     return dio;
   }
 
   static Future<RestClient> restClient({
     Map<String, dynamic>? params,
+    Map<String, dynamic>? extra,
     String? baseurl,
   }) async {
-    final dio = await dioClient(params: params);
+    final dio = await dioClient(params: params, extra: extra);
     return RestClient(dio, baseUrl: baseurl ?? baseUrl);
   }
 }

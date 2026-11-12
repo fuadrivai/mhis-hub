@@ -38,7 +38,7 @@ class Common {
     end: Alignment.bottomCenter,
     colors: [
       AppColors.danger,
-      const Color(0xFFF73F6D).withValues(alpha: 0.65),
+      AppColors.danger,
       const Color(0xFFF8F8FA),
     ],
   );

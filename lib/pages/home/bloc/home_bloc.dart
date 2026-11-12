@@ -10,13 +10,19 @@ part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(const HomeState()) {
+  HomeBloc({Future<List<Announcement>> Function()? getAnnouncements})
+      : _getAnnouncements = getAnnouncements ??
+            (() => GeneralAnnouncementApi.getAnnouncement(
+                handleForbiddenLocally: true)),
+        super(const HomeState()) {
     on<OnInitCalendar>(_onInitCalendar);
     on<OnInitAttendance>(_onInitAttendance);
     on<OnGetNewsletter>(_onGetNewsletter);
     on<OnGetSop>(_onGetSop);
     on<OnInitAnnouncement>(_onInitAnnouncement);
   }
+
+  final Future<List<Announcement>> Function() _getAnnouncements;
 
   void _onInitCalendar(OnInitCalendar event, Emitter<HomeState> emit) async {
     try {
@@ -117,16 +123,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   void _onInitAnnouncement(
       OnInitAnnouncement event, Emitter<HomeState> emit) async {
     try {
-      emit(state.copyWith(announcementLoading: true));
-      List<Announcement> announcements =
-          await GeneralAnnouncementApi.getAnnouncement();
+      emit(state.copyWith(announcementLoading: true, announcementError: false));
+      final announcements = await _getAnnouncements();
       emit(state.copyWith(
-          announcements: announcements, announcementLoading: false));
+        announcements: announcements,
+        announcementLoading: false,
+        announcementError: false,
+      ));
     } catch (e) {
       String errorMessage = e.toString();
-      if (e.runtimeType == DioException) {
-        DioException err = e as DioException;
-        errorMessage = err.response?.data?["message"] ?? err.message;
+      if (e is DioException) {
+        final data = e.response?.data;
+        final message = data is Map ? data['message'] : null;
+        errorMessage =
+            message is String ? message : (e.message ?? errorMessage);
       }
       emit(state.copyWith(
         announcementLoading: false,

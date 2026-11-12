@@ -15,6 +15,113 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:local_auth/local_auth.dart';
 
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+      child: Row(
+        children: [
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Profile',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Your account and settings',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          PopupMenuButton(
+            tooltip: 'Profile options',
+            icon: const FaIcon(FontAwesomeIcons.gear, color: Colors.white),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                onTap: () => context.goNamed("change-password"),
+                child: const Text("Change Password"),
+              ),
+              PopupMenuItem(
+                onTap: () => context.read<ProfileBloc>().add(const OnLogout()),
+                child: const Text("Logout"),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileStatus extends StatelessWidget {
+  const _ProfileStatus({
+    required this.isLoading,
+    required this.message,
+    required this.onRetry,
+  });
+
+  final bool isLoading;
+  final String? message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _ProfileHeader(),
+          if (isLoading) ...[
+            const LoadingShimmer(height: 200),
+            const LoadingShimmer(height: 90),
+            const LoadingShimmer(height: 160),
+          ] else
+            _ProfileError(message: message, onRetry: onRetry),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProfileError extends StatelessWidget {
+  const _ProfileError({required this.message, required this.onRetry});
+
+  final String? message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(message ?? 'Unable to load profile. Please try again.'),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
+        ],
+      ),
+    );
+  }
+}
+
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
@@ -66,60 +173,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: BlocBuilder<ProfileBloc, ProfileState>(
                 builder: (context, state) {
                   isBiometric = state.isBiometric ?? false;
-                  if (state.isLoading) {
-                    return const LoadingWidget();
+                  if (state.isLoading ||
+                      (state.isError && state.employee == null)) {
+                    return _ProfileStatus(
+                      isLoading: state.isLoading,
+                      message: state.errorMessage,
+                      onRetry: () =>
+                          context.read<ProfileBloc>().add(OnGetUserById()),
+                    );
                   }
                   return SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Profile',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      'Your account and settings',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
+                        const _ProfileHeader(),
+                        if (state.isError)
+                          _ProfileError(
+                            message: state.errorMessage,
+                            onRetry: () => context.read<ProfileBloc>().add(
+                                  OnGetUserById(),
                                 ),
-                              ),
-                              PopupMenuButton(
-                                tooltip: 'Profile options',
-                                icon: const FaIcon(
-                                  FontAwesomeIcons.gear,
-                                  color: Colors.white,
-                                ),
-                                itemBuilder: (BuildContext context) => [
-                                  PopupMenuItem(
-                                    onTap: () =>
-                                        context.goNamed("change-password"),
-                                    child: const Text("Change Password"),
-                                  ),
-                                  PopupMenuItem(
-                                    onTap: () => context
-                                        .read<ProfileBloc>()
-                                        .add(const OnLogout()),
-                                    child: const Text("Logout"),
-                                  ),
-                                ],
-                              ),
-                            ],
                           ),
-                        ),
                         Container(
                           width: double.infinity,
                           margin: const EdgeInsets.symmetric(horizontal: 16),

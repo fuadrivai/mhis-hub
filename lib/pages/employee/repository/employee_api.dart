@@ -1,5 +1,6 @@
 import 'package:fl_mhis_hr/models/model.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
+import 'package:fl_mhis_hr/injector/dio_interceptor.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 
 class EmployeeApi {
@@ -10,14 +11,21 @@ class EmployeeApi {
     return data;
   }
 
-  static Future<Employee> getEmployeeProfile() async {
-    final client = await Api.restClient();
+  static Future<Employee> getEmployeeProfile({
+    bool handleErrorsLocally = false,
+  }) async {
+    final client = await Api.restClient(
+      extra: {DioInterceptors.handleErrorsLocally: handleErrorsLocally},
+    );
     var data = client.getEmployeeProfile();
     return data;
   }
 
   static Future<Pagination> getEmployees({Map<String, dynamic>? params}) async {
-    final client = await Api.restClient(params: params);
+    final client = await Api.restClient(
+      params: params,
+      extra: {DioInterceptors.handleErrorsLocally: true},
+    );
     var data = client.getEmployees();
     return data;
   }
