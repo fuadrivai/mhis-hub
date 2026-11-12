@@ -24,6 +24,7 @@ export 'package:fl_mhis_hr/pages/employee/screen/employee_detail_screen.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/clock_in_prayer_screen.dart';
 export 'package:fl_mhis_hr/pages/clockin_prayer/screen/pray_map_screen.dart';
 export 'package:fl_mhis_hr/pages/kpi/screen/kpi_screen.dart';
+export 'package:fl_mhis_hr/pages/visitor/screen/visitor_screen.dart';
 export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_screen.dart';
 export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_form.dart';
 export 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_view.dart';

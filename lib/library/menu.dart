@@ -30,9 +30,9 @@ class Menu {
       seed: 404,
     ),
     GridMenuItem(
-      title: 'KPI Score',
-      icon: FontAwesomeIcons.chartLine,
-      routeCandidates: ['kpi'],
+      title: 'Visitor',
+      icon: FontAwesomeIcons.users,
+      routeCandidates: ['visitor'],
       seed: 606,
     ),
     GridMenuItem(
@@ -79,6 +79,12 @@ class Menu {
       icon: FontAwesomeIcons.fileInvoiceDollar,
       routeCandidates: ['paymentsllip', 'payslip'],
       seed: 404,
+    ),
+    GridMenuItem(
+      title: 'Visitor',
+      icon: FontAwesomeIcons.users,
+      routeCandidates: ['visitor'],
+      seed: 606,
     ),
     GridMenuItem(
       title: 'KPI Score',

@@ -4,6 +4,7 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/attendance/repository/attendance_api.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/data/general_announcement_api.dart';
 import 'package:fl_mhis_hr/pages/home/repository/home_api.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'home_event.dart';
@@ -13,7 +14,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({Future<List<Announcement>> Function()? getAnnouncements})
       : _getAnnouncements = getAnnouncements ??
             (() => GeneralAnnouncementApi.getAnnouncement(
-                handleForbiddenLocally: true)),
+                handleForbiddenLocally: true, handleErrorsLocally: true)),
         super(const HomeState()) {
     on<OnInitCalendar>(_onInitCalendar);
     on<OnInitAttendance>(_onInitAttendance);
@@ -132,7 +133,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ));
     } catch (e) {
       String errorMessage = e.toString();
-      if (e is DioException) {
+      if (e is FormatException ||
+          (e is DioException && e.error is FormatException)) {
+        final formatError = e is FormatException
+            ? e
+            : (e as DioException).error as FormatException;
+        debugPrint(
+            'Announcement response JSON decoding failed at offset ${formatError.offset}.');
+        errorMessage =
+            'The server returned an invalid announcement response. Please try again.';
+      } else if (e is DioException) {
         final data = e.response?.data;
         final message = data is Map ? data['message'] : null;
         errorMessage =

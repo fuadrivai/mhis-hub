@@ -88,33 +88,38 @@ class AnnouncementCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   if (state.announcementLoading)
                     const _AnnouncementLoading()
-                  else if (state.announcementError)
-                    _AnnouncementError(
-                      message: state.announcementErrorMessage ??
-                          'Unable to load announcements.',
-                      onRetry: () {
-                        context
-                            .read<HomeBloc>()
-                            .add(const OnInitAnnouncement());
-                      },
-                    )
-                  else if (announcements.isEmpty)
-                    const _AnnouncementEmpty()
-                  else
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: previewCount,
-                      separatorBuilder: (context, index) => const Divider(
-                        height: 18,
-                        thickness: 0.6,
-                        color: Color(0xFFE6ECF5),
+                  else ...[
+                    if (state.announcementError)
+                      _AnnouncementError(
+                        message:
+                            '${state.announcementErrorMessage ?? 'Unable to load announcements.'}'
+                            '${announcements.isNotEmpty ? '\nShowing previously loaded announcements.' : ''}',
+                        onRetry: () {
+                          context
+                              .read<HomeBloc>()
+                              .add(const OnInitAnnouncement());
+                        },
                       ),
-                      itemBuilder: (context, index) {
-                        final announcement = announcements[index];
-                        return _AnnouncementTile(announcement: announcement);
-                      },
-                    ),
+                    if (state.announcementError && announcements.isNotEmpty)
+                      const SizedBox(height: 12),
+                    if (announcements.isNotEmpty)
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: previewCount,
+                        separatorBuilder: (context, index) => const Divider(
+                          height: 18,
+                          thickness: 0.6,
+                          color: Color(0xFFE6ECF5),
+                        ),
+                        itemBuilder: (context, index) {
+                          final announcement = announcements[index];
+                          return _AnnouncementTile(announcement: announcement);
+                        },
+                      ),
+                    if (!state.announcementError && announcements.isEmpty)
+                      const _AnnouncementEmpty(),
+                  ],
                 ],
               ),
             ),

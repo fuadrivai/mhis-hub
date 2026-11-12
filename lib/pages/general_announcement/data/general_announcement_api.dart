@@ -47,10 +47,14 @@ class GeneralAnnouncementApi {
 
   static Future<List<Announcement>> getAnnouncement(
       {Map<String, dynamic>? params,
-      bool handleForbiddenLocally = false}) async {
+      bool handleForbiddenLocally = false,
+      bool handleErrorsLocally = false}) async {
     final client = await Api.restClient(
       params: params,
-      extra: {DioInterceptors.handleForbiddenLocally: handleForbiddenLocally},
+      extra: {
+        DioInterceptors.handleForbiddenLocally: handleForbiddenLocally,
+        DioInterceptors.handleErrorsLocally: handleErrorsLocally,
+      },
     );
     var data = client.getAnnouncement();
     return data;

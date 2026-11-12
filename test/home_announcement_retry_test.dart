@@ -45,6 +45,35 @@ class _AnnouncementAdapter implements HttpClientAdapter {
   }
 }
 
+class _MalformedAnnouncementAdapter implements HttpClientAdapter {
+  _MalformedAnnouncementAdapter({this.requests = 0});
+  int requests;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requests++;
+    final response = switch (requests) {
+      1 => '[{"id":1,"title":"Previous announcement"}]',
+      2 => '[{"title":"${List.filled(38600, 'x').join()}"},!]',
+      _ => '[{"id":2,"title":"Updated announcement"}]',
+    };
+    return ResponseBody.fromString(
+      response,
+      200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+}
+
 void main() {
   testWidgets('announcement retry keeps session and recovers after 403',
       (tester) async {
@@ -89,6 +118,84 @@ void main() {
     expect(bloc.state.announcementError, isFalse);
     expect(find.text('No announcements yet'), findsOneWidget);
     expect(find.text('Retry'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('malformed announcement response preserves data and can retry',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({'token': 'test-token'});
+    locator.registerSingleton<NavigationService>(NavigationService());
+    addTearDown(() => locator.unregister<NavigationService>());
+
+    final adapter = _MalformedAnnouncementAdapter();
+    final dio = await Api.dioClient(extra: {
+      DioInterceptors.handleForbiddenLocally: true,
+      DioInterceptors.handleErrorsLocally: true,
+    });
+    dio.httpClientAdapter = adapter;
+    addTearDown(dio.close);
+    final client = RestClient(dio, baseUrl: 'https://example.test/api/');
+    final bloc = HomeBloc(getAnnouncements: client.getAnnouncement);
+    addTearDown(bloc.close);
+
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: const MaterialApp(home: Scaffold(body: AnnouncementCard())),
+    ));
+    bloc.add(const OnInitAnnouncement());
+    await tester.pumpAndSettle();
+    expect(find.text('Previous announcement'), findsOneWidget);
+
+    bloc.add(const OnInitAnnouncement());
+    await tester.pumpAndSettle();
+    expect(bloc.state.announcementError, isTrue);
+    expect(find.text('Previous announcement'), findsOneWidget);
+    expect(
+        find.textContaining('invalid announcement response'), findsOneWidget);
+    expect(find.textContaining('Showing previously loaded announcements'),
+        findsOneWidget);
+    expect(find.textContaining('FormatException'), findsNothing);
+    expect(find.text('Retry'), findsOneWidget);
+    expect((await SharedPreferences.getInstance()).getString('token'),
+        'test-token');
+
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+    expect(adapter.requests, 3);
+    expect(find.text('Updated announcement'), findsOneWidget);
+    expect(find.text('Previous announcement'), findsNothing);
+    expect(find.text('Retry'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('malformed first response shows an error rather than empty data',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({'token': 'test-token'});
+    locator.registerSingleton<NavigationService>(NavigationService());
+    addTearDown(() => locator.unregister<NavigationService>());
+    final adapter = _MalformedAnnouncementAdapter(requests: 1);
+    final dio = await Api.dioClient(extra: {
+      DioInterceptors.handleErrorsLocally: true,
+    });
+    dio.httpClientAdapter = adapter;
+    addTearDown(dio.close);
+    final client = RestClient(dio, baseUrl: 'https://example.test/api/');
+    final bloc = HomeBloc(getAnnouncements: client.getAnnouncement);
+    addTearDown(bloc.close);
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: const MaterialApp(home: Scaffold(body: AnnouncementCard())),
+    ));
+
+    bloc.add(const OnInitAnnouncement());
+    await tester.pumpAndSettle();
+    expect(
+        find.textContaining('invalid announcement response'), findsOneWidget);
+    expect(find.text('No announcements yet'), findsNothing);
+    expect(find.text('Retry'), findsOneWidget);
+    await tester.tap(find.text('Retry'));
+    await tester.pumpAndSettle();
+    expect(find.text('Updated announcement'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
