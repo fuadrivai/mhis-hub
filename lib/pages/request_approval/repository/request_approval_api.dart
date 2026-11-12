@@ -34,6 +34,12 @@ class RequestApprovalApi {
     return response.data;
   }
 
+  static Future<Approval?> getPreviousApproval(int approvalId) async {
+    final client = await Api.restClient();
+    final response = await client.getPreviousApproval(approvalId);
+    return response.data;
+  }
+
   static Future<Approval> postAction(Map<String, dynamic> params) async {
     final client = await Api.restClient();
     var data = client.postAction(params);

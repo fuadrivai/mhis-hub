@@ -48,6 +48,13 @@ class OnGetNextApproval extends RequestApprovalEvent {
   List<Object?> get props => [approvalId];
 }
 
+class OnGetPreviousApproval extends RequestApprovalEvent {
+  final int approvalId;
+  const OnGetPreviousApproval(this.approvalId);
+  @override
+  List<Object?> get props => [approvalId];
+}
+
 class PostAction extends RequestApprovalEvent {
   final Map<String, dynamic> map;
   const PostAction(this.map);

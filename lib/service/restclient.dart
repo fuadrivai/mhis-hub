@@ -111,6 +111,9 @@ abstract class RestClient {
   @GET("time/request/approval/{id}/next")
   Future<NextApprovalResponse> getNextApproval(@Path() int id);
 
+  @GET("time/request/approval/{id}/previous")
+  Future<NextApprovalResponse> getPreviousApproval(@Path() int id);
+
   @GET("employee/schedule/active")
   Future<Shift> getActiveShift();
 

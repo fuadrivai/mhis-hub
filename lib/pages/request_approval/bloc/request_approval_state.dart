@@ -9,6 +9,8 @@ final class RequestApprovalState extends Equatable {
   final bool isFilterLoading, isFilterError;
   final bool isNextLoading, isNextError, isNextEmpty;
   final Approval? nextApproval;
+  final bool isPreviousLoading, isPreviousError, isPreviousEmpty;
+  final Approval? previousApproval;
   final String? errorMessage;
   final String? requestRefreshError, approvalRefreshError;
   final List<ApprovalRequest> requests;
@@ -44,6 +46,10 @@ final class RequestApprovalState extends Equatable {
     this.isNextError = false,
     this.isNextEmpty = false,
     this.nextApproval,
+    this.isPreviousLoading = false,
+    this.isPreviousError = false,
+    this.isPreviousEmpty = false,
+    this.previousApproval,
     this.errorMessage,
     this.requestRefreshError,
     this.approvalRefreshError,
@@ -88,6 +94,10 @@ final class RequestApprovalState extends Equatable {
     bool? isNextError,
     bool? isNextEmpty,
     Approval? nextApproval,
+    bool? isPreviousLoading,
+    bool? isPreviousError,
+    bool? isPreviousEmpty,
+    Approval? previousApproval,
     List<ApprovalRequest>? requests,
     List<Approval>? approvals,
     ApprovalRequest? request,
@@ -130,6 +140,10 @@ final class RequestApprovalState extends Equatable {
       isNextError: isNextError ?? this.isNextError,
       isNextEmpty: isNextEmpty ?? this.isNextEmpty,
       nextApproval: nextApproval ?? this.nextApproval,
+      isPreviousLoading: isPreviousLoading ?? this.isPreviousLoading,
+      isPreviousError: isPreviousError ?? this.isPreviousError,
+      isPreviousEmpty: isPreviousEmpty ?? this.isPreviousEmpty,
+      previousApproval: previousApproval ?? this.previousApproval,
       requests: requests ?? this.requests,
       request: request ?? this.request,
       approvals: approvals ?? this.approvals,
@@ -176,6 +190,10 @@ final class RequestApprovalState extends Equatable {
         isNextError,
         isNextEmpty,
         nextApproval,
+        isPreviousLoading,
+        isPreviousError,
+        isPreviousEmpty,
+        previousApproval,
         allTimeoffPagination,
         branches,
         organizations,

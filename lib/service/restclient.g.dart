@@ -824,6 +824,36 @@ class _RestClient implements RestClient {
   }
 
   @override
+  Future<List<Approval>> getUserApproval(Map<String, dynamic> post) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(post);
+    final _options = _setStreamType<List<Approval>>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            'time/request/approval',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<List<dynamic>>(_options);
+    late List<Approval> _value;
+    try {
+      _value = _result.data!
+          .map((dynamic i) => Approval.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options, response: _result);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
   Future<NextApprovalResponse> getNextApproval(int id) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
@@ -851,28 +881,25 @@ class _RestClient implements RestClient {
   }
 
   @override
-  Future<List<Approval>> getUserApproval(Map<String, dynamic> post) async {
+  Future<NextApprovalResponse> getPreviousApproval(int id) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = <String, dynamic>{};
-    _data.addAll(post);
-    final _options = _setStreamType<List<Approval>>(
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<NextApprovalResponse>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            'time/request/approval',
+            'time/request/approval/${id}/previous',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    final _result = await _dio.fetch<List<dynamic>>(_options);
-    late List<Approval> _value;
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late NextApprovalResponse _value;
     try {
-      _value = _result.data!
-          .map((dynamic i) => Approval.fromJson(i as Map<String, dynamic>))
-          .toList();
+      _value = NextApprovalResponse.fromJson(_result.data!);
     } on Object catch (e, s) {
       errorLogger?.logError(e, s, _options, response: _result);
       rethrow;

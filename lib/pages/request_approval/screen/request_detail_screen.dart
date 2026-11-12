@@ -65,6 +65,39 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
     context.read<RequestApprovalBloc>().add(OnGetNextApproval(approvalId));
   }
 
+  void _requestPrevious() {
+    final approvalId = _approvalId;
+    if (approvalId == null) return;
+    context.read<RequestApprovalBloc>().add(OnGetPreviousApproval(approvalId));
+  }
+
+  void _handlePreviousState(RequestApprovalState state) {
+    final previous = state.previousApproval;
+    final noPrevious = state.isPreviousEmpty ||
+        (!state.isPreviousError && previous?.approvalRequest?.id == _requestId);
+    if (state.isPreviousError || noPrevious) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.isPreviousError
+              ? 'Error: ${state.errorMessage}'
+              : 'No previous pending approvals'),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
+    final previousRequestId = previous?.approvalRequest?.id;
+    if (previousRequestId == null) return;
+    setState(() {
+      _requestId = previousRequestId;
+      _approvalId = previous!.id;
+    });
+    _tabController.index = 0;
+    context.read<RequestApprovalBloc>().add(OnInitDetail(previousRequestId));
+  }
+
   void _handleNextState(RequestApprovalState state) {
     final next = state.nextApproval;
     final afterAction = _continueAfterAction;
@@ -224,6 +257,14 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                           _handleNextState(state);
                         },
                       ),
+                      BlocListener<RequestApprovalBloc, RequestApprovalState>(
+                        listenWhen: (previous, current) =>
+                            previous.isPreviousLoading &&
+                            !current.isPreviousLoading,
+                        listener: (context, state) {
+                          _handlePreviousState(state);
+                        },
+                      ),
                     ],
                     child:
                         BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
@@ -264,11 +305,20 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                           children: [
                             _buildHeader(
                               request,
+                              onPreviousRequest: _approvalId == null ||
+                                      state.isPreviousLoading ||
+                                      state.isNextLoading
+                                  ? null
+                                  : _requestPrevious,
                               onNextRequest: _approvalId == null
                                   ? null
-                                  : (state.isNextLoading ? null : _requestNext),
+                                  : (state.isNextLoading ||
+                                          state.isPreviousLoading
+                                      ? null
+                                      : _requestNext),
                               showNext: _approvalId != null,
                               nextLoading: state.isNextLoading,
+                              previousLoading: state.isPreviousLoading,
                             ),
                             Expanded(
                               child: TabBarView(
@@ -339,9 +389,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
 
   Widget _buildHeader(
     ApprovalRequest request, {
+    VoidCallback? onPreviousRequest,
     VoidCallback? onNextRequest,
     bool showNext = false,
     bool nextLoading = false,
+    bool previousLoading = false,
   }) {
     final String requesterName = request.requester?.personal?.fullname ??
         request.requester?.user?.name ??
@@ -410,6 +462,29 @@ class _RequestDetailScreenState extends State<RequestDetailScreen>
                 ),
               ),
               if (showNext) ...[
+                const SizedBox(width: 8),
+                IconButton.outlined(
+                  tooltip: 'Previous pending approval',
+                  onPressed: onPreviousRequest,
+                  style: IconButton.styleFrom(
+                    foregroundColor: AppColors.danger,
+                    side: BorderSide(
+                      color: AppColors.danger.withValues(alpha: 0.55),
+                    ),
+                    minimumSize: const Size(40, 40),
+                    padding: EdgeInsets.zero,
+                  ),
+                  icon: previousLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.danger,
+                          ),
+                        )
+                      : const Icon(Icons.arrow_back_rounded, size: 18),
+                ),
                 const SizedBox(width: 8),
                 IconButton.outlined(
                   tooltip: 'Next pending approval',
@@ -1316,9 +1391,10 @@ class _FieldRow extends StatelessWidget {
       'endtime',
       'type',
     }.contains(normalizedLabel);
-    final displayValue = normalizedLabel == 'type' && value.toLowerCase() == 'hourly'
-        ? 'Hourly'
-        : value;
+    final displayValue =
+        normalizedLabel == 'type' && value.toLowerCase() == 'hourly'
+            ? 'Hourly'
+            : value;
 
     return Padding(
       padding: EdgeInsets.only(

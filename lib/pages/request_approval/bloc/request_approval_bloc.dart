@@ -15,8 +15,11 @@ class RequestApprovalBloc
   RequestApprovalBloc({
     Future<List<ApprovalRequest>> Function(Map<String, dynamic>)? loadRequests,
     Future<List<Approval>> Function(Map<String, dynamic>)? loadApprovals,
+    Future<Approval?> Function(int)? loadPreviousApproval,
   })  : _loadRequests = loadRequests ?? RequestApprovalApi.getUserTimeoff,
         _loadApprovals = loadApprovals ?? RequestApprovalApi.getUserApproval,
+        _loadPreviousApproval =
+            loadPreviousApproval ?? RequestApprovalApi.getPreviousApproval,
         super(const RequestApprovalState()) {
     on<OnGetBalance>(_onGetBalance);
     on<OnInitRequest>(_onInitRequest);
@@ -25,6 +28,7 @@ class RequestApprovalBloc
     on<OnInitAllTimeoffFilters>(_onInitAllTimeoffFilters);
     on<OnInitDetail>(_onInitDetail);
     on<OnGetNextApproval>(_onGetNextApproval);
+    on<OnGetPreviousApproval>(_onGetPreviousApproval);
     on<PostAction>(_onPostAction);
     on<PostCancelRequest>(_onPostCancelRequest);
   }
@@ -32,6 +36,7 @@ class RequestApprovalBloc
   final Future<List<ApprovalRequest>> Function(Map<String, dynamic>)
       _loadRequests;
   final Future<List<Approval>> Function(Map<String, dynamic>) _loadApprovals;
+  final Future<Approval?> Function(int) _loadPreviousApproval;
   int _requestGeneration = 0;
   int _approvalGeneration = 0;
 
@@ -251,6 +256,36 @@ class RequestApprovalBloc
       emit(state.copyWith(
         isNextLoading: false,
         isNextError: true,
+        errorMessage: _extractErrorMessage(e),
+      ));
+    }
+  }
+
+  void _onGetPreviousApproval(
+      OnGetPreviousApproval event, Emitter<RequestApprovalState> emit) async {
+    emit(state.copyWith(
+      isPreviousLoading: true,
+      isPreviousError: false,
+      isPreviousEmpty: false,
+    ));
+    try {
+      final previous = await _loadPreviousApproval(event.approvalId);
+      if (previous?.id == null || previous?.approvalRequest?.id == null) {
+        emit(state.copyWith(isPreviousLoading: false, isPreviousEmpty: true));
+        return;
+      }
+      emit(state.copyWith(
+        isPreviousLoading: false,
+        previousApproval: previous,
+      ));
+    } catch (e) {
+      if (e is DioException && e.response?.statusCode == 404) {
+        emit(state.copyWith(isPreviousLoading: false, isPreviousEmpty: true));
+        return;
+      }
+      emit(state.copyWith(
+        isPreviousLoading: false,
+        isPreviousError: true,
         errorMessage: _extractErrorMessage(e),
       ));
     }

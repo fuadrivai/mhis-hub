@@ -138,6 +138,9 @@ void main() {
     );
     final nextButton = find.byTooltip('Next pending approval');
     expect(nextButton, findsOneWidget);
+    final previousButton = find.byTooltip('Previous pending approval');
+    expect(previousButton, findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
     final nextIconButton =
         find.widgetWithIcon(IconButton, Icons.arrow_forward_rounded);
     final nextAction = tester.widget<IconButton>(nextIconButton);
@@ -155,6 +158,12 @@ void main() {
       18,
     );
 
+    await tester.tap(previousButton);
+    await tester.pumpAndSettle();
+    expect(
+      bloc.events.whereType<OnGetPreviousApproval>().map((e) => e.approvalId),
+      [10],
+    );
     await tester.tap(nextButton);
     await tester.pumpAndSettle();
     expect(
