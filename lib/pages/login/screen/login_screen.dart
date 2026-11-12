@@ -35,13 +35,16 @@ class LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return BlocListener<LoginBloc, LoginState>(
       listener: (context, state) async {
+        if (!state.isSuccess) return;
         final token = await Session.get('token');
         if (!context.mounted) return;
         if (token != null && token.isNotEmpty) context.go('/splash');
       },
       child: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
-          if (state.isError) {
+          if (state.isInactive) {
+            context.go('/account-inactive');
+          } else if (state.isError) {
             Common.modalInfo(
               context,
               title: 'Error',

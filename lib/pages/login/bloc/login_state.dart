@@ -4,12 +4,14 @@ final class LoginState extends Equatable {
   final bool isLoading;
   final bool isError;
   final bool isSuccess;
+  final bool isInactive;
   final bool showAction;
   final String? errorMessage;
   const LoginState({
     this.isLoading = false,
     this.isError = false,
     this.isSuccess = false,
+    this.isInactive = false,
     this.showAction = false,
     this.errorMessage,
   });
@@ -18,6 +20,7 @@ final class LoginState extends Equatable {
     bool? isLoading,
     bool? isError,
     bool? isSuccess,
+    bool? isInactive,
     bool? showAction,
     LoginResponse? resp,
     String? errorMessage,
@@ -26,6 +29,7 @@ final class LoginState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isError: isError ?? this.isError,
       isSuccess: isSuccess ?? this.isSuccess,
+      isInactive: isInactive ?? this.isInactive,
       showAction: showAction ?? this.showAction,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -36,6 +40,7 @@ final class LoginState extends Equatable {
         isLoading,
         isError,
         isSuccess,
+        isInactive,
         errorMessage,
         showAction,
       ];

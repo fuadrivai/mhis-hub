@@ -29,6 +29,12 @@ class DioInterceptors extends InterceptorsWrapper {
   @override
   Future onError(DioException err, ErrorInterceptorHandler handler) async {
     int? responseCode = err.response?.statusCode;
+    if (responseCode == 403 &&
+        err.requestOptions.method == 'POST' &&
+        err.requestOptions.path == 'login') {
+      handler.next(err);
+      return;
+    }
     final errorMessage = _resolveErrorMessage(err);
 
     if (responseCode != null) {

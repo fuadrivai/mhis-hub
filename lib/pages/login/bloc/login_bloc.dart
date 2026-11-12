@@ -15,30 +15,43 @@ part 'login_event.dart';
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  LoginBloc() : super(const LoginState()) {
+  LoginBloc({
+    Future<LoginResponse> Function(Map<String, dynamic>)? login,
+    Future<String?> Function()? getMessagingToken,
+  })  : _login = login ?? LoginApi.onLogin,
+        _getMessagingToken = getMessagingToken ?? _requestMessagingToken,
+        super(const LoginState()) {
     on<OnLogin>(_onLogin);
     on<OnLogout>(_onLogout);
   }
+  final Future<LoginResponse> Function(Map<String, dynamic>) _login;
+  final Future<String?> Function() _getMessagingToken;
+
+  static Future<String?> _requestMessagingToken() async {
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: false,
+      criticalAlert: true,
+      provisional: false,
+      sound: true,
+    );
+    return FirebaseMessaging.instance.getToken();
+  }
+
   void _onLogin(OnLogin event, Emitter<LoginState> emit) async {
     try {
       emit(state.copyWith(
         isLoading: true,
+        isSuccess: false,
         isError: false,
+        isInactive: false,
         errorMessage: "",
         showAction: false,
       ));
 
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: true,
-        badge: true,
-        carPlay: false,
-        criticalAlert: true,
-        provisional: false,
-        sound: true,
-      );
-      FirebaseMessaging messaging = FirebaseMessaging.instance;
-      String? token = await messaging.getToken();
+      String? token = await _getMessagingToken();
 
       String device = getDeviceType();
       Map<String, dynamic> map = event.data;
@@ -47,7 +60,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       String password = map["password"];
 
-      LoginResponse resp = await LoginApi.onLogin(map);
+      LoginResponse resp = await _login(map);
       Map<String, dynamic> decodedToken =
           JwtDecoder.decode(resp.authorization?.token ?? "");
       await Future.wait([
@@ -70,11 +83,22 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         showAction: false,
       ));
     } catch (e) {
+      if (e is DioException && e.response?.statusCode == 403) {
+        emit(state.copyWith(
+          isLoading: false,
+          isSuccess: false,
+          isError: false,
+          isInactive: true,
+        ));
+        return;
+      }
       bool showAction = false;
       String errorMessage = e.toString();
-      if (e.runtimeType == DioException) {
-        DioException err = e as DioException;
-        errorMessage = err.response?.data?["message"] ?? err.message;
+      if (e is DioException) {
+        final data = e.response?.data;
+        final message = data is Map ? data['message'] : null;
+        errorMessage =
+            message is String ? message : (e.message ?? e.toString());
       }
       emit(state.copyWith(
         isLoading: false,

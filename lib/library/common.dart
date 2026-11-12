@@ -73,50 +73,80 @@ class Common {
   }) {
     if (!context.mounted) return;
 
+    final accentColor =
+        mode == MODE.success ? AppColors.primary : AppColors.danger;
     showDialog(
       context: context,
       builder: (dialogContext) {
         return Dialog(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: Colors.white,
-            ),
+          backgroundColor: AppColors.white,
+          surfaceTintColor: Colors.transparent,
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          clipBehavior: Clip.antiAlias,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  top: 30.0,
-                  bottom: 5,
-                  left: 8,
-                  right: 8,
-                ),
+                padding: const EdgeInsets.fromLTRB(28, 32, 28, 28),
                 child: Column(
-                  children: <Widget>[
-                    icon ??
-                        FaIcon(
-                          mode == MODE.success
-                              ? FontAwesomeIcons.circleCheck
-                              : FontAwesomeIcons.triangleExclamation,
-                          color:
-                              mode == MODE.success ? Colors.green : Colors.red,
-                          size: 50,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
                         ),
-                    const SizedBox(height: 10),
-                    Text(title, style: const TextStyle(fontSize: 25)),
-                    const SizedBox(height: 10),
+                        child: icon ??
+                            FaIcon(
+                              mode == MODE.success
+                                  ? FontAwesomeIcons.circleCheck
+                                  : FontAwesomeIcons.triangleExclamation,
+                              color: accentColor,
+                              size: 36,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.dark,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       message ?? "Message",
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: mode == MODE.success ? Colors.green : Colors.red,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
+                      style: const TextStyle(
+                        color: AppColors.blackshade,
+                        fontSize: 15,
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Divider(),
-                    TextButton(
+                    const SizedBox(height: 28),
+                    FilledButton(
                       onPressed: () => Navigator.of(dialogContext).maybePop(),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: AppColors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       child: const Text("Dismiss"),
                     ),
                   ],
