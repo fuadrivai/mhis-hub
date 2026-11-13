@@ -1,6 +1,5 @@
 // ignore_for_file: deprecated_member_use, avoid_print
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -101,8 +100,13 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  if (Platform.isAndroid || Platform.isIOS) {
-    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  if (Platform.isAndroid) {
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: const [SystemUiOverlay.top],
+    );
+  } else if (Platform.isIOS) {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
   if (!Platform.isWindows) {
@@ -157,37 +161,11 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  Timer? _restoreSystemUiTimer;
-  bool _keyboardVisible = false;
-
+class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     initialization();
-  }
-
-  @override
-  void didChangeMetrics() {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
-    final visible = WidgetsBinding.instance.platformDispatcher.views
-        .any((view) => view.viewInsets.bottom > 0);
-    if (visible == _keyboardVisible) return;
-    _keyboardVisible = visible;
-    _restoreSystemUiTimer?.cancel();
-    if (!visible) {
-      _restoreSystemUiTimer = Timer(const Duration(milliseconds: 1200), () {
-        SystemChrome.restoreSystemUIOverlays();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _restoreSystemUiTimer?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   void initialization() async {

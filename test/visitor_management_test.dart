@@ -20,6 +20,7 @@ import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart'
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_attachment_preview.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_form_screen.dart';
 import 'package:fl_mhis_hr/pages/home/screen/visitor_today_home_card.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -1240,18 +1241,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-arrival-time')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-        find.byKey(const ValueKey('visitor-time-input')), '09:00');
-    await tester.tap(find.text('Set time'));
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     await tester
         .ensureVisible(find.byKey(const ValueKey('visitor-departure-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-departure-time')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-        find.byKey(const ValueKey('visitor-time-input')), '10:00');
-    await tester.tap(find.text('Set time'));
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Submit invitation'));
     await tester.pumpAndSettle();
@@ -1273,7 +1270,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('time input dialog works in compact viewport', (tester) async {
+  testWidgets('time picker works in compact viewport', (tester) async {
     tester.view.physicalSize = const Size(800, 600);
     tester.view.devicePixelRatio = 1;
     tester.view.viewInsets = const FakeViewPadding(bottom: 420);
@@ -1291,25 +1288,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(timeField);
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('visitor-time-input')), findsOneWidget);
-    await tester.enterText(
-        find.byKey(const ValueKey('visitor-time-input')), '29:99');
-    await tester.ensureVisible(find.text('Set time'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Set time'));
-    await tester.pumpAndSettle();
-    expect(find.text('Enter a valid time in 24-hour format (HH:mm).'),
-        findsOneWidget);
-    await tester.enterText(
-        find.byKey(const ValueKey('visitor-time-input')), '09:30');
-    await tester.ensureVisible(find.text('Set time'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Set time'));
+    expect(find.byKey(const ValueKey('visitor-time-picker')), findsOneWidget);
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('time input dialog accepts a valid 24-hour time', (tester) async {
+  testWidgets('time picker uses 24-hour format', (tester) async {
     tester.view.physicalSize = const Size(800, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -1326,11 +1311,14 @@ void main() {
     await tester.tap(timeField);
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('visitor-time-input')), findsOneWidget);
-    await tester.enterText(
-        find.byKey(const ValueKey('visitor-time-input')), '21:45');
-    await tester.tap(find.text('Set time'));
+    final picker = tester.widget<CupertinoDatePicker>(
+        find.byKey(const ValueKey('visitor-time-picker')));
+    expect(picker.mode, CupertinoDatePickerMode.time);
+    expect(picker.use24hFormat, isTrue);
+    await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
+    final field = tester.widget<TextFormField>(timeField);
+    expect(field.controller!.text, matches(r'^\d{2}:\d{2}$'));
     expect(tester.takeException(), isNull);
   });
 }

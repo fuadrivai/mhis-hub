@@ -4,23 +4,23 @@ PODS:
   - file_picker_darwin (1.0.0):
     - Flutter
     - FlutterMacOS
-  - Firebase/Auth (12.19.0):
+  - Firebase/Auth (12.19.3):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 12.19.0)
-  - Firebase/CoreOnly (12.19.0):
-    - FirebaseCore (~> 12.19.0)
-  - Firebase/Messaging (12.19.0):
+  - Firebase/CoreOnly (12.19.3):
+    - FirebaseCore (~> 12.19.3)
+  - Firebase/Messaging (12.19.3):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.19.0)
-  - firebase_auth (6.7.0):
-    - Firebase/Auth (= 12.19.0)
+  - firebase_auth (7.0.1):
+    - Firebase/Auth (= 12.19.3)
     - firebase_core
     - Flutter
-  - firebase_core (4.15.0):
-    - Firebase/CoreOnly (= 12.19.0)
+  - firebase_core (5.1.0):
+    - Firebase/CoreOnly (= 12.19.3)
     - Flutter
-  - firebase_messaging (16.7.0):
-    - Firebase/Messaging (= 12.19.0)
+  - firebase_messaging (17.0.1):
+    - Firebase/Messaging (= 12.19.3)
     - firebase_core
     - Flutter
   - FirebaseAppCheckInterop (12.19.0)
@@ -34,7 +34,7 @@ PODS:
     - GTMSessionFetcher/Core (< 6.0, >= 3.4)
     - RecaptchaInterop (~> 101.0)
   - FirebaseAuthInterop (12.19.0)
-  - FirebaseCore (12.19.0):
+  - FirebaseCore (12.19.3):
     - FirebaseCoreInternal (~> 12.19.0)
     - GoogleUtilities/Environment (~> 8.1)
     - GoogleUtilities/Logger (~> 8.1)
@@ -200,14 +200,14 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   camera_avfoundation: 769d252259fa21e39ada7399c9dc9c0921af8165
   file_picker_darwin: 27e043831d68462d54f1c40e724b1f53c9d1e8be
-  Firebase: 7ca191e43724142f79fae653547b3382c45413cc
-  firebase_auth: 36fa0bc88f7ea4c0ad5c543d117674d05be29799
-  firebase_core: 7ed66bd750bf2b7a29268b21d63eec7bc6799ee8
-  firebase_messaging: 437b5662e6a3a945a7a07166bfba05a86c998b55
+  Firebase: e3c5ab38229ae085490d02398d97b9f5374bbe6e
+  firebase_auth: be1f89ddd82e62d345457f70b1710e7f18b9bee9
+  firebase_core: 53e1816f8f32542079b1f9c96327689c8eb6fd6e
+  firebase_messaging: 560963e22fa0552b0ee3b4b7c2de32d0041b8b15
   FirebaseAppCheckInterop: bd4b791ffaed7ae719304af6369d243ddee5e4a0
   FirebaseAuth: 8c38236f67e5e3dd6aacf3e0c46b3eed31e9c820
   FirebaseAuthInterop: f1ad187a0052276ad49a990538accfdf36fc595d
-  FirebaseCore: c990214798d7c568ad436a15ba7da25c7a278c9a
+  FirebaseCore: ab948de5d99e69aeed3cd6f5ace263ce795b2559
   FirebaseCoreExtension: 201c78d7491a273d61d8afbf491214276a951e6d
   FirebaseCoreInternal: 656b1c2fd5a1c5976183dc54b73deda78fb26ee3
   FirebaseInstallations: f70a49eed611f5602f373e40974b3b01556ac217
@@ -221,14 +221,14 @@ SPEC CHECKSUMS:
   GoogleMaps: 0608099d4870cac8754bdba9b6953db543432438
   GoogleUtilities: 7dc09b3fa9ecb5c2298b952313d14628b61b9da3
   GTMSessionFetcher: a6d2b2aa203485893d4511ff64642dc811f7c09f
-  image_picker_ios: 11108f476341e4fb2aa6c80d2d2882c629c33941
+  image_picker_ios: 3b5c3761ec7755e83b659fd65c7f03c9c7f25d6c
   local_auth_darwin: 63c73d6d28cc3e239be2b6aa460ea6e317cd5100
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   permission_handler_apple: ee2fe0fd04551b304eb002714ff067c371c822ed
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
-  shared_preferences_foundation: 5086985c1d43c5ba4d5e69a4e8083a389e2909e6
+  shared_preferences_foundation: 9a36184bb1299692bf7b972bd6c60ab373084504
   url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
   webview_flutter_wkwebview: 29eb20d43355b48fe7d07113835b9128f84e3af4
 

@@ -8,6 +8,7 @@ import 'package:fl_mhis_hr/pages/visitor/library/visitor_attachment_validation.d
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_attachment_preview.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -271,17 +272,19 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       TextInputType? keyboardType,
       bool required = false,
       int maxLines = 1,
+      TextInputAction? textInputAction = TextInputAction.next,
       Key? key}) {
     return _field(
       label,
       TextFormField(
-        key: key,
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        validator: validator,
-        decoration: TextFormDecoration.box(hintText: label),
-      ),
+          key: key,
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          validator: validator,
+          decoration: TextFormDecoration.box(hintText: label),
+          textInputAction: textInputAction ??
+              (maxLines > 1 ? TextInputAction.newline : TextInputAction.next)),
       required: required,
     );
   }
@@ -359,12 +362,69 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
         validator: (value) => ValidForm.emptyValue(value?.trim() ?? ''),
         onTap: () async {
           FocusScope.of(context).unfocus();
-          final picked = await showDialog<TimeOfDay>(
+          final initialTime = value ?? TimeOfDay.now();
+          final picked = await showCupertinoModalPopup<TimeOfDay>(
             context: context,
-            builder: (_) => _VisitorTimeInputDialog(
-              label: label,
-              initialTime: value ?? TimeOfDay.now(),
-            ),
+            builder: (modalContext) {
+              var selectedTime = DateTime(
+                2000,
+                1,
+                1,
+                initialTime.hour,
+                initialTime.minute,
+              );
+
+              return Container(
+                height: 320 + MediaQuery.of(modalContext).padding.bottom,
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 8,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            CupertinoButton(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              onPressed: () => Navigator.pop(modalContext),
+                              child: const Text('Cancel'),
+                            ),
+                            CupertinoButton(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 12),
+                              onPressed: () => Navigator.pop(
+                                modalContext,
+                                TimeOfDay.fromDateTime(selectedTime),
+                              ),
+                              child: const Text('Done'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: CupertinoDatePicker(
+                          key: const ValueKey('visitor-time-picker'),
+                          mode: CupertinoDatePickerMode.time,
+                          initialDateTime: selectedTime,
+                          use24hFormat: true,
+                          onDateTimeChanged: (time) => selectedTime = time,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
           if (picked != null && mounted) {
             setState(() {
@@ -653,6 +713,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                         category?.requiresAdditionalInfo ==
                                             true,
                                     maxLines: 3,
+                                    textInputAction: TextInputAction.done,
                                     key: const ValueKey('visitor-notes'),
                                     validator: (value) =>
                                         category?.requiresAdditionalInfo == true
@@ -684,100 +745,6 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _VisitorTimeInputDialog extends StatefulWidget {
-  const _VisitorTimeInputDialog({
-    required this.label,
-    required this.initialTime,
-  });
-
-  final String label;
-  final TimeOfDay initialTime;
-
-  @override
-  State<_VisitorTimeInputDialog> createState() =>
-      _VisitorTimeInputDialogState();
-}
-
-class _VisitorTimeInputDialogState extends State<_VisitorTimeInputDialog> {
-  late final TextEditingController _controller;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(
-      text:
-          '${widget.initialTime.hour.toString().padLeft(2, '0')}:${widget.initialTime.minute.toString().padLeft(2, '0')}',
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final match =
-        RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(_controller.text.trim());
-    final hour = int.tryParse(match?.group(1) ?? '');
-    final minute = int.tryParse(match?.group(2) ?? '');
-    if (hour == null || hour > 23 || minute == null || minute > 59) {
-      setState(() => _error = 'Enter a valid time in 24-hour format (HH:mm).');
-      return;
-    }
-    Navigator.of(context).pop(TimeOfDay(hour: hour, minute: minute));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(widget.label, style: textTheme.titleLarge),
-            const SizedBox(height: 20),
-            TextField(
-              key: const ValueKey('visitor-time-input'),
-              controller: _controller,
-              autofocus: true,
-              keyboardType: TextInputType.datetime,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
-                labelText: 'Time (24-hour)',
-                hintText: '09:30',
-                errorText: _error,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: _submit,
-                  child: const Text('Set time'),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
