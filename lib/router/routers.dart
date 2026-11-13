@@ -89,9 +89,13 @@ class RouteNavigation {
                 parentNavigatorKey: _nav.navKey,
                 path: 'visitor',
                 name: 'visitor',
-                pageBuilder: (context, state) => const NoTransitionPage(
-                  child: VisitorScreen(),
-                ),
+                pageBuilder: (context, state) {
+                  final initialTab =
+                      state.extra is int && state.extra == 1 ? 1 : 0;
+                  return NoTransitionPage(
+                    child: VisitorScreen(initialTab: initialTab),
+                  );
+                },
               ),
               GoRoute(
                 parentNavigatorKey: _nav.navKey,

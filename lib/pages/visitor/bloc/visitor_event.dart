@@ -7,13 +7,41 @@ abstract class VisitorEvent extends Equatable {
 }
 
 class LoadVisitorList extends VisitorEvent {
-  const LoadVisitorList(this.type, {this.reset = false, this.completion});
+  const LoadVisitorList(
+    this.type, {
+    this.reset = false,
+    this.filters,
+    this.completion,
+  });
   final VisitorListType type;
   final bool reset;
+  final Map<String, dynamic>? filters;
   final Completer<void>? completion;
 
   @override
-  List<Object?> get props => [type, reset, completion];
+  List<Object?> get props => [type, reset, filters, completion];
+}
+
+class LoadTodayVisitorList extends VisitorEvent {
+  const LoadTodayVisitorList({
+    required this.type,
+    required this.date,
+    this.query = '',
+    this.departureAfter,
+    this.homeSummary = false,
+    this.reset = false,
+  });
+
+  final VisitorListType type;
+  final String date;
+  final String query;
+  final String? departureAfter;
+  final bool homeSummary;
+  final bool reset;
+
+  @override
+  List<Object?> get props =>
+      [type, date, query, departureAfter, homeSummary, reset];
 }
 
 class LoadVisitorForm extends VisitorEvent {

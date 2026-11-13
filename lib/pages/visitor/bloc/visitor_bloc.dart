@@ -18,6 +18,7 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
             (() => EmployeeApi.getEmployeeProfile(handleErrorsLocally: true)),
         super(const VisitorState()) {
     on<LoadVisitorList>(_loadList);
+    on<LoadTodayVisitorList>(_loadTodayVisitorList);
     on<LoadVisitorForm>(_loadForm);
     on<LoadVisitorCurrentHost>(_loadCurrentHost);
     on<SubmitVisitorInvitation>(_submit);
@@ -32,6 +33,8 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
   final _listGenerations = <VisitorListType, int>{};
   int _hostGeneration = 0;
   int _hostFilterGeneration = 0;
+  final _todayGenerations = <VisitorListType, int>{};
+  final _homeTodayGenerations = <VisitorListType, int>{};
   int _formGeneration = 0;
   int _detailGeneration = 0;
   int _currentHostGeneration = 0;
@@ -62,20 +65,40 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
         : state.copyWith(monitoring: list));
   }
 
+  void _emitToday(Emitter<VisitorState> emit, VisitorListType type,
+      VisitorListState<Visit> list,
+      {bool homeSummary = false}) {
+    if (homeSummary) {
+      emit(type == VisitorListType.invitations
+          ? state.copyWith(homeTodayInvitations: list)
+          : state.copyWith(homeTodayMonitoring: list));
+      return;
+    }
+    emit(type == VisitorListType.invitations
+        ? state.copyWith(todayInvitations: list)
+        : state.copyWith(todayMonitoring: list));
+  }
+
   Future<void> _loadList(
       LoadVisitorList event, Emitter<VisitorState> emit) async {
     try {
       var list = state.list(event.type);
       if (event.reset) {
         _listGenerations[event.type] = (_listGenerations[event.type] ?? 0) + 1;
-        list = const VisitorListState<Visit>();
+        list = VisitorListState<Visit>(
+          filters: event.filters ?? list.filters,
+        );
       } else if (list.loading || !list.hasMore) {
         return;
       }
       final generation = _listGenerations[event.type] ?? 0;
       _emitList(emit, event.type, list.copyWith(loading: true));
       try {
-        final page = await _api.visits(event.type.name, page: list.page + 1);
+        final page = await _api.visits(
+          event.type.name,
+          page: list.page + 1,
+          filters: list.filters,
+        );
         if (emit.isDone || generation != (_listGenerations[event.type] ?? 0)) {
           return;
         }
@@ -85,6 +108,7 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
             list.copyWith(
               items: [...list.items, ...page.data],
               page: page.page,
+              total: page.total,
               hasMore: page.hasMore,
               loading: false,
             ));
@@ -97,6 +121,70 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
       }
     } finally {
       event.completion?.complete();
+    }
+  }
+
+  Future<void> _loadTodayVisitorList(
+      LoadTodayVisitorList event, Emitter<VisitorState> emit) async {
+    final generations =
+        event.homeSummary ? _homeTodayGenerations : _todayGenerations;
+    var list = event.homeSummary
+        ? event.type == VisitorListType.invitations
+            ? state.homeTodayInvitations
+            : state.homeTodayMonitoring
+        : event.type == VisitorListType.invitations
+            ? state.todayInvitations
+            : state.todayMonitoring;
+    if (event.reset) {
+      generations[event.type] = (generations[event.type] ?? 0) + 1;
+      list = VisitorListState<Visit>(filters: {
+        'visit_date': event.date,
+        if (event.query.trim().isNotEmpty) 'query': event.query.trim(),
+        if (event.departureAfter != null)
+          'departure_after': event.departureAfter,
+      });
+    } else if (list.loading || !list.hasMore) {
+      return;
+    }
+
+    final generation = generations[event.type] ?? 0;
+    _emitToday(
+      emit,
+      event.type,
+      list.copyWith(loading: true),
+      homeSummary: event.homeSummary,
+    );
+    try {
+      final page = await _api.visits(
+        event.type.name,
+        page: list.page + 1,
+        filters: list.filters,
+      );
+      if (emit.isDone || generation != (generations[event.type] ?? 0)) {
+        return;
+      }
+      _emitToday(
+        emit,
+        event.type,
+        list.copyWith(
+          items: [...list.items, ...page.data],
+          page: page.page,
+          total: page.total,
+          hasMore: page.hasMore,
+          loading: false,
+        ),
+        homeSummary: event.homeSummary,
+      );
+    } catch (error) {
+      if (emit.isDone || generation != (generations[event.type] ?? 0)) {
+        return;
+      }
+      _emitToday(
+        emit,
+        event.type,
+        list.copyWith(loading: false, error: _error(error)),
+        homeSummary: event.homeSummary,
+      );
     }
   }
 
@@ -179,7 +267,7 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
       final page = await _api.hosts(
         list.query,
         page: list.page + 1,
-        filters: list.filters,
+        filters: Map<String, int?>.from(list.filters),
       );
       if (emit.isDone || generation != _hostGeneration) return;
       emit(state.copyWith(
@@ -205,7 +293,8 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
     try {
       final options = await _api.hostFilters();
       if (emit.isDone || generation != _hostFilterGeneration) return;
-      emit(state.copyWith(hostFilters: VisitorHostFilterStatus(options: options)));
+      emit(state.copyWith(
+          hostFilters: VisitorHostFilterStatus(options: options)));
     } catch (error) {
       if (emit.isDone || generation != _hostFilterGeneration) return;
       emit(state.copyWith(

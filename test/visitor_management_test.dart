@@ -13,10 +13,13 @@ import 'package:fl_mhis_hr/models/v2/person.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
 import 'package:fl_mhis_hr/pages/visitor/library/visitor_attachment_validation.dart';
+import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
 import 'package:fl_mhis_hr/pages/visitor/repository/visitor_api.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_attachment_preview.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_form_screen.dart';
+import 'package:fl_mhis_hr/pages/home/screen/visitor_today_home_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +31,8 @@ final visitJson = <String, dynamic>{
   'visit_code': 'ABCDE',
   'status': 'expected',
   'visit_date': '2027-01-20',
+  'expected_arrival_at': '2027-01-20T09:00:00+07:00',
+  'expected_departure_at': '2027-01-20T10:00:00+07:00',
   'can_cancel': true,
   'visitor': {'full_name': 'Nama Tamu', 'phone': '08123456789'},
   'host': {'name': 'Nama Host'},
@@ -43,15 +48,26 @@ Future<Employee> _fakeEmployeeProfile() async => Employee(
 
 class FakeVisitorApi extends VisitorApi {
   final calls = <String>[];
+  final visitFilterCalls = <Map<String, dynamic>>[];
   final hostFilterCalls = <Map<String, int?>>[];
   Map<String, dynamic>? submitted;
   String? cancellationReason;
   bool cancelled = false;
 
   @override
-  Future<VisitorPage<Visit>> visits(String endpoint, {int page = 1}) async {
-    calls.add('$endpoint:$page');
-    final json = {...visitJson, 'can_cancel': !cancelled};
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    visitFilterCalls.add(Map<String, dynamic>.from(filters));
+    if (filters.containsKey('visit_date')) {
+      calls.add('today:$endpoint:${filters['visit_date']}');
+    } else {
+      calls.add('$endpoint:$page');
+    }
+    final json = {
+      ...visitJson,
+      if (filters['visit_date'] is String) 'visit_date': filters['visit_date'],
+      'can_cancel': !cancelled,
+    };
     return VisitorPage(
       data: [Visit.fromJson(json)],
       page: page,
@@ -63,7 +79,21 @@ class FakeVisitorApi extends VisitorApi {
   @override
   Future<Visit> detail(int id) async {
     calls.add('detail:$id');
-    return Visit.fromJson(visitJson);
+    return Visit.fromJson({
+      ...visitJson,
+      'visitor': {
+        ...visitJson['visitor'] as Map<String, dynamic>,
+        'media': {
+          'data': [
+            {
+              'file_name': 'visitor-photo.png',
+              'file_path': 'visitors/visitor-photo.png',
+              'mime_type': 'image/png',
+            }
+          ],
+        },
+      },
+    });
   }
 
   @override
@@ -76,7 +106,13 @@ class FakeVisitorApi extends VisitorApi {
   @override
   Future<VisitorFormOptions> formOptions() async => const VisitorFormOptions(
         branches: [VisitorOption(id: 1, name: 'School')],
-        categories: [VisitorOption(id: 2, name: 'Guest')],
+        categories: [
+          VisitorOption(
+            id: 2,
+            name: 'Guest',
+            requiresAdditionalInfo: true,
+          )
+        ],
         purposes: [VisitorOption(id: 3, name: 'Meeting')],
         defaultBranchId: 1,
         defaultHostId: 10,
@@ -92,6 +128,7 @@ class FakeVisitorApi extends VisitorApi {
         VisitorHost(
           id: 11,
           name: 'Other Host',
+          avatar: 'https://example.test/storage/avatars/host.png',
           email: 'host@example.com',
           phone: '08123456789',
           branch: 'School',
@@ -150,7 +187,11 @@ class RetryingVisitorApi extends FakeVisitorApi {
   int attempts = 0;
 
   @override
-  Future<VisitorPage<Visit>> visits(String endpoint, {int page = 1}) async {
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (filters.containsKey('visit_date')) {
+      return super.visits(endpoint, page: page, filters: filters);
+    }
     attempts++;
     if (attempts == 1) {
       throw DioException(
@@ -182,7 +223,8 @@ class DelayedVisitorApi extends FakeVisitorApi {
   final hostRequests = <Completer<VisitorPage<VisitorHost>>>[];
 
   @override
-  Future<VisitorPage<Visit>> visits(String endpoint, {int page = 1}) {
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) {
     final request = Completer<VisitorPage<Visit>>();
     listRequests.add(request);
     return request.future;
@@ -208,6 +250,131 @@ class DelayedMutationApi extends FakeVisitorApi {
   }
 }
 
+class EmptyTodayVisitorApi extends FakeVisitorApi {
+  @override
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (filters.containsKey('visit_date')) {
+      return VisitorPage(
+        data: const [],
+        page: page,
+        perPage: 20,
+        total: 0,
+      );
+    }
+    return super.visits(endpoint, page: page, filters: filters);
+  }
+}
+
+class MonitoringOnlyVisitorApi extends FakeVisitorApi {
+  @override
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (endpoint == 'invitations' && filters.containsKey('visit_date')) {
+      return VisitorPage(
+        data: const [],
+        page: page,
+        perPage: 20,
+        total: 0,
+      );
+    }
+    return super.visits(endpoint, page: page, filters: filters);
+  }
+}
+
+class FailedTodayVisitorApi extends FakeVisitorApi {
+  @override
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (filters.containsKey('visit_date')) {
+      throw StateError('Visitor service unavailable');
+    }
+    return super.visits(endpoint, page: page, filters: filters);
+  }
+}
+
+class TimedVisitorApi extends FakeVisitorApi {
+  TimedVisitorApi(this.now);
+
+  final DateTime Function() now;
+
+  @override
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (!filters.containsKey('visit_date')) {
+      return super.visits(endpoint, page: page, filters: filters);
+    }
+
+    final current = now();
+    Map<String, dynamic> timedVisit(String name, DateTime departure) => {
+          ...visitJson,
+          'visit_code': name,
+          'visit_date': filters['visit_date'],
+          'expected_arrival_at': current.toIso8601String(),
+          'expected_departure_at': departure.toIso8601String(),
+          'visitor': {'full_name': name},
+          'host': {'name': '$name Host'},
+        };
+    return VisitorPage(
+      data: [
+        Visit.fromJson(
+            timedVisit('Ending soon', current.add(const Duration(seconds: 3)))),
+        Visit.fromJson(
+            timedVisit('Next visit', current.add(const Duration(minutes: 3)))),
+      ],
+      page: page,
+      perPage: 20,
+      total: 2,
+    );
+  }
+}
+
+class PagedTimedVisitorApi extends FakeVisitorApi {
+  PagedTimedVisitorApi(this.now);
+
+  final DateTime Function() now;
+  int invitationRequests = 0;
+
+  @override
+  Future<VisitorPage<Visit>> visits(String endpoint,
+      {int page = 1, Map<String, dynamic> filters = const {}}) async {
+    if (!filters.containsKey('visit_date')) {
+      return super.visits(endpoint, page: page, filters: filters);
+    }
+    if (endpoint == 'monitoring') {
+      return VisitorPage(
+        data: const [],
+        page: page,
+        perPage: 1,
+        total: 0,
+      );
+    }
+
+    invitationRequests++;
+    final current = now();
+    final firstPage = invitationRequests == 1;
+    final name = firstPage ? 'Ending soon' : 'Next page';
+    final departure = current.add(
+      firstPage ? const Duration(seconds: 3) : const Duration(minutes: 3),
+    );
+    return VisitorPage(
+      data: [
+        Visit.fromJson({
+          ...visitJson,
+          'visit_code': name,
+          'visit_date': filters['visit_date'],
+          'expected_arrival_at': current.toIso8601String(),
+          'expected_departure_at': departure.toIso8601String(),
+          'visitor': {'full_name': name},
+        })
+      ],
+      page: 1,
+      perPage: 1,
+      total: firstPage ? 2 : 1,
+    );
+  }
+}
+
 void main() {
   setUpAll(() => initializeDateFormatting('en'));
 
@@ -219,6 +386,37 @@ void main() {
     expect(visitorAttachmentError('a.pdf', 1), isNotNull);
     expect(visitorAttachmentError('png', 1), isNotNull);
     expect(visitorAttachmentError('a.png', limit + 1), isNotNull);
+  });
+
+  test('visit parses uploaded media using file attachment fields', () {
+    final visit = Visit.fromJson({
+      ...visitJson,
+      'visitor': {
+        ...visitJson['visitor'] as Map<String, dynamic>,
+        'photo': {
+          'data': {
+            'file_name': 'visitor-photo.png',
+            'file_path': 'visitors/visitor-photo.png',
+          },
+        }
+      },
+    });
+
+    expect(visit.attachments, hasLength(1));
+    expect(visit.attachments.single.name, 'visitor-photo.png');
+    expect(visit.attachments.single.url, 'visitors/visitor-photo.png');
+  });
+
+  test('visitor date-time query uses a local ISO timezone offset', () {
+    final dateTime = DateTime(2026, 11, 13, 9);
+    final offset = dateTime.timeZoneOffset;
+    final sign = offset.isNegative ? '-' : '+';
+    final minutes = offset.inMinutes.abs();
+    final expectedOffset = '$sign${(minutes ~/ 60).toString().padLeft(2, '0')}:'
+        '${(minutes % 60).toString().padLeft(2, '0')}';
+    expect(visitorDateParameter(dateTime), '2026-11-13');
+    expect(visitorDateTimeParameter(dateTime),
+        '2026-11-13T09:00:00$expectedOffset');
   });
 
   testWidgets('attachment preview shows the selected file and can remove it',
@@ -243,6 +441,236 @@ void main() {
     expect(removed, isTrue);
   });
 
+  testWidgets('home visitor card shows today names and opens selected tab',
+      (tester) async {
+    final api = FakeVisitorApi();
+    final bloc = VisitorBloc(api: api);
+    addTearDown(bloc.close);
+    final today = DateTime.now();
+    final date =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.invitations,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.monitoring,
+        date: date,
+        homeSummary: true,
+        reset: true));
+
+    final router = GoRouter(
+      initialLocation: '/home',
+      routes: [
+        GoRoute(
+          path: '/home',
+          builder: (_, __) => const Scaffold(body: VisitorTodayHomeCard()),
+        ),
+        GoRoute(
+          path: '/visitor',
+          name: 'visitor',
+          builder: (_, state) => VisitorScreen(
+            initialTab: state.extra == 1 ? 1 : 0,
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: MaterialApp.router(routerConfig: router),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Visitor Today'), findsOneWidget);
+    expect(find.text('Nama Tamu'), findsOneWidget);
+    expect(find.text('Arrival 09:00'), findsOneWidget);
+    await tester.tap(find.text('Monitoring'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nama Host'), findsOneWidget);
+    expect(find.text('Guest: Nama Tamu'), findsOneWidget);
+
+    await tester.tap(find.text('See all'));
+    await tester.pumpAndSettle();
+    expect(api.calls, contains('monitoring:1'));
+    expect(find.text('Visitor'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('home visitor tabs remain selectable when one list is empty',
+      (tester) async {
+    final bloc = VisitorBloc(api: MonitoringOnlyVisitorApi());
+    addTearDown(bloc.close);
+    final today = DateTime.now();
+    final date =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.invitations,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.monitoring,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: const MaterialApp(
+        home: Scaffold(body: VisitorTodayHomeCard()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Nama Host'), findsOneWidget);
+
+    await tester.tap(find.text('Invitations'));
+    await tester.pumpAndSettle();
+    expect(find.text('No invitations today'), findsOneWidget);
+    expect(find.text('Visitor Today'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('home removes visits at departure and shows the next visit',
+      (tester) async {
+    var current = DateTime.now();
+    final bloc = VisitorBloc(api: TimedVisitorApi(() => current));
+    addTearDown(bloc.close);
+    for (final type in VisitorListType.values) {
+      bloc.add(LoadTodayVisitorList(
+        type: type,
+        date: visitorDateParameter(current),
+        departureAfter: visitorDateTimeParameter(current),
+        homeSummary: true,
+        reset: true,
+      ));
+    }
+
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: MaterialApp(
+        home: Scaffold(body: VisitorTodayHomeCard(clock: () => current)),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Ending soon'), findsOneWidget);
+    expect(find.text('Next visit'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Ending soon'), findsOneWidget);
+    current = current.add(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('Ending soon'), findsNothing);
+    expect(find.text('Next visit'), findsOneWidget);
+    expect(find.text('Visitor Today'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('home requests the next page when its current visits expire',
+      (tester) async {
+    var current = DateTime.now();
+    final api = PagedTimedVisitorApi(() => current);
+    final bloc = VisitorBloc(api: api);
+    addTearDown(bloc.close);
+    for (final type in VisitorListType.values) {
+      bloc.add(LoadTodayVisitorList(
+        type: type,
+        date: visitorDateParameter(current),
+        departureAfter: visitorDateTimeParameter(current),
+        homeSummary: true,
+        reset: true,
+      ));
+    }
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: MaterialApp(
+        home: Scaffold(body: VisitorTodayHomeCard(clock: () => current)),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(api.invitationRequests, 1);
+    expect(find.text('Ending soon'), findsOneWidget);
+
+    current = current.add(const Duration(seconds: 4));
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
+    expect(api.invitationRequests, 2);
+    expect(find.text('Ending soon'), findsNothing);
+    expect(find.text('Next page'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('visitor screen opens directly on the requested tab',
+      (tester) async {
+    final api = FakeVisitorApi();
+    await tester.pumpWidget(BlocProvider(
+      create: (_) => VisitorBloc(api: api, getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorScreen(initialTab: 1)),
+    ));
+    await tester.pumpAndSettle();
+    expect(api.calls, contains('monitoring:1'));
+    expect(api.calls, isNot(contains('invitations:1')));
+  });
+
+  testWidgets('home visitor card is hidden when both today lists are empty',
+      (tester) async {
+    final bloc = VisitorBloc(api: EmptyTodayVisitorApi());
+    addTearDown(bloc.close);
+    final today = DateTime.now();
+    final date =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.invitations,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.monitoring,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: const MaterialApp(
+        home: Scaffold(body: VisitorTodayHomeCard()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Visitor Today'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('home visitor card exposes errors instead of hiding them',
+      (tester) async {
+    final bloc = VisitorBloc(api: FailedTodayVisitorApi());
+    addTearDown(bloc.close);
+    final today = DateTime.now();
+    final date =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.invitations,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    bloc.add(LoadTodayVisitorList(
+        type: VisitorListType.monitoring,
+        date: date,
+        homeSummary: true,
+        reset: true));
+    await tester.pumpWidget(BlocProvider.value(
+      value: bloc,
+      child: const MaterialApp(
+        home: Scaffold(body: VisitorTodayHomeCard()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Visitor Today'), findsOneWidget);
+    expect(find.text('Unexpected response or error. Please try again.'),
+        findsOneWidget);
+    expect(find.text('Retry'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('host cards show employee details and filter results',
       (tester) async {
     final api = FakeVisitorApi();
@@ -260,6 +688,8 @@ void main() {
     expect(find.text('Position: Teacher'), findsOneWidget);
     expect(find.text('Phone'), findsNothing);
     expect(find.text('WhatsApp'), findsNothing);
+    final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar).first);
+    expect(avatar.backgroundImage, isA<NetworkImage>());
 
     await tester.tap(find.byTooltip('Filter employees'));
     await tester.pumpAndSettle();
@@ -272,6 +702,24 @@ void main() {
 
     expect(api.hostFilterCalls.last, {'branch': 1});
     expect(find.text('Branch: School'), findsWidgets);
+  });
+
+  test('host response parses all provided employee details', () {
+    final host = VisitorHost.fromJson({
+      'id': 10,
+      'name': 'Host Name',
+      'branch': 'Head Office',
+      'level': 'Senior',
+      'position': 'Director',
+      'organization': 'Operations',
+      'avatar': 'https://example.test/storage/avatars/host.png',
+    });
+
+    expect(host.branch, 'Head Office');
+    expect(host.level, 'Senior');
+    expect(host.position, 'Director');
+    expect(host.organization, 'Operations');
+    expect(host.avatar, 'https://example.test/storage/avatars/host.png');
   });
 
   test('BLoC ignores stale list refresh and host search responses', () async {
@@ -493,6 +941,80 @@ void main() {
     expect(requests[6].path, endsWith('/api/visitor/form-options'));
   });
 
+  test('visit API forwards name, exact-date, and date-range filters', () async {
+    final requests = <RequestOptions>[];
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      requests.add(options);
+      handler.resolve(Response(
+        requestOptions: options,
+        data: {
+          'current_page': 1,
+          'per_page': 20,
+          'total': 0,
+          'data': <dynamic>[],
+        },
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+
+    await api.visits(
+      'invitations',
+      filters: {'query': 'angga', 'visit_date': '2026-11-13'},
+    );
+    await api.visits(
+      'monitoring',
+      filters: {'query': '0813', 'from': '2026-11-01', 'to': '2026-11-30'},
+    );
+    await api.visits(
+      'invitations',
+      filters: {
+        'visit_date': '2026-11-13',
+        'departure_after': '2026-11-13T09:00:00+07:00',
+      },
+    );
+
+    expect(requests[0].queryParameters, {
+      'page': 1,
+      'per_page': 20,
+      'query': 'angga',
+      'visit_date': '2026-11-13',
+    });
+    expect(requests[1].queryParameters, {
+      'page': 1,
+      'per_page': 20,
+      'query': '0813',
+      'from': '2026-11-01',
+      'to': '2026-11-30',
+    });
+    expect(requests[2].queryParameters['departure_after'],
+        '2026-11-13T09:00:00+07:00');
+    expect(requests[2].uri.query, contains('%2B07'));
+    expect(requests[2].uri.query, isNot(contains('+07')));
+  });
+
+  test('today visitor BLoC forwards departure_after to the API', () async {
+    final api = FakeVisitorApi();
+    final bloc = VisitorBloc(api: api);
+    addTearDown(bloc.close);
+
+    bloc.add(const LoadTodayVisitorList(
+      type: VisitorListType.invitations,
+      date: '2026-11-13',
+      departureAfter: '2026-11-13T09:00:00+07:00',
+      homeSummary: true,
+      reset: true,
+    ));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(api.visitFilterCalls.single, {
+      'visit_date': '2026-11-13',
+      'departure_after': '2026-11-13T09:00:00+07:00',
+    });
+    expect(bloc.state.todayInvitations.items, isEmpty);
+    expect(bloc.state.homeTodayInvitations.items, hasLength(1));
+  });
+
   testWidgets('tabs load separate lists and cancellation refreshes them',
       (tester) async {
     final api = FakeVisitorApi();
@@ -521,6 +1043,13 @@ void main() {
     await tester.tap(find.text('Nama Tamu').last);
     await tester.pumpAndSettle();
     expect(api.calls, contains('detail:42'));
+    await tester.scrollUntilVisible(
+      find.text('Attachments'),
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    expect(find.text('Attachments'), findsOneWidget);
+    expect(find.text('visitor-photo.png'), findsWidgets);
     await tester.scrollUntilVisible(find.text('Cancel invitation'), 250,
         scrollable: find.byType(Scrollable).last);
     await tester.tap(find.text('Cancel invitation'));
@@ -545,14 +1074,70 @@ void main() {
       child: const MaterialApp(home: VisitorScreen()),
     ));
     await tester.pumpAndSettle();
+    expect(api.attempts, 1);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+    await tester.pumpAndSettle();
     expect(find.textContaining('Server unavailable'), findsOneWidget);
     await tester.tap(find.text('Retry'));
     await tester.pumpAndSettle();
     expect(find.text('Visitor 1'), findsOneWidget);
+    expect(find.text('20 January 2027'), findsOneWidget);
+    expect(find.text('Arrival: 09:00  -  Departure: 10:00'), findsWidgets);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -900));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Load more'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -500));
     await tester.pumpAndSettle();
     expect(find.text('Visitor 2'), findsOneWidget);
     expect(find.text('Load more'), findsNothing);
+  });
+
+  testWidgets('invitation list separates today and searches by query',
+      (tester) async {
+    final api = FakeVisitorApi();
+    await tester.pumpWidget(BlocProvider(
+      create: (_) => VisitorBloc(api: api),
+      child: const MaterialApp(home: VisitorScreen()),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text("Today's invitations"), findsOneWidget);
+    expect(find.text('All invitations'), findsOneWidget);
+    expect(find.text('Filter by date'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField).first, 'angga');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(
+        api.visitFilterCalls.any(
+          (filters) => filters.length == 1 && filters['query'] == 'angga',
+        ),
+        isTrue);
+    expect(
+      api.visitFilterCalls.any(
+        (filters) =>
+            filters['query'] == 'angga' && filters.containsKey('visit_date'),
+      ),
+      isTrue,
+    );
+    await tester.tap(find.text('Monitoring'));
+    await tester.pumpAndSettle();
+    expect(find.text("Today's monitoring"), findsOneWidget);
+    expect(find.text('All monitoring'), findsOneWidget);
+    expect(
+        api.calls.any((call) => call.startsWith('today:monitoring:')), isTrue);
+    await tester.enterText(find.byType(TextField).first, '0813');
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(
+      api.visitFilterCalls.any(
+        (filters) =>
+            filters['query'] == '0813' && filters.containsKey('visit_date'),
+      ),
+      isTrue,
+    );
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('form selects host, validates contact and creates invitation',
@@ -598,7 +1183,31 @@ void main() {
     expect(arrivalTime.decoration!.filled, isTrue);
     expect(arrivalTime.decoration!.hintText, 'Expected arrival time');
     expect(arrivalTime.decoration!.suffixIcon, isA<Icon>());
+    await tester.ensureVisible(find.byKey(const ValueKey('visitor-date')));
+    final arrivalDateRect =
+        tester.getRect(find.byKey(const ValueKey('visitor-date')));
+    final arrivalTimeRect =
+        tester.getRect(find.byKey(const ValueKey('visitor-arrival-time')));
+    expect(arrivalDateRect.left, lessThan(arrivalTimeRect.left));
+    expect(arrivalDateRect.top, arrivalTimeRect.top);
+    expect(
+      arrivalDateRect.width / (arrivalDateRect.width + arrivalTimeRect.width),
+      closeTo(0.6, 0.02),
+    );
+    final departureDateRect =
+        tester.getRect(find.byKey(const ValueKey('visitor-departure-date')));
+    final departureTimeRect =
+        tester.getRect(find.byKey(const ValueKey('visitor-departure-time')));
+    expect(departureDateRect.left, lessThan(departureTimeRect.left));
+    expect(departureDateRect.top, departureTimeRect.top);
+    expect(
+      departureDateRect.width /
+          (departureDateRect.width + departureTimeRect.width),
+      closeTo(0.6, 0.02),
+    );
     expect(find.text('Add Attachment'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const ValueKey('visitor-host')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-host')));
     await tester.pumpAndSettle();
     await tester.enterText(
@@ -621,6 +1230,9 @@ void main() {
     expect(find.text('Enter a phone number or email'), findsWidgets);
     await tester.enterText(
         find.byKey(const ValueKey('visitor-phone')), '08123456789');
+    await tester.ensureVisible(find.byKey(const ValueKey('visitor-notes')));
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-notes')), 'Installation work');
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
     await tester
@@ -628,14 +1240,18 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-arrival-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-time-input')), '09:00');
+    await tester.tap(find.text('Set time'));
     await tester.pumpAndSettle();
     await tester
         .ensureVisible(find.byKey(const ValueKey('visitor-departure-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-departure-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OK'));
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-time-input')), '10:00');
+    await tester.tap(find.text('Set time'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Submit invitation'));
     await tester.pumpAndSettle();
@@ -646,11 +1262,75 @@ void main() {
     expect(api.submitted?['visitor_category_id'], 2);
     expect(api.submitted?['visitor_purpose_id'], 3);
     expect(api.submitted?['branch_id'], 1);
+    expect(api.submitted?['visit_date'], matches(r'^\d{4}-\d{2}-\d{2}$'));
     expect(api.submitted?['expected_arrival_time'], matches(r'^\d{2}:\d{2}$'));
-    expect(api.submitted?['expected_arrival_date'],
-        matches(r'^\d{1,2} [A-Za-z]+ \d{4}$'));
+    expect(api.submitted?['notes'], 'Installation work');
+    expect(api.submitted, isNot(contains('expected_arrival_date')));
+    expect(api.submitted, isNot(contains('expected_departure_date')));
+    expect(api.submitted, isNot(contains('visitor_notes')));
     expect(find.text('Invitations'), findsOneWidget);
     expect(api.calls.where((call) => call == 'invitations:1').length, 2);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('time input dialog works in compact viewport', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 420);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpWidget(BlocProvider(
+      create: (_) =>
+          VisitorBloc(api: FakeVisitorApi(), getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorFormScreen()),
+    ));
+    await tester.pumpAndSettle();
+    final timeField = find.byKey(const ValueKey('visitor-arrival-time'));
+    await tester.ensureVisible(timeField);
+    await tester.pumpAndSettle();
+    await tester.tap(timeField);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('visitor-time-input')), findsOneWidget);
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-time-input')), '29:99');
+    await tester.ensureVisible(find.text('Set time'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Set time'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a valid time in 24-hour format (HH:mm).'),
+        findsOneWidget);
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-time-input')), '09:30');
+    await tester.ensureVisible(find.text('Set time'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Set time'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('time input dialog accepts a valid 24-hour time', (tester) async {
+    tester.view.physicalSize = const Size(800, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(BlocProvider(
+      create: (_) =>
+          VisitorBloc(api: FakeVisitorApi(), getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorFormScreen()),
+    ));
+    await tester.pumpAndSettle();
+    final timeField = find.byKey(const ValueKey('visitor-arrival-time'));
+    await tester.ensureVisible(timeField);
+    await tester.pumpAndSettle();
+    await tester.tap(timeField);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('visitor-time-input')), findsOneWidget);
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-time-input')), '21:45');
+    await tester.tap(find.text('Set time'));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 }

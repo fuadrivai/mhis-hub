@@ -3,9 +3,12 @@ import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/home/bloc/home_bloc.dart';
 import 'package:fl_mhis_hr/pages/home/screen/announcement_card.dart';
 import 'package:fl_mhis_hr/pages/home/screen/home_header.dart';
+import 'package:fl_mhis_hr/pages/home/screen/visitor_today_home_card.dart';
 import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
+import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
+import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     context.read<HomeBloc>().add(const OnInitAttendance());
     // context.read<HomeBloc>().add(const OnInitCalendar());
     context.read<HomeBloc>().add(const OnInitAnnouncement());
+    _loadTodayVisitors();
     _profile = EmployeeApi.getEmployeeProfile();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -52,6 +56,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
+  void _loadTodayVisitors() {
+    final now = DateTime.now();
+    final bloc = context.read<VisitorBloc>();
+    for (final type in VisitorListType.values) {
+      bloc.add(LoadTodayVisitorList(
+        type: type,
+        date: visitorDateParameter(now),
+        departureAfter: visitorDateTimeParameter(now),
+        homeSummary: true,
+        reset: true,
+      ));
+    }
+  }
+
   Future<void> handleTerminatedState() async {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
     RemoteMessage? initialMessage = await messaging.getInitialMessage();
@@ -72,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
         context.read<HomeBloc>().add(const OnInitAttendance());
         // context.read<HomeBloc>().add(const OnInitCalendar());
         context.read<HomeBloc>().add(const OnInitAnnouncement());
+        _loadTodayVisitors();
         setState(() {
           _profile = EmployeeApi.getEmployeeProfile();
         });
@@ -121,6 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ClockInOutHome(),
                     ),
                     const SizedBox(height: 18),
+                    const VisitorTodayHomeCard(),
                     const InformationHomeWidget(),
                     const SizedBox(height: 8),
                     const AnnouncementCard(),

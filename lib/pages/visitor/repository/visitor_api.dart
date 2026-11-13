@@ -25,11 +25,19 @@ class VisitorApi {
   final Future<VisitorHostFilters> Function() _getHostFilters;
   final Future<List<Employee>> Function(Map<String, dynamic>) _getHostEmployees;
 
-  Future<VisitorPage<Visit>> visits(String endpoint, {int page = 1}) async {
+  Future<VisitorPage<Visit>> visits(
+    String endpoint, {
+    int page = 1,
+    Map<String, dynamic> filters = const {},
+  }) async {
     final dio = await _client();
     final response = await dio.get<Map<String, dynamic>>(
       '${Api.baseUrl}visitor/$endpoint',
-      queryParameters: {'page': page, 'per_page': 20},
+      queryParameters: {
+        'page': page,
+        'per_page': 20,
+        ...filters,
+      },
     );
     return _page(response.data!, Visit.fromJson);
   }

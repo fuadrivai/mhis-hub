@@ -4,6 +4,7 @@ class VisitorListState<T> extends Equatable {
   const VisitorListState({
     this.items = const [],
     this.page = 0,
+    this.total,
     this.hasMore = true,
     this.loading = false,
     this.error,
@@ -12,24 +13,27 @@ class VisitorListState<T> extends Equatable {
   });
   final List<T> items;
   final int page;
+  final int? total;
   final bool hasMore;
   final bool loading;
   final String? error;
   final String query;
-  final Map<String, int?> filters;
+  final Map<String, dynamic> filters;
 
   VisitorListState<T> copyWith({
     List<T>? items,
     int? page,
+    int? total,
     bool? hasMore,
     bool? loading,
     String? error,
     String? query,
-    Map<String, int?>? filters,
+    Map<String, dynamic>? filters,
   }) =>
       VisitorListState(
         items: items ?? this.items,
         page: page ?? this.page,
+        total: total ?? this.total,
         hasMore: hasMore ?? this.hasMore,
         loading: loading ?? this.loading,
         error: error,
@@ -39,7 +43,7 @@ class VisitorListState<T> extends Equatable {
 
   @override
   List<Object?> get props =>
-      [items, page, hasMore, loading, error, query, filters];
+      [items, page, total, hasMore, loading, error, query, filters];
 }
 
 class VisitorHostFilterStatus extends Equatable {
@@ -107,13 +111,22 @@ class VisitorState extends Equatable {
   const VisitorState({
     this.invitations = const VisitorListState<Visit>(),
     this.monitoring = const VisitorListState<Visit>(),
+    this.todayInvitations = const VisitorListState<Visit>(),
+    this.todayMonitoring = const VisitorListState<Visit>(),
+    this.homeTodayInvitations = const VisitorListState<Visit>(),
+    this.homeTodayMonitoring = const VisitorListState<Visit>(),
     this.hosts = const VisitorListState<VisitorHost>(),
     this.hostFilters = const VisitorHostFilterStatus(),
     this.form = const VisitorFormStatus(),
     this.detail = const VisitorDetailStatus(),
     this.currentHost = const VisitorCurrentHostStatus(),
   });
-  final VisitorListState<Visit> invitations, monitoring;
+  final VisitorListState<Visit> invitations,
+      monitoring,
+      todayInvitations,
+      todayMonitoring,
+      homeTodayInvitations,
+      homeTodayMonitoring;
   final VisitorListState<VisitorHost> hosts;
   final VisitorHostFilterStatus hostFilters;
   final VisitorFormStatus form;
@@ -126,6 +139,10 @@ class VisitorState extends Equatable {
   VisitorState copyWith({
     VisitorListState<Visit>? invitations,
     VisitorListState<Visit>? monitoring,
+    VisitorListState<Visit>? todayInvitations,
+    VisitorListState<Visit>? todayMonitoring,
+    VisitorListState<Visit>? homeTodayInvitations,
+    VisitorListState<Visit>? homeTodayMonitoring,
     VisitorListState<VisitorHost>? hosts,
     VisitorHostFilterStatus? hostFilters,
     VisitorFormStatus? form,
@@ -135,6 +152,10 @@ class VisitorState extends Equatable {
       VisitorState(
         invitations: invitations ?? this.invitations,
         monitoring: monitoring ?? this.monitoring,
+        todayInvitations: todayInvitations ?? this.todayInvitations,
+        todayMonitoring: todayMonitoring ?? this.todayMonitoring,
+        homeTodayInvitations: homeTodayInvitations ?? this.homeTodayInvitations,
+        homeTodayMonitoring: homeTodayMonitoring ?? this.homeTodayMonitoring,
         hosts: hosts ?? this.hosts,
         hostFilters: hostFilters ?? this.hostFilters,
         form: form ?? this.form,
@@ -143,6 +164,17 @@ class VisitorState extends Equatable {
       );
 
   @override
-  List<Object?> get props =>
-      [invitations, monitoring, hosts, hostFilters, form, detail, currentHost];
+  List<Object?> get props => [
+        invitations,
+        monitoring,
+        todayInvitations,
+        todayMonitoring,
+        homeTodayInvitations,
+        homeTodayMonitoring,
+        hosts,
+        hostFilters,
+        form,
+        detail,
+        currentHost,
+      ];
 }

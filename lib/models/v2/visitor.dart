@@ -157,6 +157,13 @@ class VisitorHost {
   final String? email, phone, avatar, branch, organization, level, position;
 }
 
+class VisitorMedia {
+  const VisitorMedia({required this.url, required this.name});
+
+  final String url;
+  final String name;
+}
+
 class Visit {
   const Visit({
     required this.id,
@@ -177,14 +184,99 @@ class Visit {
     this.email,
     this.company,
     this.notes,
-    this.visitorNotes,
     this.cancellationReason,
     this.registrationMethod,
+    this.attachments = const [],
   });
 
   factory Visit.fromJson(Map<String, dynamic> json) {
     final visitor = json['visitor'] as Map<String, dynamic>;
     final host = json['host'] as Map<String, dynamic>;
+    final attachments = <VisitorMedia>[];
+    final attachmentUrls = <String>{};
+
+    void addMedia(dynamic value) {
+      if (value is List) {
+        for (final item in value) {
+          addMedia(item);
+        }
+        return;
+      }
+
+      String? url;
+      String? name;
+      if (value is String) {
+        url = value;
+      } else if (value is Map) {
+        final media = Map<String, dynamic>.from(value);
+        for (final key in [
+          'url',
+          'link',
+          'file_url',
+          'path',
+          'file_path',
+          'original_url',
+          'download_url',
+          'media_url',
+          'image_url',
+          'photo_url',
+          'src',
+        ]) {
+          if (media[key] is String && (media[key] as String).isNotEmpty) {
+            url = media[key] as String;
+            break;
+          }
+        }
+        name = media['name'] as String? ??
+            media['file_name'] as String? ??
+            media['filename'] as String? ??
+            media['original_name'] as String?;
+        if (url == null) {
+          for (final key in [
+            'data',
+            'media',
+            'file',
+            'photo',
+            'image',
+            'attachments',
+            'files',
+          ]) {
+            if (media.containsKey(key)) addMedia(media[key]);
+          }
+          return;
+        }
+      }
+
+      if (url == null || url.trim().isEmpty) return;
+      final normalizedUrl = url.trim();
+      if (!attachmentUrls.add(normalizedUrl)) return;
+      final path = Uri.tryParse(normalizedUrl)?.path;
+      attachments.add(VisitorMedia(
+        url: normalizedUrl,
+        name: name ??
+            (path == null || path.isEmpty
+                ? 'Attachment'
+                : Uri.decodeComponent(path.split('/').last)),
+      ));
+    }
+
+    void addMediaFields(Map<String, dynamic> source) {
+      for (final entry in source.entries) {
+        final key = entry.key.toLowerCase();
+        if (key.contains('photo') ||
+            key.contains('image') ||
+            key.contains('attachment') ||
+            key.contains('media') ||
+            key == 'file' ||
+            key == 'files') {
+          addMedia(entry.value);
+        }
+      }
+    }
+
+    addMediaFields(json);
+    addMediaFields(visitor);
+
     String name(String key) =>
         (json[key] as Map<String, dynamic>)['name'] as String;
     return Visit(
@@ -206,9 +298,9 @@ class Visit {
       email: visitor['email'] as String?,
       company: visitor['company'] as String?,
       notes: json['notes'] as String?,
-      visitorNotes: json['visitor_notes'] as String?,
       cancellationReason: json['cancellation_reason'] as String?,
       registrationMethod: json['registration_method'] as String?,
+      attachments: attachments,
     );
   }
 
@@ -216,7 +308,8 @@ class Visit {
   final String code, status, date, visitor, host, branch, category, purpose;
   final bool canCancel;
   final String? arrival, departure, checkIn, checkOut, phone, email, company;
-  final String? notes, visitorNotes, cancellationReason, registrationMethod;
+  final String? notes, cancellationReason, registrationMethod;
+  final List<VisitorMedia> attachments;
 }
 
 class VisitorAttachment {

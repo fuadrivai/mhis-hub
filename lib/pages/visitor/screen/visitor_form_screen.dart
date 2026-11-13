@@ -29,10 +29,8 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   final _email = TextEditingController();
   final _company = TextEditingController();
   final _notes = TextEditingController();
-  final _visitorNotes = TextEditingController();
   final _host = TextEditingController();
   final _visitDateField = TextEditingController();
-  final _arrivalDateField = TextEditingController();
   final _departureDateField = TextEditingController();
   final _arrivalTimeField = TextEditingController();
   final _departureTimeField = TextEditingController();
@@ -40,7 +38,6 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   int? _branchId, _categoryId, _purposeId, _hostId;
   bool _hostSelected = false;
   late DateTime _visitDate;
-  late DateTime _arrivalDate;
   late DateTime _departureDate;
   TimeOfDay? _arrivalTime, _departureTime;
   VisitorAttachment? _attachment;
@@ -49,7 +46,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   void initState() {
     super.initState();
     final today = DateUtils.dateOnly(DateTime.now());
-    _visitDate = _arrivalDate = _departureDate = today;
+    _visitDate = _departureDate = today;
     _updateDateFields();
     final bloc = context.read<VisitorBloc>();
     bloc.add(const LoadVisitorForm());
@@ -64,10 +61,8 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       _email,
       _company,
       _notes,
-      _visitorNotes,
       _host,
       _visitDateField,
-      _arrivalDateField,
       _departureDateField,
       _arrivalTimeField,
       _departureTimeField,
@@ -85,7 +80,6 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   void _updateDateFields() {
     final format = DateFormat('d MMMM yyyy', 'en');
     _visitDateField.text = format.format(_visitDate);
-    _arrivalDateField.text = format.format(_arrivalDate);
     _departureDateField.text = format.format(_departureDate);
   }
 
@@ -179,8 +173,8 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       _message('Please select arrival and departure times.');
       return;
     }
-    final arrival = DateTime(_arrivalDate.year, _arrivalDate.month,
-        _arrivalDate.day, _arrivalTime!.hour, _arrivalTime!.minute);
+    final arrival = DateTime(_visitDate.year, _visitDate.month, _visitDate.day,
+        _arrivalTime!.hour, _arrivalTime!.minute);
     final departure = DateTime(_departureDate.year, _departureDate.month,
         _departureDate.day, _departureTime!.hour, _departureTime!.minute);
     if (departure.isBefore(arrival)) {
@@ -202,47 +196,73 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       'branch_id': _branchId,
       'host_employee_id': _hostId,
       'visit_date': DateFormat('yyyy-MM-dd', 'en').format(_visitDate),
-      'expected_arrival_date':
-          DateFormat('d MMMM yyyy', 'en').format(_arrivalDate),
       'expected_arrival_time': _formatTime(_arrivalTime!),
-      'expected_departure_date':
-          DateFormat('d MMMM yyyy', 'en').format(_departureDate),
+      if (!DateUtils.isSameDay(_departureDate, _visitDate))
+        'expected_departure_date':
+            DateFormat('yyyy-MM-dd', 'en').format(_departureDate),
       'expected_departure_time': _formatTime(_departureTime!),
       if (optional(_notes) != null) 'notes': optional(_notes),
-      if (optional(_visitorNotes) != null)
-        'visitor_notes': optional(_visitorNotes),
     };
     context
         .read<VisitorBloc>()
         .add(SubmitVisitorInvitation(fields, _attachment));
   }
 
-  Widget _label(String text, {bool required = false}) {
+  Widget _label(String text, {bool required = false, bool compact = false}) {
+    final label = Row(mainAxisSize: MainAxisSize.min, children: [
+      Flexible(
+        child: Text(text,
+            maxLines: compact ? 1 : null,
+            overflow: compact ? TextOverflow.ellipsis : null,
+            style: TextStyle(
+                color: AppColors.dark,
+                fontSize: compact ? 12 : 14,
+                fontWeight: FontWeight.w600)),
+      ),
+      if (required)
+        const Text(' *',
+            style: TextStyle(
+                color: AppColors.danger, fontWeight: FontWeight.bold)),
+    ]);
+    if (compact) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: SizedBox(
+          height: 18,
+          width: double.infinity,
+          child: FittedBox(
+            alignment: Alignment.centerLeft,
+            fit: BoxFit.scaleDown,
+            child: label,
+          ),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Row(children: [
-        Flexible(
-          child: Text(text,
-              style: const TextStyle(
-                  color: AppColors.dark,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600)),
-        ),
-        if (required)
-          const Text(' *',
-              style: TextStyle(
-                  color: AppColors.danger, fontWeight: FontWeight.bold)),
+      child: label,
+    );
+  }
+
+  Widget _field(String label, Widget input,
+      {bool required = false, bool compact = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        _label(label, required: required, compact: compact),
+        input,
       ]),
     );
   }
 
-  Widget _field(String label, Widget input, {bool required = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        _label(label, required: required),
-        input,
-      ]),
+  Widget _dateTimeRow(Widget dateField, Widget timeField) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: 3, child: dateField),
+        const SizedBox(width: 8),
+        Expanded(flex: 2, child: timeField),
+      ],
     );
   }
 
@@ -289,7 +309,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
 
   Widget _dateField(String label, TextEditingController controller,
       DateTime date, ValueChanged<DateTime> onChange,
-      {Key? key}) {
+      {Key? key, bool compact = false}) {
     return _field(
       label,
       TextFormField(
@@ -318,12 +338,13 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
         },
       ),
       required: true,
+      compact: compact,
     );
   }
 
   Widget _timeField(String label, TextEditingController controller,
       TimeOfDay? value, ValueChanged<TimeOfDay> onChange,
-      {Key? key}) {
+      {Key? key, bool compact = false}) {
     return _field(
       label,
       TextFormField(
@@ -337,8 +358,14 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
         ),
         validator: (value) => ValidForm.emptyValue(value?.trim() ?? ''),
         onTap: () async {
-          final picked = await showTimePicker(
-              context: context, initialTime: value ?? TimeOfDay.now());
+          FocusScope.of(context).unfocus();
+          final picked = await showDialog<TimeOfDay>(
+            context: context,
+            builder: (_) => _VisitorTimeInputDialog(
+              label: label,
+              initialTime: value ?? TimeOfDay.now(),
+            ),
+          );
           if (picked != null && mounted) {
             setState(() {
               onChange(picked);
@@ -348,6 +375,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
         },
       ),
       required: true,
+      compact: compact,
     );
   }
 
@@ -581,56 +609,56 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                   ),
                               ]),
                               _section('Schedule', [
-                                _dateField(
-                                    'Visit date', _visitDateField, _visitDate,
-                                    (date) {
-                                  _visitDate = date;
-                                  _arrivalDate = date;
-                                  _departureDate = date;
-                                }, key: const ValueKey('visitor-date')),
-                                _dateField(
-                                    'Expected arrival date',
-                                    _arrivalDateField,
-                                    _arrivalDate,
-                                    (date) => _arrivalDate = date,
-                                    key:
-                                        const ValueKey('visitor-arrival-date')),
-                                _timeField(
-                                    'Expected arrival time',
-                                    _arrivalTimeField,
-                                    _arrivalTime,
-                                    (time) => _arrivalTime = time,
-                                    key:
-                                        const ValueKey('visitor-arrival-time')),
-                                _dateField(
-                                    'Expected departure date',
-                                    _departureDateField,
-                                    _departureDate,
-                                    (date) => _departureDate = date,
-                                    key: const ValueKey(
-                                        'visitor-departure-date')),
-                                _timeField(
-                                    'Expected departure time',
-                                    _departureTimeField,
-                                    _departureTime,
-                                    (time) => _departureTime = time,
-                                    key: const ValueKey(
-                                        'visitor-departure-time')),
+                                _dateTimeRow(
+                                  _dateField(
+                                      'Visit date', _visitDateField, _visitDate,
+                                      (date) {
+                                    _visitDate = date;
+                                    _departureDate = date;
+                                  },
+                                      key: const ValueKey('visitor-date'),
+                                      compact: true),
+                                  _timeField(
+                                      'Expected arrival time',
+                                      _arrivalTimeField,
+                                      _arrivalTime,
+                                      (time) => _arrivalTime = time,
+                                      key: const ValueKey(
+                                          'visitor-arrival-time'),
+                                      compact: true),
+                                ),
+                                _dateTimeRow(
+                                  _dateField(
+                                      'Expected departure date',
+                                      _departureDateField,
+                                      _departureDate,
+                                      (date) => _departureDate = date,
+                                      key: const ValueKey(
+                                          'visitor-departure-date'),
+                                      compact: true),
+                                  _timeField(
+                                      'Expected departure time',
+                                      _departureTimeField,
+                                      _departureTime,
+                                      (time) => _departureTime = time,
+                                      key: const ValueKey(
+                                          'visitor-departure-time'),
+                                      compact: true),
+                                ),
                               ]),
                               _attachmentSection(),
                               _section('Notes', [
-                                _textField(_visitorNotes,
-                                    'Additional visitor information',
+                                _textField(_notes, 'Visit notes',
                                     required:
                                         category?.requiresAdditionalInfo ==
                                             true,
                                     maxLines: 3,
+                                    key: const ValueKey('visitor-notes'),
                                     validator: (value) =>
                                         category?.requiresAdditionalInfo == true
                                             ? ValidForm.emptyValue(
                                                 value?.trim() ?? '')
                                             : null),
-                                _textField(_notes, 'Visit notes', maxLines: 3),
                                 if (category?.requiresApproval == true ||
                                     purpose?.requiresApproval == true)
                                   const Padding(
@@ -656,6 +684,100 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _VisitorTimeInputDialog extends StatefulWidget {
+  const _VisitorTimeInputDialog({
+    required this.label,
+    required this.initialTime,
+  });
+
+  final String label;
+  final TimeOfDay initialTime;
+
+  @override
+  State<_VisitorTimeInputDialog> createState() =>
+      _VisitorTimeInputDialogState();
+}
+
+class _VisitorTimeInputDialogState extends State<_VisitorTimeInputDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text:
+          '${widget.initialTime.hour.toString().padLeft(2, '0')}:${widget.initialTime.minute.toString().padLeft(2, '0')}',
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final match =
+        RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(_controller.text.trim());
+    final hour = int.tryParse(match?.group(1) ?? '');
+    final minute = int.tryParse(match?.group(2) ?? '');
+    if (hour == null || hour > 23 || minute == null || minute > 59) {
+      setState(() => _error = 'Enter a valid time in 24-hour format (HH:mm).');
+      return;
+    }
+    Navigator.of(context).pop(TimeOfDay(hour: hour, minute: minute));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(widget.label, style: textTheme.titleLarge),
+            const SizedBox(height: 20),
+            TextField(
+              key: const ValueKey('visitor-time-input'),
+              controller: _controller,
+              autofocus: true,
+              keyboardType: TextInputType.datetime,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                labelText: 'Time (24-hour)',
+                hintText: '09:30',
+                errorText: _error,
+                border: const OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: _submit,
+                  child: const Text('Set time'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
