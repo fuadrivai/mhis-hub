@@ -102,8 +102,8 @@ void main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   if (Platform.isAndroid) {
     await SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.manual,
-      overlays: const [SystemUiOverlay.top],
+      SystemUiMode.immersiveSticky,
+      overlays: [SystemUiOverlay.bottom],
     );
   } else if (Platform.isIOS) {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
