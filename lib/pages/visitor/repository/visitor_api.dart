@@ -178,6 +178,50 @@ class VisitorApi {
     await dio.post('${Api.baseUrl}visitor/invitations', data: data);
   }
 
+  Future<VisitorInvitationLinksResult> createInvitationLinks(
+      Map<String, dynamic> fields) async {
+    final dio = await _client();
+    final response = await dio.post<Map<String, dynamic>>(
+      '${Api.baseUrl}visitor/invitation-links',
+      data: fields,
+    );
+    final data = response.data?['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException('Invalid invitation links response.');
+    }
+    return VisitorInvitationLinksResult.fromJson({
+      ...data,
+      'email_failures':
+          response.data?['email_failures'] ?? data['email_failures'],
+    });
+  }
+
+  Future<VisitorPage<VisitorInvitationLinksResult>> invitationLinkBatches(
+      {int page = 1}) async {
+    final dio = await _client();
+    final response = await dio.get<Map<String, dynamic>>(
+      '${Api.baseUrl}visitor/invitation-links',
+      queryParameters: {'per_page': 20, 'page': page},
+    );
+    return _page(
+      response.data!,
+      VisitorInvitationLinksResult.fromJson,
+    );
+  }
+
+  Future<VisitorInvitationLinksResult> invitationLinkBatchDetail(
+      int batchId) async {
+    final dio = await _client();
+    final response = await dio.get<Map<String, dynamic>>(
+      '${Api.baseUrl}visitor/invitation-links/$batchId',
+    );
+    final data = response.data?['data'];
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException('Invalid invitation link detail response.');
+    }
+    return VisitorInvitationLinksResult.fromJson(data);
+  }
+
   Future<void> cancel(int id, String reason) async {
     final dio = await _client();
     await dio.post('${Api.baseUrl}visitor/invitations/$id/cancel',

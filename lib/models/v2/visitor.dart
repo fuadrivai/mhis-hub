@@ -317,3 +317,70 @@ class VisitorAttachment {
   final String name;
   final Uint8List bytes;
 }
+
+class VisitorInvitationLink {
+  const VisitorInvitationLink({
+    required this.id,
+    required this.url,
+    this.recipientEmail,
+    this.deliveryStatus,
+  });
+
+  factory VisitorInvitationLink.fromJson(Map<String, dynamic> json) =>
+      VisitorInvitationLink(
+        id: json['id'] as int,
+        url: json['url'] as String,
+        recipientEmail: json['recipient_email'] as String?,
+        deliveryStatus: json['delivery_status'] as String?,
+      );
+
+  final int id;
+  final String url;
+  final String? recipientEmail;
+  final String? deliveryStatus;
+}
+
+class VisitorInvitationLinksResult {
+  const VisitorInvitationLinksResult({
+    required this.id,
+    required this.name,
+    required this.visitDate,
+    required this.links,
+    this.expiresAt,
+    this.emailFailures = const [],
+    this.linkCount,
+  });
+
+  factory VisitorInvitationLinksResult.fromJson(Map<String, dynamic> json) {
+    final failures =
+        (json['email_failures'] as List? ?? const []).map((failure) {
+      if (failure is Map) {
+        final value = failure['message'] ?? failure['email'] ?? failure;
+        return value.toString();
+      }
+      return failure.toString();
+    }).toList();
+    return VisitorInvitationLinksResult(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      visitDate: (json['visit_date'] ?? json['date'] ?? '') as String,
+      expiresAt: json['expires_at'] as String?,
+      linkCount: json['link_count'] as int? ??
+          json['links_count'] as int? ??
+          json['total_links'] as int?,
+      links: ((json['links'] as List?) ?? const [])
+          .map((link) =>
+              VisitorInvitationLink.fromJson(link as Map<String, dynamic>))
+          .toList(),
+      emailFailures: failures,
+    );
+  }
+
+  final int id;
+  final String name;
+  final String visitDate;
+  final String? expiresAt;
+  final List<VisitorInvitationLink> links;
+  final List<String> emailFailures;
+  final int? linkCount;
+}

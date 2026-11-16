@@ -5,10 +5,14 @@ import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_detail_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_form_screen.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_invitation_link_form_screen.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_invitation_link_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
+enum _VisitorCreateAction { invitation, invitationLink }
 
 class VisitorScreen extends StatefulWidget {
   const VisitorScreen({super.key, this.initialTab = 0});
@@ -22,12 +26,14 @@ class VisitorScreen extends StatefulWidget {
 class _VisitorScreenState extends State<VisitorScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(
-    length: 2,
-    initialIndex: widget.initialTab == 1 ? 1 : 0,
+    length: 3,
+    initialIndex:
+        widget.initialTab >= 0 && widget.initialTab < 3 ? widget.initialTab : 0,
     vsync: this,
   );
   final _invitations = GlobalKey<_VisitListState>();
   final _monitoring = GlobalKey<_VisitListState>();
+  final _invitationLinks = GlobalKey<VisitorInvitationLinkListScreenState>();
 
   @override
   void dispose() {
@@ -38,11 +44,56 @@ class _VisitorScreenState extends State<VisitorScreen>
   void _refreshLists() {
     _invitations.currentState?.reload();
     _monitoring.currentState?.reload();
+    _invitationLinks.currentState?.reload();
   }
 
   Future<void> _create() async {
+    final action = await showDialog<_VisitorCreateAction>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create visitor'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: Text('Choose how you want to invite your guest.'),
+              ),
+            ),
+            _CreateOptionTile(
+              key: const ValueKey('create-visitor-invitation-action'),
+              icon: Icons.person_add_alt_1,
+              title: 'Create invitation',
+              description: 'Register a visitor directly.',
+              onTap: () =>
+                  Navigator.pop(context, _VisitorCreateAction.invitation),
+            ),
+            const SizedBox(height: 10),
+            _CreateOptionTile(
+              key: const ValueKey('create-visitor-invitation-link-action'),
+              icon: Icons.link,
+              title: 'Create invitation link',
+              description: 'Share a link so guests can register themselves.',
+              onTap: () =>
+                  Navigator.pop(context, _VisitorCreateAction.invitationLink),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (action == null || !mounted) return;
     final created = await Navigator.of(context).push<bool>(MaterialPageRoute(
-      builder: (_) => const VisitorFormScreen(),
+      builder: (_) => action == _VisitorCreateAction.invitation
+          ? const VisitorFormScreen()
+          : const VisitorInvitationLinkFormScreen(),
     ));
     if (created == true && mounted) _refreshLists();
   }
@@ -121,6 +172,7 @@ class _VisitorScreenState extends State<VisitorScreen>
                     tabs: const [
                       Tab(text: 'Invitations'),
                       Tab(text: 'Monitoring'),
+                      Tab(text: 'Links'),
                     ],
                   ),
                 ),
@@ -134,12 +186,76 @@ class _VisitorScreenState extends State<VisitorScreen>
                         key: _monitoring,
                         type: VisitorListType.monitoring,
                         onChanged: _refreshLists),
+                    VisitorInvitationLinkListScreen(key: _invitationLinks),
                   ]),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CreateOptionTile extends StatelessWidget {
+  const _CreateOptionTile({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFFAF8F8),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppColors.danger.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: AppColors.danger),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.chevron_right, color: Colors.black45),
+            ],
+          ),
+        ),
       ),
     );
   }

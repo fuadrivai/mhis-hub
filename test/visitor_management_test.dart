@@ -52,6 +52,8 @@ class FakeVisitorApi extends VisitorApi {
   final visitFilterCalls = <Map<String, dynamic>>[];
   final hostFilterCalls = <Map<String, int?>>[];
   Map<String, dynamic>? submitted;
+  Map<String, dynamic>? submittedLinkFields;
+  final invitationLinkCalls = <String>[];
   String? cancellationReason;
   bool cancelled = false;
 
@@ -155,6 +157,72 @@ class FakeVisitorApi extends VisitorApi {
   Future<void> create(
       Map<String, dynamic> fields, VisitorAttachment? photo) async {
     submitted = fields;
+  }
+
+  @override
+  Future<VisitorInvitationLinksResult> createInvitationLinks(
+      Map<String, dynamic> fields) async {
+    submittedLinkFields = fields;
+    return const VisitorInvitationLinksResult(
+      id: 42,
+      name: 'Interview Day',
+      visitDate: '2027-01-20',
+      expiresAt: '2027-01-20T23:59:59+07:00',
+      links: [
+        VisitorInvitationLink(
+          id: 101,
+          recipientEmail: 'candidate@example.com',
+          deliveryStatus: 'sent',
+          url: 'https://example.test/visitor/register/token',
+        ),
+        VisitorInvitationLink(
+          id: 102,
+          deliveryStatus: 'manual',
+          url: 'https://example.test/visitor/register/token2',
+        ),
+      ],
+      emailFailures: ['failed@example.com'],
+    );
+  }
+
+  @override
+  Future<VisitorPage<VisitorInvitationLinksResult>> invitationLinkBatches(
+      {int page = 1}) async {
+    invitationLinkCalls.add('list:$page');
+    return const VisitorPage(
+      data: [
+        VisitorInvitationLinksResult(
+          id: 42,
+          name: 'Interview Day',
+          visitDate: '2027-01-20',
+          linkCount: 2,
+          links: [],
+        )
+      ],
+      page: 1,
+      perPage: 20,
+      total: 1,
+    );
+  }
+
+  @override
+  Future<VisitorInvitationLinksResult> invitationLinkBatchDetail(
+      int batchId) async {
+    invitationLinkCalls.add('detail:$batchId');
+    return const VisitorInvitationLinksResult(
+      id: 42,
+      name: 'Interview Day',
+      visitDate: '2027-01-20',
+      expiresAt: '2027-01-20T23:59:59+07:00',
+      links: [
+        VisitorInvitationLink(
+          id: 101,
+          recipientEmail: 'candidate@example.com',
+          deliveryStatus: 'sent',
+          url: 'https://example.test/visitor/register/token',
+        )
+      ],
+    );
   }
 }
 
@@ -613,6 +681,25 @@ void main() {
     expect(api.calls, isNot(contains('invitations:1')));
   });
 
+  testWidgets('invitation link tab opens a batch detail', (tester) async {
+    final api = FakeVisitorApi();
+    await tester.pumpWidget(BlocProvider(
+      create: (_) => VisitorBloc(api: api, getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorScreen(initialTab: 2)),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(api.invitationLinkCalls, contains('list:1'));
+    expect(find.text('Interview Day'), findsOneWidget);
+    await tester.tap(find.text('Interview Day'));
+    await tester.pumpAndSettle();
+
+    expect(api.invitationLinkCalls, contains('detail:42'));
+    expect(find.text('candidate@example.com'), findsOneWidget);
+    expect(find.text('Copy link'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('home visitor card is hidden when both today lists are empty',
       (tester) async {
     final bloc = VisitorBloc(api: EmptyTodayVisitorApi());
@@ -942,6 +1029,110 @@ void main() {
     expect(requests[6].path, endsWith('/api/visitor/form-options'));
   });
 
+  test('API creates invitation links and parses response failures', () async {
+    RequestOptions? request;
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      request = options;
+      handler.resolve(Response(
+        requestOptions: options,
+        data: {
+          'message': 'Guest registration links created.',
+          'data': {
+            'id': 42,
+            'name': 'Interview Day',
+            'visit_date': '2027-01-20',
+            'expires_at': '2027-01-20T23:59:59+07:00',
+            'links': [
+              {
+                'id': 101,
+                'recipient_email': 'candidate@example.com',
+                'delivery_status': 'sent',
+                'url': 'https://example.test/visitor/register/token',
+              },
+              {
+                'id': 102,
+                'recipient_email': null,
+                'delivery_status': 'manual',
+                'url': 'https://example.test/visitor/register/token2',
+              },
+            ],
+          },
+          'email_failures': [
+            {'email': 'failed@example.com', 'message': 'Delivery failed'}
+          ],
+        },
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+    final fields = {
+      'name': 'Interview Day',
+      'host_employee_id': 10,
+      'branch_id': 1,
+      'visitor_category_id': 1,
+      'visitor_purpose_id': 2,
+      'visit_date': '2027-01-20',
+      'expected_arrival_time': '09:00',
+      'expected_departure_time': '10:00',
+      'share_link_count': 1,
+      'recipient_emails': ['candidate@example.com'],
+    };
+
+    final result = await api.createInvitationLinks(fields);
+
+    expect(request!.path, endsWith('/api/visitor/invitation-links'));
+    expect(request!.data, fields);
+    expect(result.id, 42);
+    expect(result.links, hasLength(2));
+    expect(result.links.first.recipientEmail, 'candidate@example.com');
+    expect(result.links.last.deliveryStatus, 'manual');
+    expect(result.emailFailures, ['Delivery failed']);
+  });
+
+  test('API paginates invitation link batches and loads batch details',
+      () async {
+    final requests = <RequestOptions>[];
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      requests.add(options);
+      final batch = {
+        'id': 42,
+        'name': 'Interview Day',
+        'visit_date': '2027-01-20',
+        'expires_at': '2027-01-20T23:59:59+07:00',
+        'links': [
+          {
+            'id': 101,
+            'recipient_email': 'candidate@example.com',
+            'delivery_status': 'sent',
+            'url': 'https://example.test/visitor/register/token',
+          }
+        ],
+      };
+      handler.resolve(Response(
+        requestOptions: options,
+        data: options.path.endsWith('/42')
+            ? {'data': batch}
+            : {
+                'current_page': 1,
+                'per_page': 20,
+                'total': 1,
+                'data': [batch],
+              },
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+
+    final page = await api.invitationLinkBatches(page: 2);
+    final detail = await api.invitationLinkBatchDetail(42);
+
+    expect(requests[0].path, endsWith('/api/visitor/invitation-links'));
+    expect(requests[0].queryParameters, {'per_page': 20, 'page': 2});
+    expect(page.data.single.name, 'Interview Day');
+    expect(requests[1].path, endsWith('/api/visitor/invitation-links/42'));
+    expect(detail.links.single.recipientEmail, 'candidate@example.com');
+  });
+
   test('visit API forwards name, exact-date, and date-range filters', () async {
     final requests = <RequestOptions>[];
     final dio = Dio();
@@ -1151,6 +1342,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Invitation'));
     await tester.pumpAndSettle();
+    await tester
+        .tap(find.byKey(const ValueKey('create-visitor-invitation-action')));
+    await tester.pumpAndSettle();
     await tester.enterText(
         find.byKey(const ValueKey('visitor-full-name')), 'Nama Tamu');
 
@@ -1267,6 +1461,88 @@ void main() {
     expect(api.submitted, isNot(contains('visitor_notes')));
     expect(find.text('Invitations'), findsOneWidget);
     expect(api.calls.where((call) => call == 'invitations:1').length, 2);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('invitation link form submits and displays generated links',
+      (tester) async {
+    final api = FakeVisitorApi();
+    await tester.pumpWidget(BlocProvider(
+      create: (_) => VisitorBloc(api: api, getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorScreen()),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Invitation'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+        find.text('Choose how you want to invite your guest.'), findsOneWidget);
+    await tester.tap(
+        find.byKey(const ValueKey('create-visitor-invitation-link-action')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('visitor-link-name')), findsOneWidget);
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-link-name')), 'Interview Day');
+
+    await tester.tap(find.byKey(const ValueKey('visitor-link-category')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Guest').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('visitor-link-purpose')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Meeting').last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Recipients'),
+      240,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-link-email-0')));
+    await tester.enterText(find.byKey(const ValueKey('visitor-link-email-0')),
+        'candidate@example.com');
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-link-add-email')));
+    await tester.tap(find.byKey(const ValueKey('visitor-link-add-email')));
+    await tester.pumpAndSettle();
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-link-email-1')));
+    expect(find.byKey(const ValueKey('visitor-link-email-1')), findsOneWidget);
+    await tester.enterText(find.byKey(const ValueKey('visitor-link-email-1')),
+        'remove@example.com');
+    await tester.ensureVisible(
+        find.byKey(const ValueKey('visitor-link-remove-email-1')));
+    await tester.tap(find.byKey(const ValueKey('visitor-link-remove-email-1')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('visitor-link-email-1')), findsNothing);
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-link-add-email')));
+    await tester.tap(find.byKey(const ValueKey('visitor-link-add-email')));
+    await tester.pumpAndSettle();
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-link-email-1')));
+    await tester.enterText(find.byKey(const ValueKey('visitor-link-email-1')),
+        'second@example.com');
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('create-invitation-links')));
+    await tester.tap(find.byKey(const ValueKey('create-invitation-links')));
+    await tester.pumpAndSettle();
+
+    expect(api.submittedLinkFields?['name'], 'Interview Day');
+    expect(api.submittedLinkFields?['host_employee_id'], 10);
+    expect(api.submittedLinkFields?['branch_id'], 1);
+    expect(api.submittedLinkFields?['visitor_category_id'], 2);
+    expect(api.submittedLinkFields?['visitor_purpose_id'], 3);
+    expect(api.submittedLinkFields?['expected_arrival_time'], '09:00');
+    expect(api.submittedLinkFields?['expected_departure_time'], '10:00');
+    expect(api.submittedLinkFields?['share_link_count'], 0);
+    expect(api.submittedLinkFields?['recipient_emails'],
+        ['candidate@example.com', 'second@example.com']);
+    expect(find.text('Links ready to share'), findsOneWidget);
+    expect(find.text('https://example.test/visitor/register/token'),
+        findsOneWidget);
+    expect(find.text('Email delivery issues'), findsOneWidget);
+    expect(find.text('Copy link'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

@@ -67,6 +67,42 @@ class SubmitVisitorInvitation extends VisitorEvent {
   List<Object?> get props => [fields, attachment];
 }
 
+class CreateVisitorInvitationLinks extends VisitorEvent {
+  const CreateVisitorInvitationLinks(this.fields);
+  final Map<String, dynamic> fields;
+
+  @override
+  List<Object?> get props => [fields];
+}
+
+class ResetVisitorInvitationLinks extends VisitorEvent {
+  const ResetVisitorInvitationLinks();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class LoadVisitorInvitationLinkBatches extends VisitorEvent {
+  const LoadVisitorInvitationLinkBatches({
+    this.reset = false,
+    this.completion,
+  });
+
+  final bool reset;
+  final Completer<void>? completion;
+
+  @override
+  List<Object?> get props => [reset, completion];
+}
+
+class LoadVisitorInvitationLinkBatchDetail extends VisitorEvent {
+  const LoadVisitorInvitationLinkBatchDetail(this.batchId);
+  final int batchId;
+
+  @override
+  List<Object?> get props => [batchId];
+}
+
 class SearchVisitorHosts extends VisitorEvent {
   const SearchVisitorHosts({
     this.query,

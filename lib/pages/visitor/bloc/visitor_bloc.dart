@@ -22,6 +22,11 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
     on<LoadVisitorForm>(_loadForm);
     on<LoadVisitorCurrentHost>(_loadCurrentHost);
     on<SubmitVisitorInvitation>(_submit);
+    on<CreateVisitorInvitationLinks>(_createInvitationLinks);
+    on<ResetVisitorInvitationLinks>((event, emit) => emit(
+        state.copyWith(invitationLinks: const VisitorInvitationLinksStatus())));
+    on<LoadVisitorInvitationLinkBatches>(_loadInvitationLinkBatches);
+    on<LoadVisitorInvitationLinkBatchDetail>(_loadInvitationLinkBatchDetail);
     on<SearchVisitorHosts>(_searchHosts);
     on<LoadVisitorHostFilters>(_loadHostFilters);
     on<LoadVisitorDetail>(_loadDetail);
@@ -37,6 +42,8 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
   final _homeTodayGenerations = <VisitorListType, int>{};
   int _formGeneration = 0;
   int _detailGeneration = 0;
+  int _invitationLinkBatchesGeneration = 0;
+  int _invitationLinkBatchDetailGeneration = 0;
   int _currentHostGeneration = 0;
 
   String _error(Object error) {
@@ -220,6 +227,91 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
       emit(state.copyWith(
           form: VisitorFormStatus(
               options: options, submissionError: _error(error))));
+    }
+  }
+
+  Future<void> _createInvitationLinks(
+    CreateVisitorInvitationLinks event,
+    Emitter<VisitorState> emit,
+  ) async {
+    if (state.invitationLinks.submitting) return;
+    emit(state.copyWith(
+        invitationLinks: const VisitorInvitationLinksStatus(submitting: true)));
+    try {
+      final result = await _api.createInvitationLinks(event.fields);
+      if (emit.isDone) return;
+      emit(state.copyWith(
+          invitationLinks: VisitorInvitationLinksStatus(result: result)));
+    } catch (error) {
+      if (emit.isDone) return;
+      emit(state.copyWith(
+          invitationLinks: VisitorInvitationLinksStatus(error: _error(error))));
+    }
+  }
+
+  Future<void> _loadInvitationLinkBatches(
+    LoadVisitorInvitationLinkBatches event,
+    Emitter<VisitorState> emit,
+  ) async {
+    try {
+      var list = state.invitationLinkBatches;
+      if (event.reset) {
+        _invitationLinkBatchesGeneration++;
+        list = const VisitorListState<VisitorInvitationLinksResult>();
+      } else if (list.loading || !list.hasMore) {
+        return;
+      }
+      final generation = _invitationLinkBatchesGeneration;
+      emit(state.copyWith(invitationLinkBatches: list.copyWith(loading: true)));
+      try {
+        final page = await _api.invitationLinkBatches(page: list.page + 1);
+        if (emit.isDone || generation != _invitationLinkBatchesGeneration) {
+          return;
+        }
+        emit(state.copyWith(
+            invitationLinkBatches: list.copyWith(
+          items: [...list.items, ...page.data],
+          page: page.page,
+          total: page.total,
+          hasMore: page.hasMore,
+          loading: false,
+        )));
+      } catch (error) {
+        if (emit.isDone || generation != _invitationLinkBatchesGeneration) {
+          return;
+        }
+        emit(state.copyWith(
+            invitationLinkBatches:
+                list.copyWith(loading: false, error: _error(error))));
+      }
+    } finally {
+      event.completion?.complete();
+    }
+  }
+
+  Future<void> _loadInvitationLinkBatchDetail(
+    LoadVisitorInvitationLinkBatchDetail event,
+    Emitter<VisitorState> emit,
+  ) async {
+    final generation = ++_invitationLinkBatchDetailGeneration;
+    emit(state.copyWith(
+        invitationLinkBatchDetail:
+            const VisitorInvitationLinkBatchDetailStatus(loading: true)));
+    try {
+      final batch = await _api.invitationLinkBatchDetail(event.batchId);
+      if (emit.isDone || generation != _invitationLinkBatchDetailGeneration) {
+        return;
+      }
+      emit(state.copyWith(
+          invitationLinkBatchDetail:
+              VisitorInvitationLinkBatchDetailStatus(batch: batch)));
+    } catch (error) {
+      if (emit.isDone || generation != _invitationLinkBatchDetailGeneration) {
+        return;
+      }
+      emit(state.copyWith(
+          invitationLinkBatchDetail:
+              VisitorInvitationLinkBatchDetailStatus(error: _error(error))));
     }
   }
 

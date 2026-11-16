@@ -97,6 +97,36 @@ class VisitorDetailStatus extends Equatable {
       [loading, visit, error, cancelling, cancelError, cancelled];
 }
 
+class VisitorInvitationLinksStatus extends Equatable {
+  const VisitorInvitationLinksStatus({
+    this.submitting = false,
+    this.result,
+    this.error,
+  });
+
+  final bool submitting;
+  final VisitorInvitationLinksResult? result;
+  final String? error;
+
+  @override
+  List<Object?> get props => [submitting, result, error];
+}
+
+class VisitorInvitationLinkBatchDetailStatus extends Equatable {
+  const VisitorInvitationLinkBatchDetailStatus({
+    this.loading = false,
+    this.batch,
+    this.error,
+  });
+
+  final bool loading;
+  final VisitorInvitationLinksResult? batch;
+  final String? error;
+
+  @override
+  List<Object?> get props => [loading, batch, error];
+}
+
 class VisitorCurrentHostStatus extends Equatable {
   const VisitorCurrentHostStatus({this.loading = false, this.host, this.error});
   final bool loading;
@@ -119,6 +149,11 @@ class VisitorState extends Equatable {
     this.hostFilters = const VisitorHostFilterStatus(),
     this.form = const VisitorFormStatus(),
     this.detail = const VisitorDetailStatus(),
+    this.invitationLinks = const VisitorInvitationLinksStatus(),
+    this.invitationLinkBatches =
+        const VisitorListState<VisitorInvitationLinksResult>(),
+    this.invitationLinkBatchDetail =
+        const VisitorInvitationLinkBatchDetailStatus(),
     this.currentHost = const VisitorCurrentHostStatus(),
   });
   final VisitorListState<Visit> invitations,
@@ -131,6 +166,9 @@ class VisitorState extends Equatable {
   final VisitorHostFilterStatus hostFilters;
   final VisitorFormStatus form;
   final VisitorDetailStatus detail;
+  final VisitorInvitationLinksStatus invitationLinks;
+  final VisitorListState<VisitorInvitationLinksResult> invitationLinkBatches;
+  final VisitorInvitationLinkBatchDetailStatus invitationLinkBatchDetail;
   final VisitorCurrentHostStatus currentHost;
 
   VisitorListState<Visit> list(VisitorListType type) =>
@@ -147,6 +185,9 @@ class VisitorState extends Equatable {
     VisitorHostFilterStatus? hostFilters,
     VisitorFormStatus? form,
     VisitorDetailStatus? detail,
+    VisitorInvitationLinksStatus? invitationLinks,
+    VisitorListState<VisitorInvitationLinksResult>? invitationLinkBatches,
+    VisitorInvitationLinkBatchDetailStatus? invitationLinkBatchDetail,
     VisitorCurrentHostStatus? currentHost,
   }) =>
       VisitorState(
@@ -160,6 +201,11 @@ class VisitorState extends Equatable {
         hostFilters: hostFilters ?? this.hostFilters,
         form: form ?? this.form,
         detail: detail ?? this.detail,
+        invitationLinks: invitationLinks ?? this.invitationLinks,
+        invitationLinkBatches:
+            invitationLinkBatches ?? this.invitationLinkBatches,
+        invitationLinkBatchDetail:
+            invitationLinkBatchDetail ?? this.invitationLinkBatchDetail,
         currentHost: currentHost ?? this.currentHost,
       );
 
@@ -175,6 +221,9 @@ class VisitorState extends Equatable {
         hostFilters,
         form,
         detail,
+        invitationLinks,
+        invitationLinkBatches,
+        invitationLinkBatchDetail,
         currentHost,
       ];
 }
