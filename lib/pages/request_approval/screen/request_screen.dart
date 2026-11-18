@@ -113,7 +113,7 @@ class _RequestScreenState extends State<RequestScreen>
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  margin: const EdgeInsets.symmetric(horizontal: 11),
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     color: Colors.white,

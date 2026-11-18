@@ -20,9 +20,18 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
     with AutomaticKeepAliveClientMixin {
   DateTime selectedDate = DateTime.now();
   String? strMonthYear;
+  String selectedStatus = 'All';
   Map<String, dynamic> map = {};
   late final TextEditingController _monthController;
   final ListScrollAnchor _scrollAnchor = ListScrollAnchor();
+
+  final List<String> statuses = const [
+    'All',
+    'Pending',
+    'Approved',
+    'Rejected',
+    'Skipped',
+  ];
 
   @override
   bool get wantKeepAlive => true;
@@ -45,6 +54,44 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
     _monthController.dispose();
     _scrollAnchor.dispose();
     super.dispose();
+  }
+
+  List<ApprovalRequest> _filteredRequests(List<ApprovalRequest> requests) {
+    if (selectedStatus == 'All') return requests;
+
+    final selected = selectedStatus.toLowerCase();
+    return requests.where((request) {
+      final status = (request.status ?? '').toLowerCase();
+      if (selected == 'rejected') {
+        return status == 'rejected' || status == 'reject';
+      }
+      return status == selected;
+    }).toList();
+  }
+
+  Future<void> _showStatusFilterDialog() async {
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Filter by status'),
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: statuses.map((status) {
+            return RadioListTile<String>(
+              value: status,
+              groupValue: selectedStatus,
+              title: Text(status),
+              dense: true,
+              onChanged: (value) => Navigator.pop(dialogContext, value),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+
+    if (selected == null || selected == selectedStatus || !mounted) return;
+    setState(() => selectedStatus = selected);
   }
 
   @override
@@ -168,7 +215,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
                       ),
                     ),
                     const SizedBox(width: 12),
-                    FilterIconWidget(onTap: () {}),
+                    FilterIconWidget(onTap: _showStatusFilterDialog),
                   ],
                 ),
               ),
@@ -191,6 +238,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
                 padding: const EdgeInsets.all(14),
                 child: BlocBuilder<RequestApprovalBloc, RequestApprovalState>(
                     builder: (context, state) {
+                  final requests = _filteredRequests(state.requests);
                   if (state.isRequestLoading) {
                     return const Column(
                       children: [
@@ -200,7 +248,7 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
                       ],
                     );
                   }
-                  if (state.requests.isEmpty) {
+                  if (requests.isEmpty) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(
                         vertical: 28,
@@ -225,7 +273,9 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "There is no request data for the selected month.",
+                            selectedStatus == 'All'
+                                ? "There is no request data for the selected month."
+                                : 'There are no $selectedStatus requests for the selected month.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -240,11 +290,11 @@ class _MyRequestWidgetState extends State<MyRequestWidget>
                   return ListView.separated(
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
-                    itemCount: state.requests.length,
+                    itemCount: requests.length,
                     separatorBuilder: (context, i) =>
                         const SizedBox(height: 10),
                     itemBuilder: (context, i) {
-                      ApprovalRequest request = state.requests[i];
+                      ApprovalRequest request = requests[i];
                       return KeyedSubtree(
                         key: _scrollAnchor.keyFor(request.id),
                         child: _buildLeaveRequestItem(

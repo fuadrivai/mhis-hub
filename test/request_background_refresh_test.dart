@@ -170,6 +170,65 @@ void main() {
     });
   }
 
+  testWidgets('my requests status dialog filters requests', (tester) async {
+    final bloc = TestRequestBloc(
+      loadRequests: (_) async => [
+        ApprovalRequest(
+          id: 1,
+          status: 'pending',
+          type: Timeoff(name: 'Pending request'),
+        ),
+        ApprovalRequest(
+          id: 2,
+          status: 'approved',
+          type: Timeoff(name: 'Approved request'),
+        ),
+        ApprovalRequest(
+          id: 3,
+          status: 'reject',
+          type: Timeoff(name: 'Rejected request'),
+        ),
+        ApprovalRequest(
+          id: 4,
+          status: 'skipped',
+          type: Timeoff(name: 'Skipped request'),
+        ),
+      ],
+    );
+    addTearDown(bloc.close);
+
+    await tester.pumpWidget(BlocProvider<RequestApprovalBloc>.value(
+      value: bloc,
+      child: const MaterialApp(
+        home: Scaffold(body: MyRequestWidget()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pending request'), findsOneWidget);
+    expect(find.text('Approved request'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.filter_list_rounded));
+    await tester.pumpAndSettle();
+    expect(find.text('Filter by status'), findsOneWidget);
+    for (final status in [
+      'All',
+      'Pending',
+      'Approved',
+      'Rejected',
+      'Skipped'
+    ]) {
+      expect(find.text(status), findsOneWidget);
+    }
+
+    await tester.tap(find.text('Rejected'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rejected request'), findsOneWidget);
+    expect(find.text('Pending request'), findsNothing);
+    expect(find.text('Approved request'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('older refresh cannot overwrite newer filter results',
       (tester) async {
     final old = Completer<List<Approval>>();
