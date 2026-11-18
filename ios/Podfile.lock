@@ -12,11 +12,11 @@ PODS:
   - Firebase/Messaging (12.19.3):
     - Firebase/CoreOnly
     - FirebaseMessaging (~> 12.19.0)
-  - firebase_auth (7.0.1):
+  - firebase_auth (7.1.0):
     - Firebase/Auth (= 12.19.3)
     - firebase_core
     - Flutter
-  - firebase_core (5.1.0):
+  - firebase_core (5.2.0):
     - Firebase/CoreOnly (= 12.19.3)
     - Flutter
   - firebase_messaging (17.0.1):
@@ -201,8 +201,8 @@ SPEC CHECKSUMS:
   camera_avfoundation: 769d252259fa21e39ada7399c9dc9c0921af8165
   file_picker_darwin: 27e043831d68462d54f1c40e724b1f53c9d1e8be
   Firebase: e3c5ab38229ae085490d02398d97b9f5374bbe6e
-  firebase_auth: be1f89ddd82e62d345457f70b1710e7f18b9bee9
-  firebase_core: 53e1816f8f32542079b1f9c96327689c8eb6fd6e
+  firebase_auth: c88644b10d36d1e6a367bd43ce223a8d8f4909f0
+  firebase_core: 9a15aaa17576c9745bd6570571fd70720aee4917
   firebase_messaging: 560963e22fa0552b0ee3b4b7c2de32d0041b8b15
   FirebaseAppCheckInterop: bd4b791ffaed7ae719304af6369d243ddee5e4a0
   FirebaseAuth: 8c38236f67e5e3dd6aacf3e0c46b3eed31e9c820
