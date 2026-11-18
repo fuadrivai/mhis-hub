@@ -17,3 +17,25 @@ String visitorDateTimeParameter(DateTime dateTime) {
   return '${visitorDateParameter(dateTime)}T$hour:$minute:$second'
       '$sign$offsetHour:$offsetMinute';
 }
+
+DateTime? visitorJakartaDateTime(String value) {
+  final dateTime = DateTime.tryParse(value);
+  if (dateTime == null) return null;
+
+  final hasTimezone = RegExp(r'(?:[zZ]|[+-]\d{2}:?\d{2})$').hasMatch(value);
+  if (!hasTimezone) {
+    return DateTime.utc(
+      dateTime.year,
+      dateTime.month,
+      dateTime.day,
+      dateTime.hour,
+      dateTime.minute,
+      dateTime.second,
+      dateTime.millisecond,
+      dateTime.microsecond,
+    );
+  }
+
+  // Keep the display in WIB regardless of the device's configured timezone.
+  return dateTime.toUtc().add(const Duration(hours: 7));
+}

@@ -4,8 +4,9 @@ import 'package:fl_mhis_hr/models/v2/job_level.dart';
 import 'package:fl_mhis_hr/models/v2/job_position.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_employee_card.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class VisitorHostSearchScreen extends StatefulWidget {
@@ -207,6 +208,7 @@ class _VisitorHostSearchScreenState extends State<VisitorHostSearchScreen> {
                 Expanded(
                   child: TextField(
                     controller: _search,
+                    onTapOutside: (_) => FocusScope.of(context).unfocus(),
                     onSubmitted: (_) => _searchHosts(),
                     decoration: InputDecoration(
                       filled: true,
@@ -296,8 +298,8 @@ class _VisitorHostSearchScreenState extends State<VisitorHostSearchScreen> {
                       for (final host in hosts.items)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: _HostCard(
-                            host: host,
+                          child: VisitorEmployeeCard(
+                            employee: host,
                             onTap: () => Navigator.of(context).pop(host),
                           ),
                         ),
@@ -344,151 +346,6 @@ class _VisitorHostSearchScreenState extends State<VisitorHostSearchScreen> {
       if (item.$1 == id) return item.$2 ?? '$id';
     }
     return '$id';
-  }
-}
-
-class _HostCard extends StatelessWidget {
-  const _HostCard({required this.host, required this.onTap});
-
-  final VisitorHost host;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final details = <(String, String)>[
-      ('Branch', host.branch ?? '-'),
-      ('Level', host.level ?? '-'),
-      ('Organization', host.organization ?? '-'),
-      ('Position', host.position ?? '-'),
-    ];
-    final avatar = host.avatar;
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(18),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.danger.withValues(alpha: 0.1)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: avatar != null && avatar.isNotEmpty
-                        ? NetworkImage(avatar)
-                        : null,
-                    onBackgroundImageError:
-                        avatar == null || avatar.isEmpty ? null : (_, __) {},
-                    child: avatar == null || avatar.isEmpty
-                        ? const Icon(Icons.person)
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          host.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.w700, fontSize: 15),
-                        ),
-                        if (host.email?.isNotEmpty == true)
-                          _ContactLine(
-                              icon: Icons.email_outlined, value: host.email!),
-                        if (host.phone?.isNotEmpty == true)
-                          _ContactLine(
-                              icon: Icons.phone_outlined, value: host.phone!),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.chevron_right, color: Colors.black45),
-                ],
-              ),
-              if (details.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: details
-                      .map((detail) =>
-                          _HostBadge(label: detail.$1, value: detail.$2))
-                      .toList(),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ContactLine extends StatelessWidget {
-  const _ContactLine({required this.icon, required this.value});
-
-  final IconData icon;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
-      child: Row(
-        children: [
-          Icon(icon, size: 13, color: Colors.grey.shade600),
-          const SizedBox(width: 5),
-          Expanded(
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HostBadge extends StatelessWidget {
-  const _HostBadge({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: AppColors.danger.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        '$label: $value',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(color: Colors.grey.shade800, fontSize: 11),
-      ),
-    );
   }
 }
 

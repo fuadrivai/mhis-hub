@@ -1,9 +1,10 @@
 import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
+import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -213,6 +214,7 @@ class _VisitorInvitationLinkFormScreenState
         child: TextFormField(
           key: key,
           controller: controller,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           keyboardType: keyboardType,
           maxLines: maxLines,
           readOnly: readOnly,
@@ -501,7 +503,7 @@ class _VisitorInvitationLinkFormScreenState
           if (result.expiresAt != null) ...[
             const SizedBox(height: 4),
             Text('Expires: ${DateFormat('dd MMM yyyy HH:mm').format(
-              DateTime.parse(result.expiresAt!).toLocal(),
+              visitorJakartaDateTime(result.expiresAt!)!,
             )}'),
           ],
         ]),

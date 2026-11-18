@@ -4,7 +4,7 @@ import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_invitation_link_detail_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 

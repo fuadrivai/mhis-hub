@@ -22,6 +22,38 @@ class LoadVisitorList extends VisitorEvent {
   List<Object?> get props => [type, reset, filters, completion];
 }
 
+class LoadVisitorApprovals extends VisitorEvent {
+  const LoadVisitorApprovals({this.reset = false, this.completion});
+
+  final bool reset;
+  final Completer<void>? completion;
+
+  @override
+  List<Object?> get props => [reset, completion];
+}
+
+class DecideVisitorApproval extends VisitorEvent {
+  const DecideVisitorApproval({
+    required this.id,
+    required this.decision,
+    required this.notes,
+  });
+
+  final int id;
+  final String decision;
+  final String notes;
+
+  @override
+  List<Object?> get props => [id, decision, notes];
+}
+
+class LoadVisitorHome extends VisitorEvent {
+  const LoadVisitorHome();
+
+  @override
+  List<Object?> get props => [];
+}
+
 class LoadTodayVisitorList extends VisitorEvent {
   const LoadTodayVisitorList({
     required this.type,

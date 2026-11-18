@@ -1,9 +1,10 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
+import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
 import 'package:fl_mhis_hr/service/api.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -34,6 +35,7 @@ class _VisitorDetailScreenState extends State<VisitorDetailScreen> {
           child: TextFormField(
             autofocus: true,
             maxLines: 3,
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             onChanged: (value) => reasonText = value,
             decoration: const InputDecoration(labelText: 'Reason'),
             validator: (value) => value == null || value.trim().isEmpty
@@ -267,7 +269,7 @@ String _formatVisitTime(String? value) {
 
 String _formatVisitDateTime(String? value) {
   if (!_hasValue(value)) return '—';
-  final date = DateTime.tryParse(value!);
+  final date = visitorJakartaDateTime(value!);
   return date == null
       ? value
       : DateFormat('dd MMM yyyy HH:mm', 'en').format(date);

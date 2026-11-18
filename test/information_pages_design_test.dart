@@ -8,7 +8,7 @@ import 'package:fl_mhis_hr/pages/kpi/bloc/kpi_bloc.dart' as kpi;
 import 'package:fl_mhis_hr/pages/kpi/screen/kpi_screen.dart';
 import 'package:fl_mhis_hr/pages/payslip/bloc/payslip_bloc.dart' as pay;
 import 'package:fl_mhis_hr/pages/payslip/screen/paymentslip_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';

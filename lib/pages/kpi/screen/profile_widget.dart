@@ -1,7 +1,7 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/pages/kpi/bloc/kpi_bloc.dart';
 import 'package:fl_mhis_hr/widget/loading_shimmer.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ProfileWidget extends StatefulWidget {

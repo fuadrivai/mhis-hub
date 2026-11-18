@@ -1,6 +1,6 @@
 import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/profile/screen/my_info/info_details.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EmplymentInfo extends StatelessWidget {
   final Employment? employment;

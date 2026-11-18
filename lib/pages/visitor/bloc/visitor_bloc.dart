@@ -18,6 +18,9 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
             (() => EmployeeApi.getEmployeeProfile(handleErrorsLocally: true)),
         super(const VisitorState()) {
     on<LoadVisitorList>(_loadList);
+    on<LoadVisitorApprovals>(_loadApprovals);
+    on<DecideVisitorApproval>(_decideApproval);
+    on<LoadVisitorHome>(_loadVisitorHome);
     on<LoadTodayVisitorList>(_loadTodayVisitorList);
     on<LoadVisitorForm>(_loadForm);
     on<LoadVisitorCurrentHost>(_loadCurrentHost);
@@ -45,6 +48,8 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
   int _invitationLinkBatchesGeneration = 0;
   int _invitationLinkBatchDetailGeneration = 0;
   int _currentHostGeneration = 0;
+  int _approvalsGeneration = 0;
+  int _visitorHomeGeneration = 0;
 
   String _error(Object error) {
     if (error is DioException) {
@@ -128,6 +133,106 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
       }
     } finally {
       event.completion?.complete();
+    }
+  }
+
+  Future<void> _loadApprovals(
+      LoadVisitorApprovals event, Emitter<VisitorState> emit) async {
+    try {
+      var list = state.approvals;
+      if (event.reset) {
+        _approvalsGeneration++;
+        list = const VisitorListState<Visit>();
+      } else if (list.loading || !list.hasMore) {
+        return;
+      }
+
+      final generation = _approvalsGeneration;
+      emit(state.copyWith(approvals: list.copyWith(loading: true)));
+      try {
+        final page = await _api.visits(
+          'invitations',
+          page: list.page + 1,
+          filters: const {'status': 'pending_confirmation'},
+        );
+        if (emit.isDone || generation != _approvalsGeneration) return;
+        emit(state.copyWith(
+            approvals: list.copyWith(
+          items: [...list.items, ...page.data],
+          page: page.page,
+          total: page.total,
+          hasMore: page.hasMore,
+          loading: false,
+        )));
+      } catch (error) {
+        if (emit.isDone || generation != _approvalsGeneration) return;
+        emit(state.copyWith(
+            approvals: list.copyWith(loading: false, error: _error(error))));
+      }
+    } finally {
+      event.completion?.complete();
+    }
+  }
+
+  Future<void> _decideApproval(
+      DecideVisitorApproval event, Emitter<VisitorState> emit) async {
+    if (state.approvalAction.submittingId != null) return;
+    emit(state.copyWith(
+      approvalAction: VisitorApprovalActionStatus(
+        submittingId: event.id,
+        decision: event.decision,
+      ),
+    ));
+    try {
+      await _api.decideApproval(event.id, event.decision, event.notes);
+      if (emit.isDone) return;
+      final remaining =
+          state.approvals.items.where((visit) => visit.id != event.id).toList();
+      final total = state.approvals.total;
+      final updatedTotal = total == null
+          ? remaining.length
+          : total > 0
+              ? total - 1
+              : 0;
+      emit(state.copyWith(
+        approvals: state.approvals.copyWith(
+          items: remaining,
+          total: updatedTotal,
+          hasMore: remaining.length < updatedTotal,
+        ),
+        approvalAction: VisitorApprovalActionStatus(
+          decision: event.decision,
+          completedId: event.id,
+        ),
+      ));
+    } catch (error) {
+      if (emit.isDone) return;
+      emit(state.copyWith(
+        approvalAction: VisitorApprovalActionStatus(
+          decision: event.decision,
+          error: _error(error),
+        ),
+      ));
+    }
+  }
+
+  Future<void> _loadVisitorHome(
+      LoadVisitorHome event, Emitter<VisitorState> emit) async {
+    final generation = ++_visitorHomeGeneration;
+    emit(state.copyWith(visitorHome: const VisitorHomeStatus(loading: true)));
+    try {
+      final visits = await _api.homeVisits();
+      if (emit.isDone || generation != _visitorHomeGeneration) return;
+      emit(state.copyWith(
+        visitorHome: VisitorHomeStatus(
+          invitation: visits.invitation,
+          monitoring: visits.monitoring,
+        ),
+      ));
+    } catch (error) {
+      if (emit.isDone || generation != _visitorHomeGeneration) return;
+      emit(
+          state.copyWith(visitorHome: VisitorHomeStatus(error: _error(error))));
     }
   }
 
@@ -218,10 +323,14 @@ class VisitorBloc extends Bloc<VisitorEvent, VisitorState> {
     emit(state.copyWith(
         form: VisitorFormStatus(options: options, submitting: true)));
     try {
-      await _api.create(event.fields, event.attachment);
+      final pendingApproval = await _api.create(event.fields, event.attachment);
       if (emit.isDone || generation != _formGeneration) return;
       emit(state.copyWith(
-          form: VisitorFormStatus(options: options, created: true)));
+          form: VisitorFormStatus(
+        options: options,
+        created: true,
+        pendingApproval: pendingApproval,
+      )));
     } catch (error) {
       if (emit.isDone || generation != _formGeneration) return;
       emit(state.copyWith(

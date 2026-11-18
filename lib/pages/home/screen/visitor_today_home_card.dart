@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
 import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -40,44 +40,32 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
     if (state != AppLifecycleState.resumed) return;
     _departureTimer?.cancel();
     _scheduledDeparture = null;
-    _reloadExpiredPages(_now());
-    setState(() {});
+    _loadHome();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<VisitorBloc, VisitorState>(
       builder: (context, state) {
-        final invitations = state.homeTodayInvitations;
-        final monitoring = state.homeTodayMonitoring;
+        final home = state.visitorHome;
+        final invitation = home.invitation;
+        final monitoring = home.monitoring;
         final now = _now();
-        final invitationVisits = _visitsNotDeparted(invitations.items, now);
-        final monitoringVisits = _visitsNotDeparted(monitoring.items, now);
-        _scheduleDepartureRefresh(
-          [...invitations.items, ...monitoring.items],
-          now,
-        );
-        final hasError = invitations.error != null || monitoring.error != null;
-        if (invitationVisits.isEmpty && monitoringVisits.isEmpty && !hasError) {
+        _scheduleDepartureRefresh([invitation, monitoring], now);
+
+        if (invitation == null && monitoring == null && home.error == null) {
           return const SizedBox.shrink();
         }
 
         final selectedTab = _selectedTab ??
-            (invitationVisits.isNotEmpty
+            (invitation != null
                 ? VisitorListType.invitations
-                : monitoringVisits.isNotEmpty
+                : monitoring != null
                     ? VisitorListType.monitoring
-                    : invitations.error != null
-                        ? VisitorListType.invitations
-                        : VisitorListType.monitoring);
-        final list = selectedTab == VisitorListType.invitations
-            ? invitations
+                    : VisitorListType.invitations);
+        final visit = selectedTab == VisitorListType.invitations
+            ? invitation
             : monitoring;
-        final visits = selectedTab == VisitorListType.invitations
-            ? invitationVisits
-            : monitoringVisits;
-        final count = _remainingCount(list, visits);
-        final visibleVisits = visits.take(2).toList();
         final colorScheme = Theme.of(context).colorScheme;
 
         return Padding(
@@ -153,14 +141,14 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
                     children: [
                       _VisitorTab(
                         label: 'Invitations',
-                        count: _remainingCount(invitations, invitationVisits),
+                        count: invitation == null ? 0 : 1,
                         selected: selectedTab == VisitorListType.invitations,
                         onTap: () => setState(
                             () => _selectedTab = VisitorListType.invitations),
                       ),
                       _VisitorTab(
                         label: 'Monitoring',
-                        count: _remainingCount(monitoring, monitoringVisits),
+                        count: monitoring == null ? 0 : 1,
                         selected: selectedTab == VisitorListType.monitoring,
                         onTap: () => setState(
                             () => _selectedTab = VisitorListType.monitoring),
@@ -169,14 +157,19 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
                   ),
                 ),
                 const SizedBox(height: 14),
-                if (visibleVisits.isEmpty && list.error != null)
+                if (home.loading && visit == null)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (home.error != null && visit == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
-                            list.error!,
+                            home.error!,
                             style: const TextStyle(
                               color: Color(0xFFB42318),
                               fontSize: 12,
@@ -184,13 +177,13 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
                           ),
                         ),
                         TextButton(
-                          onPressed: () => _retryToday(context, selectedTab),
+                          onPressed: _loadHome,
                           child: const Text('Retry'),
                         ),
                       ],
                     ),
                   )
-                else if (visibleVisits.isEmpty)
+                else if (visit == null)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Center(
@@ -205,28 +198,11 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
                       ),
                     ),
                   )
-                else ...[
-                  for (var index = 0;
-                      index < visibleVisits.length;
-                      index++) ...[
-                    if (index > 0) const Divider(height: 20),
-                    _VisitSummary(
-                      visit: visibleVisits[index],
-                      monitoring: selectedTab == VisitorListType.monitoring,
-                    ),
-                  ],
-                  if (count > visibleVisits.length) ...[
-                    const Divider(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () => _openVisitor(context, selectedTab),
-                        child: Text(
-                            '+${count - visibleVisits.length} more visits'),
-                      ),
-                    ),
-                  ],
-                ],
+                else
+                  _VisitSummary(
+                    visit: visit,
+                    monitoring: selectedTab == VisitorListType.monitoring,
+                  ),
               ],
             ),
           ),
@@ -242,32 +218,16 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
     );
   }
 
-  void _retryToday(BuildContext context, VisitorListType type) {
-    _loadHomeToday(type, _now());
-  }
-
   DateTime _now() => widget.clock?.call() ?? DateTime.now();
 
-  List<Visit> _visitsNotDeparted(List<Visit> visits, DateTime now) {
-    return visits.where((visit) {
-      if (visit.status.toLowerCase() == 'cancelled' || visit.checkOut != null) {
-        return false;
-      }
-      final departure =
-          visit.departure == null ? null : DateTime.tryParse(visit.departure!);
-      return departure != null && departure.isAfter(now);
-    }).toList();
+  void _loadHome() {
+    if (!mounted) return;
+    context.read<VisitorBloc>().add(const LoadVisitorHome());
   }
 
-  int _remainingCount(VisitorListState<Visit> list, List<Visit> visits) {
-    final expiredLoadedItems = list.items.length - visits.length;
-    final count = (list.total ?? list.items.length) - expiredLoadedItems;
-    return count < 0 ? 0 : count;
-  }
-
-  void _scheduleDepartureRefresh(List<Visit> visits, DateTime now) {
+  void _scheduleDepartureRefresh(List<Visit?> visits, DateTime now) {
     DateTime? nextDeparture;
-    for (final visit in visits) {
+    for (final visit in visits.whereType<Visit>()) {
       if (visit.status.toLowerCase() == 'cancelled' || visit.checkOut != null) {
         continue;
       }
@@ -287,38 +247,8 @@ class _VisitorTodayHomeCardState extends State<VisitorTodayHomeCard>
 
     _departureTimer = Timer(nextDeparture.difference(now), () {
       _scheduledDeparture = null;
-      if (!mounted) return;
-      _reloadExpiredPages(_now());
-      setState(() {});
+      _loadHome();
     });
-  }
-
-  void _reloadExpiredPages(DateTime now) {
-    final state = context.read<VisitorBloc>().state;
-    final invitations = state.homeTodayInvitations;
-    if (!invitations.loading &&
-        invitations.total != null &&
-        invitations.hasMore &&
-        _visitsNotDeparted(invitations.items, now).isEmpty) {
-      _loadHomeToday(VisitorListType.invitations, now);
-    }
-    final monitoring = state.homeTodayMonitoring;
-    if (!monitoring.loading &&
-        monitoring.total != null &&
-        monitoring.hasMore &&
-        _visitsNotDeparted(monitoring.items, now).isEmpty) {
-      _loadHomeToday(VisitorListType.monitoring, now);
-    }
-  }
-
-  void _loadHomeToday(VisitorListType type, DateTime now) {
-    context.read<VisitorBloc>().add(LoadTodayVisitorList(
-          type: type,
-          date: visitorDateParameter(now),
-          departureAfter: visitorDateTimeParameter(now),
-          homeSummary: true,
-          reset: true,
-        ));
   }
 }
 
@@ -441,7 +371,9 @@ class _VisitSummary extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                monitoring ? visit.host : visit.visitor,
+                monitoring && visit.host.isNotEmpty
+                    ? visit.host
+                    : visit.visitor,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -463,7 +395,7 @@ class _VisitSummary extends StatelessWidget {
                   _VisitMeta(
                     icon: Icons.schedule,
                     label: arrival == null
-                        ? 'Arrival time unavailable'
+                        ? 'Arrival time TBD'
                         : 'Arrival $arrival',
                   ),
                 ],
@@ -476,10 +408,10 @@ class _VisitSummary extends StatelessWidget {
   }
 
   String? _arrivalTime(String? value) {
-    if (value == null || value.isEmpty) return null;
-    final match = RegExp(r'T(\d{2}:\d{2})').firstMatch(value);
-    if (match != null) return match.group(1);
-    return value;
+    final date = value == null ? null : visitorJakartaDateTime(value);
+    if (date == null) return null;
+    return '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -494,18 +426,11 @@ class _VisitMeta extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 13, color: const Color(0xFF818796)),
+        Icon(icon, size: 14, color: const Color(0xFF777D8A)),
         const SizedBox(width: 4),
-        Flexible(
-          child: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Color(0xFF777D8A),
-            ),
-          ),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: Color(0xFF777D8A)),
         ),
       ],
     );

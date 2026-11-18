@@ -42,6 +42,18 @@ class VisitorApi {
     return _page(response.data!, Visit.fromJson);
   }
 
+  Future<VisitorHomeVisits> homeVisits() async {
+    final dio = await _client();
+    final response = await dio.get<Map<String, dynamic>>(
+      '${Api.baseUrl}visitor/home',
+    );
+    final data = response.data;
+    if (data == null) {
+      throw const FormatException('Invalid visitor home response.');
+    }
+    return VisitorHomeVisits.fromJson(data);
+  }
+
   Future<VisitorPage<VisitorHost>> hosts(String search,
       {int page = 1, Map<String, int?> filters = const {}}) async {
     final dio = await _client();
@@ -167,15 +179,39 @@ class VisitorApi {
     return Visit.fromJson(response.data!['data'] as Map<String, dynamic>);
   }
 
-  Future<void> create(
-      Map<String, dynamic> fields, VisitorAttachment? photo) async {
+  Future<void> decideApproval(int id, String decision, String notes) async {
     final dio = await _client();
+    await dio.post(
+      '${Api.baseUrl}visitor/invitations/$id/approval',
+      data: {'decision': decision, 'notes': notes},
+    );
+  }
+
+  Future<bool> create(
+      Map<String, dynamic> fields, VisitorAttachment? attachment) async {
+    final dio = await _client();
+    final requestFields = Map<String, dynamic>.from(fields);
+    final monitorIds = requestFields.remove('monitor_employee_ids');
     final data = FormData.fromMap({
-      ...fields,
-      if (photo != null)
-        'photo': MultipartFile.fromBytes(photo.bytes, filename: photo.name),
+      ...requestFields,
+      if (attachment != null)
+        'attachment': MultipartFile.fromBytes(
+          attachment.bytes,
+          filename: attachment.name,
+        ),
     });
-    await dio.post('${Api.baseUrl}visitor/invitations', data: data);
+    if (monitorIds is List<int>) {
+      data.fields.addAll(monitorIds.map(
+        (id) => MapEntry('monitor_employee_ids[]', id.toString()),
+      ));
+    }
+    final response =
+        await dio.post('${Api.baseUrl}visitor/invitations', data: data);
+    if (response.statusCode == 201) return false;
+    if (response.statusCode == 202) return true;
+    throw FormatException(
+      'Unexpected invitation creation status: ${response.statusCode}.',
+    );
   }
 
   Future<VisitorInvitationLinksResult> createInvitationLinks(

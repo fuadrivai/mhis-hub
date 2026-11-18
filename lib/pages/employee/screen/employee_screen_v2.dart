@@ -1,5 +1,5 @@
 import 'package:fl_mhis_hr/widget/widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EmployeeScreenV2 extends StatefulWidget {
   const EmployeeScreenV2({super.key});

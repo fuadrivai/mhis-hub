@@ -1,20 +1,15 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:fl_mhis_hr/library/app_colors.dart';
 import 'package:fl_mhis_hr/library/text_form_decoration.dart';
 import 'package:fl_mhis_hr/library/valid_form.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
-import 'package:fl_mhis_hr/pages/visitor/library/visitor_attachment_validation.dart';
-import 'package:fl_mhis_hr/pages/visitor/screen/visitor_attachment_preview.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_monitor_search_screen.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-
-enum _AttachmentSource { camera, gallery, file }
 
 class VisitorFormScreen extends StatefulWidget {
   const VisitorFormScreen({super.key});
@@ -35,19 +30,21 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   final _departureDateField = TextEditingController();
   final _arrivalTimeField = TextEditingController();
   final _departureTimeField = TextEditingController();
+  final List<VisitorHost> _monitorEmployees = [];
   VisitorFormOptions? _appliedOptions;
+  VisitorOption? _loginEmployee;
   int? _branchId, _categoryId, _purposeId, _hostId;
-  bool _hostSelected = false;
+  int? _autoMonitorId;
+  bool _hostSelected = false, _monitorSelectionSet = false;
   late DateTime _visitDate;
-  late DateTime _departureDate;
+  DateTime? _departureDate;
   TimeOfDay? _arrivalTime, _departureTime;
-  VisitorAttachment? _attachment;
 
   @override
   void initState() {
     super.initState();
     final today = DateUtils.dateOnly(DateTime.now());
-    _visitDate = _departureDate = today;
+    _visitDate = today;
     _updateDateFields();
     final bloc = context.read<VisitorBloc>();
     bloc.add(const LoadVisitorForm());
@@ -79,73 +76,14 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
   }
 
   void _updateDateFields() {
-    final format = DateFormat('d MMMM yyyy', 'en');
-    _visitDateField.text = format.format(_visitDate);
-    _departureDateField.text = format.format(_departureDate);
+    _visitDateField.text = DateFormat('d MMMM yyyy', 'en').format(_visitDate);
+    _departureDateField.text = _departureDate == null
+        ? ''
+        : DateFormat('d MMMM yyyy', 'en').format(_departureDate!);
   }
 
   String _formatTime(TimeOfDay value) =>
       '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
-
-  Future<void> _pickAttachment() async {
-    final source = await showModalBottomSheet<_AttachmentSource>(
-      context: context,
-      builder: (context) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const ListTile(title: Text('Add Attachment')),
-          ListTile(
-            leading: const Icon(Icons.camera_alt),
-            title: const Text('Camera'),
-            onTap: () => Navigator.pop(context, _AttachmentSource.camera),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Gallery'),
-            onTap: () => Navigator.pop(context, _AttachmentSource.gallery),
-          ),
-          ListTile(
-            leading: const Icon(Icons.insert_drive_file),
-            title: const Text('File'),
-            onTap: () => Navigator.pop(context, _AttachmentSource.file),
-          ),
-        ]),
-      ),
-    );
-    if (source == null || !mounted) return;
-    try {
-      XFile? file;
-      if (source == _AttachmentSource.file) {
-        final selected = await FilePicker.pickFiles(
-          type: FileType.custom,
-          allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
-        );
-        if (selected.isNotEmpty) file = selected.first.xFile;
-      } else {
-        file = await ImagePicker().pickImage(
-          source: source == _AttachmentSource.camera
-              ? ImageSource.camera
-              : ImageSource.gallery,
-        );
-      }
-      if (file == null || !mounted) return;
-      final error = visitorAttachmentError(file.name, await file.length());
-      if (!mounted) return;
-      if (error != null) {
-        _message(error);
-        return;
-      }
-      final bytes = await file.readAsBytes();
-      if (!mounted) return;
-      final bytesError = visitorAttachmentError(file.name, bytes.length);
-      if (bytesError != null) {
-        _message(bytesError);
-        return;
-      }
-      setState(() => _attachment = VisitorAttachment(file!.name, bytes));
-    } catch (error) {
-      if (mounted) _message('Unable to select attachment: $error');
-    }
-  }
 
   Future<void> _selectHost() async {
     final host = await Navigator.of(context).push<VisitorHost>(
@@ -156,12 +94,66 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
         _hostSelected = true;
         _hostId = host.id;
         _host.text = host.name;
+        _syncDefaultMonitor();
       });
     }
   }
 
+  Future<void> _selectMonitors() async {
+    final selected = await Navigator.of(context).push<List<VisitorHost>>(
+      MaterialPageRoute(
+        builder: (_) => VisitorMonitorSearchScreen(
+          initialSelection: List<VisitorHost>.unmodifiable(_monitorEmployees),
+        ),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _monitorSelectionSet = true;
+      _monitorEmployees
+        ..clear()
+        ..addAll(selected);
+      if (!_monitorEmployees.any((employee) => employee.id == _autoMonitorId)) {
+        _autoMonitorId = null;
+      }
+    });
+  }
+
+  void _syncDefaultMonitor() {
+    final loginEmployee = _loginEmployee;
+    if (loginEmployee == null || _hostId == null) return;
+    if (_hostId != loginEmployee.id) {
+      if (!_monitorEmployees
+          .any((employee) => employee.id == loginEmployee.id)) {
+        _monitorEmployees.add(
+          VisitorHost(id: loginEmployee.id, name: loginEmployee.name),
+        );
+        _monitorSelectionSet = true;
+        _autoMonitorId = loginEmployee.id;
+      }
+    } else if (_autoMonitorId == loginEmployee.id) {
+      _monitorEmployees
+          .removeWhere((employee) => employee.id == loginEmployee.id);
+      _autoMonitorId = null;
+    }
+  }
+
+  void _removeMonitor(VisitorHost employee) {
+    setState(() {
+      _monitorEmployees.removeWhere((item) => item.id == employee.id);
+      if (_autoMonitorId == employee.id) _autoMonitorId = null;
+    });
+  }
+
   Future<void> _submit() async {
     if (context.read<VisitorBloc>().state.form.submitting) return;
+    if (_loginEmployee == null) {
+      final currentHost = context.read<VisitorBloc>().state.currentHost;
+      _message(currentHost.error == null
+          ? 'Loading your employee profile. Please wait.'
+          : 'Unable to load your employee profile: ${currentHost.error}');
+      return;
+    }
     if (!_form.currentState!.validate()) {
       _message('Please correct the highlighted fields.');
       return;
@@ -170,17 +162,30 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       _message('Please select a host.');
       return;
     }
-    if (_arrivalTime == null || _departureTime == null) {
-      _message('Please select arrival and departure times.');
+    if (_arrivalTime == null) {
+      _message('Please select an arrival time.');
+      return;
+    }
+    if (_departureDate != null && _departureTime == null) {
+      _message(
+          'Select an expected departure time or clear the departure date.');
       return;
     }
     final arrival = DateTime(_visitDate.year, _visitDate.month, _visitDate.day,
         _arrivalTime!.hour, _arrivalTime!.minute);
-    final departure = DateTime(_departureDate.year, _departureDate.month,
-        _departureDate.day, _departureTime!.hour, _departureTime!.minute);
-    if (departure.isBefore(arrival)) {
-      _message('Expected departure must not be before arrival.');
-      return;
+    final departureDate = _departureDate ?? _visitDate;
+    if (_departureTime != null) {
+      final departure = DateTime(
+        departureDate.year,
+        departureDate.month,
+        departureDate.day,
+        _departureTime!.hour,
+        _departureTime!.minute,
+      );
+      if (departure.isBefore(arrival)) {
+        _message('Expected departure must not be before arrival.');
+        return;
+      }
     }
     String? optional(TextEditingController controller) {
       final value = controller.text.trim();
@@ -198,15 +203,17 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       'host_employee_id': _hostId,
       'visit_date': DateFormat('yyyy-MM-dd', 'en').format(_visitDate),
       'expected_arrival_time': _formatTime(_arrivalTime!),
-      if (!DateUtils.isSameDay(_departureDate, _visitDate))
+      if (_departureTime != null && _departureDate != null)
         'expected_departure_date':
-            DateFormat('yyyy-MM-dd', 'en').format(_departureDate),
-      'expected_departure_time': _formatTime(_departureTime!),
+            DateFormat('yyyy-MM-dd', 'en').format(_departureDate!),
+      if (_departureTime != null)
+        'expected_departure_time': _formatTime(_departureTime!),
+      if (_monitorSelectionSet)
+        'monitor_employee_ids':
+            _monitorEmployees.map((employee) => employee.id).toList(),
       if (optional(_notes) != null) 'notes': optional(_notes),
     };
-    context
-        .read<VisitorBloc>()
-        .add(SubmitVisitorInvitation(fields, _attachment));
+    context.read<VisitorBloc>().add(SubmitVisitorInvitation(fields, null));
   }
 
   Widget _label(String text, {bool required = false, bool compact = false}) {
@@ -272,6 +279,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       TextInputType? keyboardType,
       bool required = false,
       int maxLines = 1,
+      int? maxLength,
       TextInputAction? textInputAction = TextInputAction.next,
       Key? key}) {
     return _field(
@@ -279,8 +287,10 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
       TextFormField(
           key: key,
           controller: controller,
+          onTapOutside: (_) => FocusScope.of(context).unfocus(),
           keyboardType: keyboardType,
           maxLines: maxLines,
+          maxLength: maxLength,
           validator: validator,
           decoration: TextFormDecoration.box(hintText: label),
           textInputAction: textInputAction ??
@@ -291,45 +301,59 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
 
   Widget _dropdown(String label, List<VisitorOption> items, int? selected,
       ValueChanged<int?> onChange,
-      {Key? key}) {
+      {Key? key, bool required = true}) {
     return _field(
       label,
-      DropdownButtonFormField<int>(
+      DropdownButtonFormField<int?>(
         key: key,
         initialValue: selected,
         decoration: TextFormDecoration.box(hintText: 'Select $label'),
-        items: items
-            .map((item) =>
-                DropdownMenuItem(value: item.id, child: Text(item.name)))
-            .toList(),
+        items: [
+          if (!required)
+            const DropdownMenuItem<int?>(
+                value: null, child: Text('Not selected')),
+          ...items.map((item) =>
+              DropdownMenuItem<int?>(value: item.id, child: Text(item.name))),
+        ],
         onChanged: onChange,
-        validator: (value) => ValidForm.dropDownEmpty(value?.toString()),
+        validator: required
+            ? (value) => ValidForm.dropDownEmpty(value?.toString())
+            : null,
         isExpanded: true,
       ),
-      required: true,
+      required: required,
     );
   }
 
   Widget _dateField(String label, TextEditingController controller,
-      DateTime date, ValueChanged<DateTime> onChange,
-      {Key? key, bool compact = false}) {
+      DateTime? date, ValueChanged<DateTime> onChange,
+      {Key? key,
+      bool compact = false,
+      bool required = true,
+      DateTime? minimumDate}) {
     return _field(
       label,
       TextFormField(
         key: key,
         controller: controller,
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
         readOnly: true,
         decoration: TextFormDecoration.box(
           hintText: label,
           suffixIcon:
               const Icon(Icons.calendar_today_rounded, color: AppColors.danger),
         ),
-        validator: (value) => ValidForm.emptyValue(value?.trim() ?? ''),
+        validator: required
+            ? (value) => ValidForm.emptyValue(value?.trim() ?? '')
+            : null,
         onTap: () async {
+          final firstDate = DateUtils.dateOnly(minimumDate ?? DateTime.now());
+          final initialDate =
+              date == null || date.isBefore(firstDate) ? firstDate : date;
           final picked = await showDatePicker(
             context: context,
-            initialDate: date,
-            firstDate: DateTime(2000),
+            initialDate: initialDate,
+            firstDate: firstDate,
             lastDate: DateTime(2100),
           );
           if (picked != null && mounted) {
@@ -340,26 +364,34 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
           }
         },
       ),
-      required: true,
+      required: required,
       compact: compact,
     );
   }
 
   Widget _timeField(String label, TextEditingController controller,
       TimeOfDay? value, ValueChanged<TimeOfDay> onChange,
-      {Key? key, bool compact = false}) {
+      {Key? key, bool compact = false, bool required = true}) {
     return _field(
       label,
       TextFormField(
         key: key,
         controller: controller,
+        onTapOutside: (_) => FocusScope.of(context).unfocus(),
         readOnly: true,
         decoration: TextFormDecoration.box(
           hintText: label,
           suffixIcon:
               const Icon(Icons.access_time_rounded, color: AppColors.danger),
         ),
-        validator: (value) => ValidForm.emptyValue(value?.trim() ?? ''),
+        validator: required
+            ? (value) => ValidForm.emptyValue(value?.trim() ?? '')
+            : (value) {
+                final text = value?.trim() ?? '';
+                return text.isEmpty || RegExp(r'^\d{2}:\d{2}$').hasMatch(text)
+                    ? null
+                    : 'Select a valid time.';
+              },
         onTap: () async {
           FocusScope.of(context).unfocus();
           final initialTime = value ?? TimeOfDay.now();
@@ -434,7 +466,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
           }
         },
       ),
-      required: true,
+      required: required,
       compact: compact,
     );
   }
@@ -468,37 +500,6 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
     );
   }
 
-  Widget _attachmentSection() {
-    final attachment = _attachment;
-    return _section('Attachment', [
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          onPressed: _pickAttachment,
-          icon: const Icon(Icons.attach_file_rounded),
-          label:
-              Text(attachment == null ? 'Add Attachment' : 'Change Attachment'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.danger,
-            side: const BorderSide(color: AppColors.danger),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-          ),
-        ),
-      ),
-      const SizedBox(height: 8),
-      const Text('JPG, JPEG, PNG or WEBP, up to 5 MB',
-          style: TextStyle(color: Colors.grey, fontSize: 12)),
-      if (attachment != null) ...[
-        VisitorAttachmentPreview(
-          attachment: attachment,
-          onRemove: () => setState(() => _attachment = null),
-        ),
-      ],
-    ]);
-  }
-
   @override
   Widget build(BuildContext context) {
     return BlocListener<VisitorBloc, VisitorState>(
@@ -506,10 +507,14 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
           previous.currentHost != current.currentHost,
       listener: (context, state) {
         final host = state.currentHost.host;
-        if (host != null && !_hostSelected) {
+        if (host != null) {
           setState(() {
-            _hostId = host.id;
-            _host.text = host.name;
+            _loginEmployee = host;
+            if (!_hostSelected) {
+              _hostId = host.id;
+              _host.text = host.name;
+            }
+            _syncDefaultMonitor();
           });
         }
       },
@@ -530,8 +535,9 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
           if (form.submissionError != null) {
             _message('Unable to create invitation: ${form.submissionError}');
           } else if (form.created) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Visitor invitation created.')));
+            _message(form.pendingApproval
+                ? 'Visitor invitation submitted and waiting for approval.'
+                : 'Visitor invitation created.');
             await WidgetsBinding.instance.endOfFrame;
             if (context.mounted) Navigator.of(context).pop(true);
           }
@@ -613,14 +619,16 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                     _categoryId,
                                     (value) =>
                                         setState(() => _categoryId = value),
-                                    key: const ValueKey('visitor-category')),
+                                    key: const ValueKey('visitor-category'),
+                                    required: false),
                                 _dropdown(
                                     'Visit purpose',
                                     options.purposes,
                                     _purposeId,
                                     (value) =>
                                         setState(() => _purposeId = value),
-                                    key: const ValueKey('visitor-purpose')),
+                                    key: const ValueKey('visitor-purpose'),
+                                    required: false),
                                 _dropdown(
                                     'Branch (meeting location)',
                                     options.branches,
@@ -633,6 +641,8 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                   TextFormField(
                                     key: const ValueKey('visitor-host'),
                                     controller: _host,
+                                    onTapOutside: (_) =>
+                                        FocusScope.of(context).unfocus(),
                                     readOnly: true,
                                     onTap: _selectHost,
                                     validator: (value) => ValidForm.emptyValue(
@@ -648,7 +658,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                   required: true,
                                 ),
                                 if (state.currentHost.error != null &&
-                                    _hostId == null)
+                                    _loginEmployee == null)
                                   Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
@@ -667,6 +677,36 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                       ),
                                     ],
                                   ),
+                                _field(
+                                  'Monitor employees',
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      OutlinedButton.icon(
+                                        key: const ValueKey(
+                                            'visitor-monitor-employees'),
+                                        onPressed: _selectMonitors,
+                                        icon: const Icon(Icons.group_add),
+                                        label: Text(_monitorEmployees.isEmpty
+                                            ? 'Select monitors (optional)'
+                                            : 'Select monitors (${_monitorEmployees.length})'),
+                                      ),
+                                      if (_monitorEmployees.isNotEmpty)
+                                        Wrap(
+                                          spacing: 6,
+                                          children: _monitorEmployees
+                                              .map((employee) => Chip(
+                                                    label: Text(employee.name),
+                                                    onDeleted: () =>
+                                                        _removeMonitor(
+                                                            employee),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                    ],
+                                  ),
+                                ),
                               ]),
                               _section('Schedule', [
                                 _dateTimeRow(
@@ -674,7 +714,6 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                       'Visit date', _visitDateField, _visitDate,
                                       (date) {
                                     _visitDate = date;
-                                    _departureDate = date;
                                   },
                                       key: const ValueKey('visitor-date'),
                                       compact: true),
@@ -695,6 +734,8 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                       (date) => _departureDate = date,
                                       key: const ValueKey(
                                           'visitor-departure-date'),
+                                      required: false,
+                                      minimumDate: _visitDate,
                                       compact: true),
                                   _timeField(
                                       'Expected departure time',
@@ -703,10 +744,10 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                       (time) => _departureTime = time,
                                       key: const ValueKey(
                                           'visitor-departure-time'),
+                                      required: false,
                                       compact: true),
                                 ),
                               ]),
-                              _attachmentSection(),
                               _section('Notes', [
                                 _textField(_notes, 'Visit notes',
                                     required:
@@ -714,6 +755,7 @@ class _VisitorFormScreenState extends State<VisitorFormScreen> {
                                             true,
                                     maxLines: 3,
                                     textInputAction: TextInputAction.done,
+                                    maxLength: 3000,
                                     key: const ValueKey('visitor-notes'),
                                     validator: (value) =>
                                         category?.requiresAdditionalInfo == true

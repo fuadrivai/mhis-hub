@@ -1,5 +1,5 @@
 import 'package:fl_mhis_hr/pages/profile/screen/my_info/info_details.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PersonalInfo extends StatelessWidget {
   final List<dynamic>? listForm;

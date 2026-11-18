@@ -2,7 +2,7 @@ import 'package:fl_mhis_hr/models/v2/models.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/bloc/general_announcement_bloc.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_screen.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/screen/general_announcement_view.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';

@@ -1,5 +1,5 @@
 import 'package:fl_mhis_hr/pages/timeoff/screen/timeoff_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class TimeoffScreen2 extends StatelessWidget {
   const TimeoffScreen2({super.key});

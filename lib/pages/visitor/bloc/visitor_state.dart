@@ -69,14 +69,22 @@ class VisitorFormStatus extends Equatable {
     this.submitting = false,
     this.submissionError,
     this.created = false,
+    this.pendingApproval = false,
   });
-  final bool loading, submitting, created;
+  final bool loading, submitting, created, pendingApproval;
   final VisitorFormOptions? options;
   final String? optionsError, submissionError;
 
   @override
-  List<Object?> get props =>
-      [loading, options, optionsError, submitting, submissionError, created];
+  List<Object?> get props => [
+        loading,
+        options,
+        optionsError,
+        submitting,
+        submissionError,
+        created,
+        pendingApproval,
+      ];
 }
 
 class VisitorDetailStatus extends Equatable {
@@ -112,6 +120,21 @@ class VisitorInvitationLinksStatus extends Equatable {
   List<Object?> get props => [submitting, result, error];
 }
 
+class VisitorApprovalActionStatus extends Equatable {
+  const VisitorApprovalActionStatus({
+    this.submittingId,
+    this.decision,
+    this.error,
+    this.completedId,
+  });
+
+  final int? submittingId, completedId;
+  final String? decision, error;
+
+  @override
+  List<Object?> get props => [submittingId, decision, error, completedId];
+}
+
 class VisitorInvitationLinkBatchDetailStatus extends Equatable {
   const VisitorInvitationLinkBatchDetailStatus({
     this.loading = false,
@@ -137,10 +160,27 @@ class VisitorCurrentHostStatus extends Equatable {
   List<Object?> get props => [loading, host, error];
 }
 
+class VisitorHomeStatus extends Equatable {
+  const VisitorHomeStatus({
+    this.loading = false,
+    this.invitation,
+    this.monitoring,
+    this.error,
+  });
+
+  final bool loading;
+  final Visit? invitation, monitoring;
+  final String? error;
+
+  @override
+  List<Object?> get props => [loading, invitation, monitoring, error];
+}
+
 class VisitorState extends Equatable {
   const VisitorState({
     this.invitations = const VisitorListState<Visit>(),
     this.monitoring = const VisitorListState<Visit>(),
+    this.approvals = const VisitorListState<Visit>(),
     this.todayInvitations = const VisitorListState<Visit>(),
     this.todayMonitoring = const VisitorListState<Visit>(),
     this.homeTodayInvitations = const VisitorListState<Visit>(),
@@ -149,15 +189,18 @@ class VisitorState extends Equatable {
     this.hostFilters = const VisitorHostFilterStatus(),
     this.form = const VisitorFormStatus(),
     this.detail = const VisitorDetailStatus(),
+    this.approvalAction = const VisitorApprovalActionStatus(),
     this.invitationLinks = const VisitorInvitationLinksStatus(),
     this.invitationLinkBatches =
         const VisitorListState<VisitorInvitationLinksResult>(),
     this.invitationLinkBatchDetail =
         const VisitorInvitationLinkBatchDetailStatus(),
     this.currentHost = const VisitorCurrentHostStatus(),
+    this.visitorHome = const VisitorHomeStatus(),
   });
   final VisitorListState<Visit> invitations,
       monitoring,
+      approvals,
       todayInvitations,
       todayMonitoring,
       homeTodayInvitations,
@@ -166,10 +209,12 @@ class VisitorState extends Equatable {
   final VisitorHostFilterStatus hostFilters;
   final VisitorFormStatus form;
   final VisitorDetailStatus detail;
+  final VisitorApprovalActionStatus approvalAction;
   final VisitorInvitationLinksStatus invitationLinks;
   final VisitorListState<VisitorInvitationLinksResult> invitationLinkBatches;
   final VisitorInvitationLinkBatchDetailStatus invitationLinkBatchDetail;
   final VisitorCurrentHostStatus currentHost;
+  final VisitorHomeStatus visitorHome;
 
   VisitorListState<Visit> list(VisitorListType type) =>
       type == VisitorListType.invitations ? invitations : monitoring;
@@ -177,6 +222,7 @@ class VisitorState extends Equatable {
   VisitorState copyWith({
     VisitorListState<Visit>? invitations,
     VisitorListState<Visit>? monitoring,
+    VisitorListState<Visit>? approvals,
     VisitorListState<Visit>? todayInvitations,
     VisitorListState<Visit>? todayMonitoring,
     VisitorListState<Visit>? homeTodayInvitations,
@@ -185,14 +231,17 @@ class VisitorState extends Equatable {
     VisitorHostFilterStatus? hostFilters,
     VisitorFormStatus? form,
     VisitorDetailStatus? detail,
+    VisitorApprovalActionStatus? approvalAction,
     VisitorInvitationLinksStatus? invitationLinks,
     VisitorListState<VisitorInvitationLinksResult>? invitationLinkBatches,
     VisitorInvitationLinkBatchDetailStatus? invitationLinkBatchDetail,
     VisitorCurrentHostStatus? currentHost,
+    VisitorHomeStatus? visitorHome,
   }) =>
       VisitorState(
         invitations: invitations ?? this.invitations,
         monitoring: monitoring ?? this.monitoring,
+        approvals: approvals ?? this.approvals,
         todayInvitations: todayInvitations ?? this.todayInvitations,
         todayMonitoring: todayMonitoring ?? this.todayMonitoring,
         homeTodayInvitations: homeTodayInvitations ?? this.homeTodayInvitations,
@@ -201,18 +250,21 @@ class VisitorState extends Equatable {
         hostFilters: hostFilters ?? this.hostFilters,
         form: form ?? this.form,
         detail: detail ?? this.detail,
+        approvalAction: approvalAction ?? this.approvalAction,
         invitationLinks: invitationLinks ?? this.invitationLinks,
         invitationLinkBatches:
             invitationLinkBatches ?? this.invitationLinkBatches,
         invitationLinkBatchDetail:
             invitationLinkBatchDetail ?? this.invitationLinkBatchDetail,
         currentHost: currentHost ?? this.currentHost,
+        visitorHome: visitorHome ?? this.visitorHome,
       );
 
   @override
   List<Object?> get props => [
         invitations,
         monitoring,
+        approvals,
         todayInvitations,
         todayMonitoring,
         homeTodayInvitations,
@@ -221,9 +273,11 @@ class VisitorState extends Equatable {
         hostFilters,
         form,
         detail,
+        approvalAction,
         invitationLinks,
         invitationLinkBatches,
         invitationLinkBatchDetail,
         currentHost,
+        visitorHome,
       ];
 }

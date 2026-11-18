@@ -1,6 +1,6 @@
 import 'package:color_parser/color_parser.dart';
 import 'package:fl_mhis_hr/models/v2/models.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:jiffy/jiffy.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 

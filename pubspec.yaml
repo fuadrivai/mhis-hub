@@ -76,6 +76,8 @@ dependencies:
   fingerprint_auth: ^0.0.2
   jwt_decoder: ^2.0.1
   flutter_html: ^3.0.0
+  material_ui: ^1.11.1
+  cupertino_ui: ^1.1.7
 
 dependency_overrides:
   # flutter_html 3.0.0 uses html's internal matches(Element, String) API.

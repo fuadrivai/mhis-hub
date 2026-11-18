@@ -6,8 +6,8 @@ import 'package:fl_mhis_hr/pages/general_announcement/screen/job_level_box.dart'
 import 'package:fl_mhis_hr/pages/general_announcement/screen/job_position_box.dart';
 import 'package:fl_mhis_hr/pages/general_announcement/screen/organization_box.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 

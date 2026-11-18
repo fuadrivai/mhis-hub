@@ -20,8 +20,8 @@ import 'package:fl_mhis_hr/pages/visitor/screen/visitor_host_search_screen.dart'
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_attachment_preview.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_form_screen.dart';
 import 'package:fl_mhis_hr/pages/home/screen/visitor_today_home_card.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +49,8 @@ Future<Employee> _fakeEmployeeProfile() async => Employee(
 
 class FakeVisitorApi extends VisitorApi {
   final calls = <String>[];
+  final approvalRequests = <Map<String, dynamic>>[];
+  final decidedApprovalIds = <int>{};
   final visitFilterCalls = <Map<String, dynamic>>[];
   final hostFilterCalls = <Map<String, int?>>[];
   Map<String, dynamic>? submitted;
@@ -56,12 +58,26 @@ class FakeVisitorApi extends VisitorApi {
   final invitationLinkCalls = <String>[];
   String? cancellationReason;
   bool cancelled = false;
+  int homeRequests = 0;
+  VisitorHomeVisits homeResult = VisitorHomeVisits(
+    invitation: Visit.fromJson(visitJson),
+    monitoring: Visit.fromJson(visitJson),
+  );
+
+  @override
+  Future<VisitorHomeVisits> homeVisits() async {
+    calls.add('home');
+    homeRequests++;
+    return homeResult;
+  }
 
   @override
   Future<VisitorPage<Visit>> visits(String endpoint,
       {int page = 1, Map<String, dynamic> filters = const {}}) async {
     visitFilterCalls.add(Map<String, dynamic>.from(filters));
-    if (filters.containsKey('visit_date')) {
+    if (filters['status'] == 'pending_confirmation') {
+      calls.add('approvals:$page');
+    } else if (filters.containsKey('visit_date')) {
       calls.add('today:$endpoint:${filters['visit_date']}');
     } else {
       calls.add('$endpoint:$page');
@@ -71,11 +87,15 @@ class FakeVisitorApi extends VisitorApi {
       if (filters['visit_date'] is String) 'visit_date': filters['visit_date'],
       'can_cancel': !cancelled,
     };
+    final items = filters['status'] == 'pending_confirmation' &&
+            decidedApprovalIds.contains(42)
+        ? <Visit>[]
+        : [Visit.fromJson(json)];
     return VisitorPage(
-      data: [Visit.fromJson(json)],
+      data: items,
       page: page,
       perPage: 20,
-      total: 1,
+      total: items.length,
     );
   }
 
@@ -104,6 +124,16 @@ class FakeVisitorApi extends VisitorApi {
     calls.add('cancel:$id');
     cancellationReason = reason;
     cancelled = true;
+  }
+
+  @override
+  Future<void> decideApproval(int id, String decision, String notes) async {
+    approvalRequests.add({
+      'id': id,
+      'decision': decision,
+      'notes': notes,
+    });
+    decidedApprovalIds.add(id);
   }
 
   @override
@@ -154,9 +184,10 @@ class FakeVisitorApi extends VisitorApi {
       );
 
   @override
-  Future<void> create(
+  Future<bool> create(
       Map<String, dynamic> fields, VisitorAttachment? photo) async {
     submitted = fields;
+    return false;
   }
 
   @override
@@ -241,7 +272,7 @@ class RecordingAdapter implements HttpClientAdapter {
     }
     return ResponseBody.fromString(
       '{"message":"Visitor invitation created."}',
-      200,
+      201,
       headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType]
       },
@@ -309,17 +340,23 @@ class DelayedVisitorApi extends FakeVisitorApi {
 }
 
 class DelayedMutationApi extends FakeVisitorApi {
-  final requests = <Completer<void>>[];
+  final requests = <Completer<bool>>[];
 
   @override
-  Future<void> create(Map<String, dynamic> fields, VisitorAttachment? photo) {
-    final request = Completer<void>();
+  Future<bool> create(Map<String, dynamic> fields, VisitorAttachment? photo) {
+    final request = Completer<bool>();
     requests.add(request);
     return request.future;
   }
 }
 
 class EmptyTodayVisitorApi extends FakeVisitorApi {
+  @override
+  Future<VisitorHomeVisits> homeVisits() async {
+    homeRequests++;
+    return const VisitorHomeVisits();
+  }
+
   @override
   Future<VisitorPage<Visit>> visits(String endpoint,
       {int page = 1, Map<String, dynamic> filters = const {}}) async {
@@ -337,6 +374,12 @@ class EmptyTodayVisitorApi extends FakeVisitorApi {
 
 class MonitoringOnlyVisitorApi extends FakeVisitorApi {
   @override
+  Future<VisitorHomeVisits> homeVisits() async {
+    homeRequests++;
+    return VisitorHomeVisits(monitoring: Visit.fromJson(visitJson));
+  }
+
+  @override
   Future<VisitorPage<Visit>> visits(String endpoint,
       {int page = 1, Map<String, dynamic> filters = const {}}) async {
     if (endpoint == 'invitations' && filters.containsKey('visit_date')) {
@@ -352,6 +395,11 @@ class MonitoringOnlyVisitorApi extends FakeVisitorApi {
 }
 
 class FailedTodayVisitorApi extends FakeVisitorApi {
+  @override
+  Future<VisitorHomeVisits> homeVisits() async {
+    throw StateError('Visitor service unavailable');
+  }
+
   @override
   Future<VisitorPage<Visit>> visits(String endpoint,
       {int page = 1, Map<String, dynamic> filters = const {}}) async {
@@ -394,6 +442,34 @@ class TimedVisitorApi extends FakeVisitorApi {
       page: page,
       perPage: 20,
       total: 2,
+    );
+  }
+}
+
+class TimedHomeVisitorApi extends FakeVisitorApi {
+  TimedHomeVisitorApi(this.now);
+
+  final DateTime Function() now;
+
+  @override
+  Future<VisitorHomeVisits> homeVisits() async {
+    homeRequests++;
+    final current = now();
+    final visitName = homeRequests == 1 ? 'Ending soon' : 'Next visit';
+    final departure = current.add(
+      homeRequests == 1
+          ? const Duration(seconds: 3)
+          : const Duration(minutes: 3),
+    );
+    return VisitorHomeVisits(
+      invitation: Visit.fromJson({
+        ...visitJson,
+        'visit_code': visitName,
+        'visit_date': visitorDateParameter(current),
+        'expected_arrival_at': current.toIso8601String(),
+        'expected_departure_at': departure.toIso8601String(),
+        'visitor': {'full_name': visitName},
+      }),
     );
   }
 }
@@ -449,10 +525,10 @@ void main() {
 
   test('attachments enforce supported formats and 5 MB limit', () {
     const limit = 5 * 1024 * 1024;
-    for (final name in ['a.jpg', 'a.jpeg', 'a.png', 'a.WEBP']) {
+    for (final name in ['a.jpg', 'a.jpeg', 'a.png', 'a.PDF']) {
       expect(visitorAttachmentError(name, limit), isNull);
     }
-    expect(visitorAttachmentError('a.pdf', 1), isNotNull);
+    expect(visitorAttachmentError('a.webp', 1), isNotNull);
     expect(visitorAttachmentError('png', 1), isNotNull);
     expect(visitorAttachmentError('a.png', limit + 1), isNotNull);
   });
@@ -476,6 +552,17 @@ void main() {
     expect(visit.attachments.single.url, 'visitors/visitor-photo.png');
   });
 
+  test('visit accepts null category and purpose', () {
+    final visit = Visit.fromJson({
+      ...visitJson,
+      'category': null,
+      'purpose': null,
+    });
+
+    expect(visit.category, isEmpty);
+    expect(visit.purpose, isEmpty);
+  });
+
   test('visitor date-time query uses a local ISO timezone offset', () {
     final dateTime = DateTime(2026, 11, 13, 9);
     final offset = dateTime.timeZoneOffset;
@@ -486,6 +573,25 @@ void main() {
     expect(visitorDateParameter(dateTime), '2026-11-13');
     expect(visitorDateTimeParameter(dateTime),
         '2026-11-13T09:00:00$expectedOffset');
+  });
+
+  test('visitor timestamps are displayed in Jakarta time', () {
+    expect(
+      visitorJakartaDateTime('2026-11-18T09:00:00+07:00'),
+      DateTime.utc(2026, 11, 18, 9),
+    );
+    expect(
+      visitorJakartaDateTime('2026-11-18T02:00:00Z'),
+      DateTime.utc(2026, 11, 18, 9),
+    );
+    expect(
+      visitorJakartaDateTime('2026-11-18T10:00:00+08:00'),
+      DateTime.utc(2026, 11, 18, 9),
+    );
+    expect(
+      visitorJakartaDateTime('2026-11-18T09:00:00'),
+      DateTime.utc(2026, 11, 18, 9),
+    );
   });
 
   testWidgets('attachment preview shows the selected file and can remove it',
@@ -515,19 +621,7 @@ void main() {
     final api = FakeVisitorApi();
     final bloc = VisitorBloc(api: api);
     addTearDown(bloc.close);
-    final today = DateTime.now();
-    final date =
-        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.invitations,
-        date: date,
-        homeSummary: true,
-        reset: true));
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.monitoring,
-        date: date,
-        homeSummary: true,
-        reset: true));
+    bloc.add(const LoadVisitorHome());
 
     final router = GoRouter(
       initialLocation: '/home',
@@ -571,19 +665,7 @@ void main() {
       (tester) async {
     final bloc = VisitorBloc(api: MonitoringOnlyVisitorApi());
     addTearDown(bloc.close);
-    final today = DateTime.now();
-    final date =
-        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.invitations,
-        date: date,
-        homeSummary: true,
-        reset: true));
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.monitoring,
-        date: date,
-        homeSummary: true,
-        reset: true));
+    bloc.add(const LoadVisitorHome());
     await tester.pumpWidget(BlocProvider.value(
       value: bloc,
       child: const MaterialApp(
@@ -600,20 +682,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('home removes visits at departure and shows the next visit',
+  testWidgets('home refreshes active visits when departure time passes',
       (tester) async {
     var current = DateTime.now();
-    final bloc = VisitorBloc(api: TimedVisitorApi(() => current));
+    final api = TimedHomeVisitorApi(() => current);
+    final bloc = VisitorBloc(api: api);
     addTearDown(bloc.close);
-    for (final type in VisitorListType.values) {
-      bloc.add(LoadTodayVisitorList(
-        type: type,
-        date: visitorDateParameter(current),
-        departureAfter: visitorDateTimeParameter(current),
-        homeSummary: true,
-        reset: true,
-      ));
-    }
+    bloc.add(const LoadVisitorHome());
 
     await tester.pumpWidget(BlocProvider.value(
       value: bloc,
@@ -623,7 +698,6 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.text('Ending soon'), findsOneWidget);
-    expect(find.text('Next visit'), findsOneWidget);
 
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Ending soon'), findsOneWidget);
@@ -631,41 +705,31 @@ void main() {
     await tester.pump(const Duration(seconds: 2));
     expect(find.text('Ending soon'), findsNothing);
     expect(find.text('Next visit'), findsOneWidget);
+    expect(api.homeRequests, 2);
     expect(find.text('Visitor Today'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('home requests the next page when its current visits expire',
+  testWidgets('home shows a visit with no expected departure time',
       (tester) async {
-    var current = DateTime.now();
-    final api = PagedTimedVisitorApi(() => current);
+    final visit = Visit.fromJson({
+      ...visitJson,
+      'expected_departure_at': null,
+    });
+    final api = FakeVisitorApi()
+      ..homeResult = VisitorHomeVisits(invitation: visit);
     final bloc = VisitorBloc(api: api);
     addTearDown(bloc.close);
-    for (final type in VisitorListType.values) {
-      bloc.add(LoadTodayVisitorList(
-        type: type,
-        date: visitorDateParameter(current),
-        departureAfter: visitorDateTimeParameter(current),
-        homeSummary: true,
-        reset: true,
-      ));
-    }
+    bloc.add(const LoadVisitorHome());
     await tester.pumpWidget(BlocProvider.value(
       value: bloc,
       child: MaterialApp(
-        home: Scaffold(body: VisitorTodayHomeCard(clock: () => current)),
+        home: const Scaffold(body: VisitorTodayHomeCard()),
       ),
     ));
     await tester.pumpAndSettle();
-    expect(api.invitationRequests, 1);
-    expect(find.text('Ending soon'), findsOneWidget);
-
-    current = current.add(const Duration(seconds: 4));
-    await tester.pump(const Duration(seconds: 4));
-    await tester.pumpAndSettle();
-    expect(api.invitationRequests, 2);
-    expect(find.text('Ending soon'), findsNothing);
-    expect(find.text('Next page'), findsOneWidget);
+    expect(find.text('Visitor Today'), findsOneWidget);
+    expect(find.text('Nama Tamu'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -700,23 +764,42 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('approval tab requires a note to reject a visit', (tester) async {
+    final api = FakeVisitorApi();
+    await tester.pumpWidget(BlocProvider(
+      create: (_) => VisitorBloc(api: api, getProfile: _fakeEmployeeProfile),
+      child: const MaterialApp(home: VisitorScreen(initialTab: 3)),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(api.calls, contains('approvals:1'));
+    expect(find.text('Pending confirmation'), findsOneWidget);
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Reject'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('visitor-approval-confirm')));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter a rejection note.'), findsOneWidget);
+    expect(api.approvalRequests, isEmpty);
+
+    await tester.enterText(
+        find.byKey(const ValueKey('visitor-approval-notes')), 'Tidak sesuai.');
+    await tester.tap(find.byKey(const ValueKey('visitor-approval-confirm')));
+    await tester.pumpAndSettle();
+    expect(api.approvalRequests.single, {
+      'id': 42,
+      'decision': 'reject',
+      'notes': 'Tidak sesuai.',
+    });
+    expect(
+        find.text('There are no visits waiting for approval.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('home visitor card is hidden when both today lists are empty',
       (tester) async {
     final bloc = VisitorBloc(api: EmptyTodayVisitorApi());
     addTearDown(bloc.close);
-    final today = DateTime.now();
-    final date =
-        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.invitations,
-        date: date,
-        homeSummary: true,
-        reset: true));
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.monitoring,
-        date: date,
-        homeSummary: true,
-        reset: true));
+    bloc.add(const LoadVisitorHome());
     await tester.pumpWidget(BlocProvider.value(
       value: bloc,
       child: const MaterialApp(
@@ -732,19 +815,7 @@ void main() {
       (tester) async {
     final bloc = VisitorBloc(api: FailedTodayVisitorApi());
     addTearDown(bloc.close);
-    final today = DateTime.now();
-    final date =
-        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.invitations,
-        date: date,
-        homeSummary: true,
-        reset: true));
-    bloc.add(LoadTodayVisitorList(
-        type: VisitorListType.monitoring,
-        date: date,
-        homeSummary: true,
-        reset: true));
+    bloc.add(const LoadVisitorHome());
     await tester.pumpWidget(BlocProvider.value(
       value: bloc,
       child: const MaterialApp(
@@ -890,9 +961,36 @@ void main() {
     bloc.add(const SubmitVisitorInvitation({}, null));
     await Future<void>.delayed(Duration.zero);
     expect(api.requests, hasLength(2));
-    api.requests.last.complete();
+    api.requests.last.complete(true);
     await Future<void>.delayed(Duration.zero);
     expect(bloc.state.form.created, isTrue);
+    expect(bloc.state.form.pendingApproval, isTrue);
+  });
+
+  test('BLoC loads pending approvals and removes a decided visit', () async {
+    final api = FakeVisitorApi();
+    final bloc = VisitorBloc(api: api);
+    addTearDown(bloc.close);
+    bloc.add(const LoadVisitorApprovals(reset: true));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(api.visitFilterCalls.last, {'status': 'pending_confirmation'});
+    expect(bloc.state.approvals.items.single.id, 42);
+
+    bloc.add(const DecideVisitorApproval(
+      id: 42,
+      decision: 'reject',
+      notes: 'Tidak disetujui.',
+    ));
+    await Future<void>.delayed(Duration.zero);
+
+    expect(api.approvalRequests.single, {
+      'id': 42,
+      'decision': 'reject',
+      'notes': 'Tidak disetujui.',
+    });
+    expect(bloc.state.approvals.items, isEmpty);
+    expect(bloc.state.approvals.total, 0);
   });
 
   test('create sends multipart body even with JSON client defaults', () async {
@@ -901,7 +999,13 @@ void main() {
       ..httpClientAdapter = adapter;
     final api = VisitorApi(client: () async => dio);
     await api.create(
-      {'full_name': 'Nama Tamu', 'host_employee_id': 10},
+      {
+        'full_name': 'Nama Tamu',
+        'host_employee_id': 10,
+        'visitor_category_id': null,
+        'visitor_purpose_id': null,
+        'monitor_employee_ids': [12, 18],
+      },
       VisitorAttachment('photo.jpg', Uint8List.fromList([1, 2, 3])),
     );
     expect(adapter.request!.headers['content-type'],
@@ -909,10 +1013,113 @@ void main() {
     final body = latin1.decode(adapter.body);
     expect(body, contains('name="full_name"'));
     expect(body, contains('Nama Tamu'));
-    expect(body, contains('name="photo"; filename="photo.jpg"'));
+    expect(body, contains('name="monitor_employee_ids[]"\r\n\r\n12'));
+    expect(body, contains('name="monitor_employee_ids[]"\r\n\r\n18'));
+    expect(body, contains('name="attachment"; filename="photo.jpg"'));
   });
 
-  test('API uses paginated endpoints and multipart photo contract', () async {
+  test('create reports invitations waiting for approval', () async {
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      handler.resolve(Response(
+        requestOptions: options,
+        statusCode: 202,
+        data: {'message': 'Invitation awaiting approval.'},
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+
+    final pendingApproval = await api.create(
+      {'full_name': 'Alya Putri', 'host_employee_id': 27},
+      null,
+    );
+
+    expect(pendingApproval, isTrue);
+  });
+
+  test('home API parses active invitation and nullable monitoring visit',
+      () async {
+    RequestOptions? request;
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      request = options;
+      handler.resolve(Response(
+        requestOptions: options,
+        data: {
+          'invitation': {
+            'id': 42,
+            'visit_code': 'QZOB9',
+            'status': 'expected',
+            'visit_date': '2026-11-18',
+            'expected_arrival_at': '2026-11-18T09:00:00+07:00',
+            'expected_departure_at': null,
+            'visitor': {
+              'id': 15,
+              'full_name': 'Visitor Name',
+              'phone': '08123456789',
+              'email': 'visitor@example.com',
+              'company': 'Company',
+            },
+          },
+          'monitoring': null,
+        },
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+
+    final visits = await api.homeVisits();
+
+    expect(request!.path, endsWith('/api/visitor/home'));
+    expect(request!.method, 'GET');
+    expect(visits.invitation!.visitor, 'Visitor Name');
+    expect(visits.invitation!.departure, isNull);
+    expect(visits.invitation!.host, isEmpty);
+    expect(visits.monitoring, isNull);
+    final empty = VisitorHomeVisits.fromJson({
+      'invitation': null,
+      'monitoring': null,
+    });
+    expect(empty.invitation, isNull);
+    expect(empty.monitoring, isNull);
+  });
+
+  test('approval API sends the pending filter and decision body', () async {
+    final requests = <RequestOptions>[];
+    final dio = Dio();
+    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
+      requests.add(options);
+      handler.resolve(Response(
+        requestOptions: options,
+        statusCode: 200,
+        data: options.method == 'GET'
+            ? {
+                'current_page': 1,
+                'per_page': 20,
+                'total': 1,
+                'data': [visitJson],
+              }
+            : {'message': 'Approval updated.'},
+      ));
+    }));
+    final api = VisitorApi(client: () async => dio);
+
+    await api.visits(
+      'invitations',
+      filters: const {'status': 'pending_confirmation'},
+    );
+    await api.decideApproval(42, 'approve', 'Disetujui.');
+
+    expect(requests[0].path, endsWith('/api/visitor/invitations'));
+    expect(requests[0].queryParameters['status'], 'pending_confirmation');
+    expect(requests[1].path, endsWith('/api/visitor/invitations/42/approval'));
+    expect(requests[1].data, {
+      'decision': 'approve',
+      'notes': 'Disetujui.',
+    });
+  });
+
+  test('API uses paginated endpoints and multipart attachment contract',
+      () async {
     final requests = <RequestOptions>[];
     final dio = Dio();
     dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
@@ -956,7 +1163,14 @@ void main() {
       } else {
         data = {'message': 'OK'};
       }
-      handler.resolve(Response(requestOptions: options, data: data));
+      handler.resolve(Response(
+        requestOptions: options,
+        data: data,
+        statusCode: options.method == 'POST' &&
+                path.endsWith('/api/visitor/invitations')
+            ? 201
+            : 200,
+      ));
     }));
     Map<String, dynamic>? employeeLookupParams;
     final api = VisitorApi(
@@ -1001,7 +1215,7 @@ void main() {
     expect((await api.detail(42)).code, 'ABCDE');
     await api.create(
       {'full_name': 'Nama Tamu', 'host_employee_id': 10},
-      VisitorAttachment('photo.webp', Uint8List.fromList([1, 2, 3])),
+      VisitorAttachment('photo.pdf', Uint8List.fromList([1, 2, 3])),
     );
     await api.cancel(42, 'Changed schedule');
     final options = await api.formOptions();
@@ -1023,8 +1237,8 @@ void main() {
     expect(requests[3].path, endsWith('/api/visitor/invitations/42'));
     final form = requests[4].data as FormData;
     expect(Map.fromEntries(form.fields)['host_employee_id'], '10');
-    expect(form.files.single.key, 'photo');
-    expect(form.files.single.value.filename, 'photo.webp');
+    expect(form.files.single.key, 'attachment');
+    expect(form.files.single.value.filename, 'photo.pdf');
     expect(requests[5].data, {'reason': 'Changed schedule'});
     expect(requests[6].path, endsWith('/api/visitor/form-options'));
   });
@@ -1298,7 +1512,14 @@ void main() {
     expect(find.text('All invitations'), findsOneWidget);
     expect(find.text('Filter by date'), findsOneWidget);
 
+    final searchField = tester.widget<TextField>(find.byType(TextField).first);
+    expect(searchField.focusNode, isNotNull);
+    await tester.tap(find.byType(TextField).first);
     await tester.enterText(find.byType(TextField).first, 'angga');
+    expect(searchField.focusNode!.hasFocus, isTrue);
+    await tester.tap(find.text("Today's invitations"));
+    await tester.pump();
+    expect(searchField.focusNode!.hasFocus, isFalse);
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
     expect(
@@ -1400,7 +1621,7 @@ void main() {
           (departureDateRect.width + departureTimeRect.width),
       closeTo(0.6, 0.02),
     );
-    expect(find.text('Add Attachment'), findsOneWidget);
+    expect(find.text('Add Attachment'), findsNothing);
     await tester.ensureVisible(find.byKey(const ValueKey('visitor-host')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('visitor-host')));
@@ -1412,6 +1633,28 @@ void main() {
     expect(api.calls, contains('hosts:Other:1'));
     await tester.tap(find.text('Other Host'));
     await tester.pumpAndSettle();
+
+    expect(find.widgetWithText(Chip, 'Fuad Rifai'), findsOneWidget);
+    tester
+        .widget<Chip>(find.widgetWithText(Chip, 'Fuad Rifai'))
+        .onDeleted!
+        .call();
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(Chip, 'Fuad Rifai'), findsNothing);
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-monitor-employees')));
+    await tester.tap(find.byKey(const ValueKey('visitor-monitor-employees')));
+    await tester.pumpAndSettle();
+    expect(find.text('host@example.com'), findsOneWidget);
+    expect(find.text('Branch: School'), findsOneWidget);
+    expect(find.text('Level: Manager'), findsOneWidget);
+    expect(find.text('Organization: Education'), findsOneWidget);
+    expect(find.text('Position: Teacher'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('monitor-employee-11')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done (1)'));
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(Chip, 'Other Host'), findsOneWidget);
 
     tester.testTextInput.hide();
     await tester.pumpAndSettle();
@@ -1444,6 +1687,12 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
+    await tester
+        .ensureVisible(find.byKey(const ValueKey('visitor-departure-date')));
+    await tester.tap(find.byKey(const ValueKey('visitor-departure-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Submit invitation'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Submit invitation'));
@@ -1455,9 +1704,16 @@ void main() {
     expect(api.submitted?['branch_id'], 1);
     expect(api.submitted?['visit_date'], matches(r'^\d{4}-\d{2}-\d{2}$'));
     expect(api.submitted?['expected_arrival_time'], matches(r'^\d{2}:\d{2}$'));
+    final today = DateTime.now();
+    expect(
+        api.submitted?['expected_departure_date'],
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-'
+        '${today.day.toString().padLeft(2, '0')}');
+    expect(api.submitted?['expected_departure_date'],
+        api.submitted?['visit_date']);
     expect(api.submitted?['notes'], 'Installation work');
+    expect(api.submitted?['monitor_employee_ids'], [11]);
     expect(api.submitted, isNot(contains('expected_arrival_date')));
-    expect(api.submitted, isNot(contains('expected_departure_date')));
     expect(api.submitted, isNot(contains('visitor_notes')));
     expect(find.text('Invitations'), findsOneWidget);
     expect(api.calls.where((call) => call == 'invitations:1').length, 2);

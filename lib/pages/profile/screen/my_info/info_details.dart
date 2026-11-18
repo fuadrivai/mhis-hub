@@ -1,6 +1,6 @@
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/widget/themed_page.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class InfoDetails extends StatelessWidget {
   const InfoDetails({super.key, required this.title, required this.fields});

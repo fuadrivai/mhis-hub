@@ -8,9 +8,8 @@ import 'package:fl_mhis_hr/pages/employee/repository/employee_api.dart';
 import 'package:fl_mhis_hr/models/v2/employee.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
-import 'package:fl_mhis_hr/pages/visitor/library/visitor_date_time.dart';
 import 'package:fl_mhis_hr/widget/widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -57,17 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadTodayVisitors() {
-    final now = DateTime.now();
-    final bloc = context.read<VisitorBloc>();
-    for (final type in VisitorListType.values) {
-      bloc.add(LoadTodayVisitorList(
-        type: type,
-        date: visitorDateParameter(now),
-        departureAfter: visitorDateTimeParameter(now),
-        homeSummary: true,
-        reset: true,
-      ));
-    }
+    context.read<VisitorBloc>().add(const LoadVisitorHome());
   }
 
   Future<void> handleTerminatedState() async {

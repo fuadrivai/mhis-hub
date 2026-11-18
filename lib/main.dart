@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, avoid_print
+// ignore_for_file: deprecated_member_use
 
 import 'dart:io';
 
@@ -10,7 +10,7 @@ import 'package:fl_mhis_hr/firebase_options.dart';
 import 'package:fl_mhis_hr/injector/injector.dart';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/router/routers.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -23,8 +23,6 @@ bool cameraPermission = false;
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print(
-      'Handling a background message: ${message.notification?.title} ${message.notification?.body}');
 }
 
 Future<void> _setupFirebaseMessaging() async {
@@ -35,11 +33,6 @@ Future<void> _setupFirebaseMessaging() async {
       alert: true,
       badge: true,
       sound: true,
-    );
-
-    print(
-      'Notification permission: '
-      '${settings.authorizationStatus}',
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
@@ -57,8 +50,6 @@ Future<void> _setupFirebaseMessaging() async {
     for (int i = 0; i < 10; i++) {
       apnsToken = await messaging.getAPNSToken();
 
-      print('Checking APNs Token: $apnsToken');
-
       if (apnsToken != null && apnsToken.isNotEmpty) {
         break;
       }
@@ -69,31 +60,21 @@ Future<void> _setupFirebaseMessaging() async {
     }
 
     if (apnsToken == null || apnsToken.isEmpty) {
-      print('APNs Token is not available');
       return;
     }
-
-    print('APNs Token: $apnsToken');
   }
 
-  final fcmToken = await messaging.getToken();
-  print('FCM Token: $fcmToken');
+  await messaging.getToken();
 
   try {
     await messaging.subscribeToTopic('all');
-    print('Subscribed to topic: all');
   } on FirebaseException catch (e) {
-    print('Firebase Messaging Error: '
-        '${e.code} - ${e.message}');
-
     if (e.code != 'apns-token-not-set') {
       rethrow;
     }
   }
 
-  messaging.onTokenRefresh.listen((token) {
-    print('FCM Token Refreshed: $token');
-  });
+  messaging.onTokenRefresh.listen((token) {});
 }
 
 void main() async {
@@ -121,20 +102,12 @@ void main() async {
 
   // Foreground notification
   FirebaseMessaging.onMessage.listen(
-    (RemoteMessage message) {
-      print('Foreground notification received');
-      print('Title: ${message.notification?.title}');
-      print('Body: ${message.notification?.body}');
-      print('Data: ${message.data}');
-    },
+    (RemoteMessage message) {},
   );
 
   // Notification clicked ketika app background
   FirebaseMessaging.onMessageOpenedApp.listen(
-    (RemoteMessage message) {
-      print('Notification clicked');
-      print('Data: ${message.data}');
-    },
+    (RemoteMessage message) {},
   );
   // Setup permission, APNs, FCM token
   await _setupFirebaseMessaging();
@@ -143,10 +116,7 @@ void main() async {
   final RemoteMessage? initialMessage =
       await FirebaseMessaging.instance.getInitialMessage();
 
-  if (initialMessage != null) {
-    print('App opened from terminated state');
-    print('Data: ${initialMessage.data}');
-  }
+  if (initialMessage != null) {}
 
   setPathUrlStrategy();
   await initializeDateFormatting('en');

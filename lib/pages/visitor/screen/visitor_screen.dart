@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:fl_mhis_hr/library/constant.dart';
 import 'package:fl_mhis_hr/models/v2/visitor.dart';
 import 'package:fl_mhis_hr/pages/visitor/bloc/visitor_bloc.dart';
+import 'package:fl_mhis_hr/pages/visitor/screen/visitor_approval_list_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_detail_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_form_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_invitation_link_form_screen.dart';
 import 'package:fl_mhis_hr/pages/visitor/screen/visitor_invitation_link_list_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -26,13 +27,14 @@ class VisitorScreen extends StatefulWidget {
 class _VisitorScreenState extends State<VisitorScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(
-    length: 3,
+    length: 4,
     initialIndex:
-        widget.initialTab >= 0 && widget.initialTab < 3 ? widget.initialTab : 0,
+        widget.initialTab >= 0 && widget.initialTab < 4 ? widget.initialTab : 0,
     vsync: this,
   );
   final _invitations = GlobalKey<_VisitListState>();
   final _monitoring = GlobalKey<_VisitListState>();
+  final _approvals = GlobalKey<VisitorApprovalListScreenState>();
   final _invitationLinks = GlobalKey<VisitorInvitationLinkListScreenState>();
 
   @override
@@ -44,6 +46,7 @@ class _VisitorScreenState extends State<VisitorScreen>
   void _refreshLists() {
     _invitations.currentState?.reload();
     _monitoring.currentState?.reload();
+    _approvals.currentState?.reload();
     _invitationLinks.currentState?.reload();
   }
 
@@ -142,7 +145,7 @@ class _VisitorScreenState extends State<VisitorScreen>
                                   fontSize: 24,
                                   fontWeight: FontWeight.w700)),
                           SizedBox(height: 4),
-                          Text('View invitations and monitoring',
+                          Text('View invitations, monitoring and approvals',
                               style: TextStyle(color: Colors.white)),
                         ],
                       ),
@@ -160,6 +163,9 @@ class _VisitorScreenState extends State<VisitorScreen>
                   ),
                   child: TabBar(
                     controller: _tabs,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    labelPadding: const EdgeInsets.symmetric(horizontal: 14),
                     labelColor: Colors.white,
                     unselectedLabelColor: AppColors.danger,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
@@ -173,6 +179,7 @@ class _VisitorScreenState extends State<VisitorScreen>
                       Tab(text: 'Invitations'),
                       Tab(text: 'Monitoring'),
                       Tab(text: 'Links'),
+                      Tab(text: 'Approval'),
                     ],
                   ),
                 ),
@@ -187,6 +194,7 @@ class _VisitorScreenState extends State<VisitorScreen>
                         type: VisitorListType.monitoring,
                         onChanged: _refreshLists),
                     VisitorInvitationLinkListScreen(key: _invitationLinks),
+                    VisitorApprovalListScreen(key: _approvals),
                   ]),
                 ),
               ],
@@ -277,6 +285,7 @@ class _VisitList extends StatefulWidget {
 class _VisitListState extends State<_VisitList>
     with AutomaticKeepAliveClientMixin {
   final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   Timer? _searchDebounce;
   DateTimeRange? _dateRange;
 
@@ -293,6 +302,7 @@ class _VisitListState extends State<_VisitList>
   void dispose() {
     _searchDebounce?.cancel();
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -401,6 +411,8 @@ class _VisitListState extends State<_VisitList>
         children: [
           TextField(
             controller: _searchController,
+            focusNode: _searchFocusNode,
+            onTapOutside: (_) => _searchFocusNode.unfocus(),
             onChanged: _onSearchChanged,
             onSubmitted: (_) {
               _searchDebounce?.cancel();
@@ -417,6 +429,7 @@ class _VisitListState extends State<_VisitList>
                       tooltip: 'Clear search',
                       onPressed: () {
                         _searchController.clear();
+                        _searchFocusNode.unfocus();
                         setState(() {});
                         _applyFilters();
                       },

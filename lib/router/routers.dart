@@ -4,7 +4,7 @@ import 'package:fl_mhis_hr/pages/bottom_menu.dart';
 import 'package:fl_mhis_hr/pages/login/screen/forgot_password_screen.dart';
 import 'package:fl_mhis_hr/pages/login/screen/inactive_account_screen.dart';
 import 'package:fl_mhis_hr/pages/pages.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 final NavigationService _nav = locator<NavigationService>();

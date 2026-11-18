@@ -191,7 +191,9 @@ class Visit {
 
   factory Visit.fromJson(Map<String, dynamic> json) {
     final visitor = json['visitor'] as Map<String, dynamic>;
-    final host = json['host'] as Map<String, dynamic>;
+    final host = json['host'] is Map<String, dynamic>
+        ? json['host'] as Map<String, dynamic>
+        : const <String, dynamic>{};
     final attachments = <VisitorMedia>[];
     final attachmentUrls = <String>{};
 
@@ -277,15 +279,20 @@ class Visit {
     addMediaFields(json);
     addMediaFields(visitor);
 
-    String name(String key) =>
-        (json[key] as Map<String, dynamic>)['name'] as String;
+    String name(String key) {
+      final value = json[key];
+      return value is Map<String, dynamic>
+          ? value['name'] as String? ?? ''
+          : '';
+    }
+
     return Visit(
       id: json['id'] as int,
       code: json['visit_code'] as String,
       status: json['status'] as String,
       date: json['visit_date'] as String,
       visitor: visitor['full_name'] as String,
-      host: host['name'] as String,
+      host: host['name'] as String? ?? '',
       branch: name('branch'),
       category: name('category'),
       purpose: name('purpose'),
@@ -310,6 +317,23 @@ class Visit {
   final String? arrival, departure, checkIn, checkOut, phone, email, company;
   final String? notes, cancellationReason, registrationMethod;
   final List<VisitorMedia> attachments;
+}
+
+class VisitorHomeVisits {
+  const VisitorHomeVisits({this.invitation, this.monitoring});
+
+  factory VisitorHomeVisits.fromJson(Map<String, dynamic> json) =>
+      VisitorHomeVisits(
+        invitation: json['invitation'] is Map<String, dynamic>
+            ? Visit.fromJson(json['invitation'] as Map<String, dynamic>)
+            : null,
+        monitoring: json['monitoring'] is Map<String, dynamic>
+            ? Visit.fromJson(json['monitoring'] as Map<String, dynamic>)
+            : null,
+      );
+
+  final Visit? invitation;
+  final Visit? monitoring;
 }
 
 class VisitorAttachment {
